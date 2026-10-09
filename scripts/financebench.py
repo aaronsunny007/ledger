@@ -33,9 +33,11 @@ GITHUB_JSONL = (
     "financebench_open_source.jsonl"
 )
 
+# The whole answer must be one number with optional currency, sign, percent,
+# scale word and "USD": "$1,577.00", "(0.25)", "8.5%", "$1.2 billion".
 _NUM = re.compile(
-    r"^[^\d\-($]*(\(?-?\$?[\d,]+(?:\.\d+)?\)?)\s*(%|percent)?\s*"
-    r"(?:(thousand|million|billion|trillion)\b)?",
+    r"(?:USD\s*)?(\(?-?\$?\s?\d[\d,]*(?:\.\d+)?\)?)\s*(%|percent)?\s*"
+    r"(thousand|million|billion|trillion)?\s*(?:USD|dollars)?\s*\.?",
     re.IGNORECASE,
 )
 _SCALE = {"thousand": 1e3, "million": 1e6, "billion": 1e9, "trillion": 1e12}
@@ -78,12 +80,15 @@ def parse_numeric(answer: str) -> tuple[float | None, str]:
     text = answer.strip()
     if len(text) > 40:
         return None, ""
-    m = _NUM.match(text)
+    m = _NUM.fullmatch(text)
     if not m:
         return None, ""
     raw = m.group(1)
     neg = raw.startswith("(") or raw.startswith("-")
-    value = float(re.sub(r"[^\d.]", "", raw))
+    try:
+        value = float(re.sub(r"[^\d.]", "", raw))
+    except ValueError:
+        return None, ""
     if m.group(2):
         return (-value if neg else value), "percent"
     value *= _SCALE.get((m.group(3) or "").lower(), 1.0)

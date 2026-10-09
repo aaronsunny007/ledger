@@ -175,6 +175,8 @@ def test_committed_golden_files_are_valid() -> None:
         ("$1.2 billion", 1.2e9, "usd"),
         ("-0.02", -0.02, ""),
         ("Yes, because the company has strong liquidity", None, ""),
+        (", 1.2", None, ""),
+        ("No. 3M is not capital-intensive", None, ""),
     ],
 )
 def test_financebench_answer_parsing(answer: str, value: float | None, unit: str) -> None:
