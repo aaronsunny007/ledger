@@ -4,7 +4,7 @@ name: build-golden
 # set from public data and commits it: the FinanceBench open set from
 # Hugging Face and XBRL-generated numeric questions from SEC EDGAR.
 # SEC asks for a contact in the User-Agent: set the SEC_USER_AGENT secret
-# ("Your Name your@email.com"); without it the repo owner's GitHub noreply address is used.
+# ("Your Name your@email.com"); without it the owner's contact below is used.
 
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Ledger research {0}@users.noreply.github.com', github.repository_owner) }}
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'Aaron Gandi aarongandi007@gmail.com' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
