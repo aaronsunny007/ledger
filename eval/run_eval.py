@@ -76,6 +76,11 @@ def main() -> int:
     p.add_argument("--sleep", type=float, default=0.0, help="seconds between questions")
     p.add_argument("--gate", action="store_true", help="fail on regression vs baseline")
     p.add_argument("--write-baseline", action="store_true")
+    p.add_argument(
+        "--print-needs",
+        action="store_true",
+        help="print the TICKER YEAR filings the selected items need, then exit",
+    )
     p.add_argument("--summary", type=Path, help="write a markdown summary here (CI)")
     args = p.parse_args()
 
@@ -87,6 +92,12 @@ def main() -> int:
     if not items:
         print("No golden items selected. Build them first (see eval/README.md).")
         return 1
+    if args.print_needs:
+        for ticker, year in sorted(
+            {(i.ticker, i.fiscal_year) for i in items if i.ticker and i.fiscal_year}
+        ):
+            print(ticker, year)
+        return 0
 
     from ledger.factory import build_ledger, build_llms
 

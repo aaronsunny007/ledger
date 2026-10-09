@@ -154,7 +154,8 @@ class OllamaLLM(_HttpLLM):
                 "model": self.model,
                 "stream": False,
                 "format": "json",
-                "options": {"temperature": 0},
+                # Ollama's default context (2-4k tokens) would silently cut passages off.
+                "options": {"temperature": 0, "num_ctx": 8192},
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},

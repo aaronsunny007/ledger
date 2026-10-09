@@ -66,16 +66,16 @@ jobs:
       LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'gemini' }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Ledger research {0}@users.noreply.github.com', github.repository_owner) }}
     steps:
       - uses: actions/checkout@v4
       - name: Check prerequisites
         id: pre
         run: |
-          if [ -z "$GEMINI_API_KEY$GROQ_API_KEY" ] || [ -z "$SEC_USER_AGENT" ] \
+          if [ -z "$GEMINI_API_KEY$GROQ_API_KEY" ] \
              || ! ls eval/golden/financebench.jsonl eval/golden/xbrl.jsonl >/dev/null 2>&1; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Smoke eval skipped: needs GEMINI_API_KEY or GROQ_API_KEY, SEC_USER_AGENT and a built golden set (run the build-golden workflow)." >> "$GITHUB_STEP_SUMMARY"
+            echo "Smoke eval skipped: needs a GEMINI_API_KEY or GROQ_API_KEY secret and a built golden set (run the build-golden workflow)." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi

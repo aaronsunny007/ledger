@@ -1,0 +1,94 @@
+name: first-answers
+
+# Week 3's "dumbest end-to-end version", run on GitHub's machines instead of a
+# laptop: download the 10-Ks that N FinanceBench dev questions need, index
+# them, answer a few example questions, run the N-question eval and commit
+# the result as the first baseline.
+#
+# Uses Gemini or Groq when a GEMINI_API_KEY / GROQ_API_KEY secret exists;
+# otherwise runs a free local model with Ollama on the runner (slower, no key).
+
+on:
+  workflow_dispatch:
+    inputs:
+      n:
+        description: number of FinanceBench dev questions
+        default: "20"
+      ollama_model:
+        description: model used when no API key secret is set
+        default: qwen2.5:7b-instruct
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'gemini' }}
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Ledger research {0}@users.noreply.github.com', github.repository_owner) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (CPU torch)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install -e ".[models]"
+      - name: Choose model
+        run: |
+          if [ -n "$GEMINI_API_KEY" ]; then echo "LLM_PROVIDER=gemini" >> "$GITHUB_ENV"; SLEEP=4
+          elif [ -n "$GROQ_API_KEY" ]; then echo "LLM_PROVIDER=groq" >> "$GITHUB_ENV"; SLEEP=3
+          else
+            curl -fsSL https://ollama.com/install.sh | sh
+            (ollama serve > /tmp/ollama.log 2>&1 &) ; sleep 5
+            ollama pull "${{ inputs.ollama_model }}"
+            echo "LLM_PROVIDER=ollama" >> "$GITHUB_ENV"
+            echo "LLM_MODEL=${{ inputs.ollama_model }}" >> "$GITHUB_ENV"
+            echo "LLM_MODEL_LARGE=${{ inputs.ollama_model }}" >> "$GITHUB_ENV"
+            SLEEP=0
+          fi
+          echo "EVAL_SLEEP=$SLEEP" >> "$GITHUB_ENV"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            data/raw
+            data/processed
+            ~/.cache/huggingface
+          key: first-answers-${{ inputs.n }}-${{ hashFiles('configs/**', 'ledger/ingest/**') }}
+      - name: FinanceBench golden set
+        run: test -f eval/golden/financebench.jsonl || python scripts/financebench.py
+      - name: Download the filings those questions need
+        run: |
+          python eval/run_eval.py --split dev --sources financebench --limit ${{ inputs.n }} --print-needs | tee needs.txt
+          while read -r t y; do ledger download --tickers "$t" --years "$y"; done < needs.txt
+      - name: Index
+        run: ledger ingest
+      - name: Example answers
+        run: |
+          echo '### Example answers' >> "$GITHUB_STEP_SUMMARY"
+          head -n 3 needs.txt | while read -r t y; do
+            q="What was the total revenue of $t in fiscal year $y?"
+            echo "**Q:** $q" >> "$GITHUB_STEP_SUMMARY"
+            ledger ask "$q" 2>/dev/null | python -c "import json,sys; a=json.load(sys.stdin); print('**A:**', a['answer'], '| verified:', a['verified'], '| refused:', a['refused'], '| latency:', a['latency_ms'], 'ms'); [print(f\"- [{c['n']}] {c['source_url']}\") for c in a['citations']]" >> "$GITHUB_STEP_SUMMARY" || echo "(failed)" >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Baseline eval
+        run: |
+          python eval/run_eval.py --split dev --sources financebench --limit ${{ inputs.n }} \
+            --tag baseline-week3 --sleep "$EVAL_SLEEP" --summary baseline.md
+          echo '### Baseline' >> "$GITHUB_STEP_SUMMARY"
+          cat baseline.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name "ledger-eval-bot"
+          git config user.email "ledger-eval-bot@users.noreply.github.com"
+          git add eval/results eval/golden
+          git commit -m "eval: first baseline on ${{ inputs.n }} FinanceBench dev questions" || exit 0
+          git push
