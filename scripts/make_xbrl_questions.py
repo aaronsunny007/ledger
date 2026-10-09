@@ -183,6 +183,8 @@ def main() -> None:
     look = [i for i in pool if "needs-arithmetic" not in i.tags]
     chosen = arith[: args.n // 2] + look[: args.n - min(len(arith), args.n // 2)]
     chosen.sort(key=lambda i: i.id)
+    if not chosen:
+        sys.exit("No XBRL questions generated: every SEC request failed (see errors above).")
     n = write_golden(args.out, chosen)
     print(f"wrote {n} XBRL questions to {args.out.relative_to(ROOT)} (pool {len(pool)})")
 

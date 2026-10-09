@@ -32,6 +32,14 @@ jobs:
         run: |
           python scripts/financebench.py --list | tee financebench-needs.txt
           python scripts/financebench.py
+      - name: SEC access check
+        run: |
+          for url in https://www.sec.gov/files/company_tickers.json \
+                     https://data.sec.gov/submissions/CIK0000320193.json; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: $SEC_USER_AGENT" \
+                   -H "Accept-Encoding: gzip, deflate" "$url")
+            echo "$code $url" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
       - name: XBRL questions
         run: python scripts/make_xbrl_questions.py --n ${{ inputs.xbrl_n }}
       - name: Summary
