@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ledger"
+version = "0.1.0"
+description = "Cited, arithmetic-verified answers over company annual reports, with a measured eval."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+authors = [{ name = "Aaron Prakash Gandi" }]
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "fastapi>=0.115",
+    "httpx>=0.27",
+    "lxml>=5.2",
+    "numpy>=1.26",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "pyyaml>=6.0",
+    "uvicorn>=0.30",
+]
+
+[project.optional-dependencies]
+# Open-source embedding + reranking models that run on a laptop CPU (free).
+models = ["sentence-transformers>=3.0"]
+# Postgres + pgvector store (docker compose, Neon or Supabase free tier).
+postgres = ["psycopg[binary]>=3.2", "pgvector>=0.3"]
+# PDF parsing for the generic folder loader (ING-6).
+pdf = ["pypdf>=4.2"]
+# Langfuse tracing (free cloud tier).
+tracing = ["langfuse>=2.50,<3"]
+ui = ["streamlit>=1.37"]
+dev = [
+    "mypy>=1.11",
+    "pre-commit>=3.7",
+    "pytest>=8.2",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "types-PyYAML",
+]
+
+[project.scripts]
+ledger = "ledger.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ledger"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["ledger"]
+
+[[tool.mypy.overrides]]
+module = ["sentence_transformers.*", "pgvector.*", "psycopg.*", "pypdf.*", "langfuse.*", "streamlit.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["ledger"]
+# LLM / network / optional-model adapters are exercised by the eval, not unit tests.
+omit = ["ledger/answer/llm.py", "ledger/retrieve/models.py", "ledger/retrieve/pgstore.py",
+        "ledger/obs/langfuse_sink.py", "ledger/cli.py"]
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true

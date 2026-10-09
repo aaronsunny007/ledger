@@ -1,0 +1,38 @@
+# Secrets: never commit (SEC-1)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Data: downloaded filings, indexes, traces (rebuildable)
+data/raw/
+data/processed/
+data/traces/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!example.tfvars
