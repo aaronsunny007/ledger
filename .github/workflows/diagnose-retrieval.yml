@@ -1,0 +1,57 @@
+name: diagnose-retrieval
+
+# No LLM: checks whether the gold evidence is in the index at all, and where
+# retrieval ranks it, for N FinanceBench dev questions. Commits a markdown
+# report to eval/results/. Reuses the index cached by first-answers.
+
+on:
+  workflow_dispatch:
+    inputs:
+      n:
+        description: number of FinanceBench dev questions
+        default: "20"
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'Aaron Gandi aarongandi007@gmail.com' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (CPU torch)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install -e ".[models]"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            data/raw
+            data/processed
+            ~/.cache/huggingface
+          key: first-answers-${{ inputs.n }}-${{ hashFiles('configs/**', 'ledger/ingest/**') }}
+          restore-keys: first-answers-${{ inputs.n }}-
+      - name: Download and index (skipped when cached)
+        run: |
+          python eval/run_eval.py --split dev --sources financebench --limit ${{ inputs.n }} --print-needs > needs.txt
+          while read -r t y; do ledger download --tickers "$t" --years "$y"; done < needs.txt
+          ledger ingest
+      - name: Diagnose
+        run: |
+          python eval/diagnose_retrieval.py --split dev --limit ${{ inputs.n }}
+          cat eval/results/*-diagnose.md | head -40 >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit report
+        run: |
+          git config user.name "ledger-eval-bot"
+          git config user.email "ledger-eval-bot@users.noreply.github.com"
+          git add eval/results
+          git commit -m "eval: retrieval diagnosis on ${{ inputs.n }} FinanceBench dev questions" || exit 0
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push

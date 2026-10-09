@@ -45,6 +45,17 @@ def _content_tokens(text: str) -> set[str]:
     return {t for t in _WORD.findall(text.lower()) if len(t) > 2 or t.isdigit()}
 
 
+def evidence_overlap(text: str, item: GoldenItem) -> float:
+    """Largest share of any gold evidence passage's content tokens found in ``text``."""
+    tokens = _content_tokens(text)
+    best = 0.0
+    for e in item.evidence:
+        ev = _content_tokens(e.text)
+        if ev:
+            best = max(best, len(ev & tokens) / len(ev))
+    return best
+
+
 def evidence_hit(chunk: Chunk, item: GoldenItem, threshold: float = 0.5) -> bool:
     """Does this retrieved chunk contain the gold evidence?
 
@@ -55,12 +66,7 @@ def evidence_hit(chunk: Chunk, item: GoldenItem, threshold: float = 0.5) -> bool
     when the chunk is from the right filing and states the gold value.
     """
     if item.evidence and any(e.text for e in item.evidence):
-        chunk_tokens = _content_tokens(chunk.text)
-        for e in item.evidence:
-            ev = _content_tokens(e.text)
-            if ev and len(ev & chunk_tokens) / len(ev) >= threshold:
-                return True
-        return False
+        return evidence_overlap(chunk.text, item) >= threshold
     if item.value is not None and item.ticker:
         if chunk.ticker != item.ticker or chunk.fiscal_year != item.fiscal_year:
             return False
