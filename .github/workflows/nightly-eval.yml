@@ -58,4 +58,5 @@ jobs:
           git config user.email "ledger-eval-bot@users.noreply.github.com"
           git add eval/results
           git commit -m "eval: nightly results $(date -u +%F) [skip ci]" || exit 0
+          git pull --rebase origin "$GITHUB_REF_NAME"
           git push
