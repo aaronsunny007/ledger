@@ -1,0 +1,41 @@
+# docker compose up            -> Postgres + pgvector, API on :8000, UI on :8501
+# docker compose run --rm api ledger download && docker compose run --rm api ledger ingest
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ledger
+      POSTGRES_PASSWORD: ledger
+      POSTGRES_DB: ledger
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledger"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      STORE: postgres
+      DATABASE_URL: postgresql://ledger:ledger@db:5432/ledger
+    ports: ["8000:8000"]
+    volumes:
+      - ./data:/app/data
+      - hf-cache:/app/.cache/huggingface
+    depends_on:
+      db: {condition: service_healthy}
+
+  ui:
+    build: .
+    command: ["streamlit", "run", "ui/streamlit_app.py", "--server.address=0.0.0.0"]
+    environment:
+      LEDGER_API: http://api:8000
+    ports: ["8501:8501"]
+    volumes: [./data:/app/data]
+    depends_on: [api]
+
+volumes:
+  pgdata:
+  hf-cache:
