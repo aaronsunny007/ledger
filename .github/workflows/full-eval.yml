@@ -1,0 +1,102 @@
+name: full-eval
+
+# The headline numbers: Ledger on the full test split (FinanceBench 10-K,
+# XBRL and hand-written questions, text answers graded by the LLM judge),
+# and the long-context baseline (whole filing, no retrieval) on the same
+# questions. Needs the GEMINI_API_KEY secret (or GROQ_API_KEY with the
+# repository variable LLM_PROVIDER=groq). Results are committed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      split:
+        description: dev | test | all
+        default: test
+      baseline:
+        description: also run the long-context baseline
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+env:
+  LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'gemini' }}
+  LLM_MODEL: ${{ vars.LLM_MODEL }}
+  LLM_MODEL_LARGE: ${{ vars.LLM_MODEL_LARGE }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+  SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'Aaron Gandi aarongandi007@gmail.com' }}
+  LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+  LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the API key
+        run: |
+          if [ -z "$GEMINI_API_KEY$GROQ_API_KEY" ]; then
+            echo "::error::Add a GEMINI_API_KEY secret (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+          if [ "$LLM_PROVIDER" = gemini ]; then
+            model="${LLM_MODEL:-gemini-2.5-flash-lite}"
+            code=$(curl -s -o probe.json -w "%{http_code}" \
+              -H "x-goog-api-key: $GEMINI_API_KEY" -H "Content-Type: application/json" \
+              -d '{"contents":[{"parts":[{"text":"Reply with OK"}]}]}' \
+              "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent")
+            echo "Gemini $model -> HTTP $code"
+            if [ "$code" != 200 ]; then
+              grep -o '"message": *"[^"]*"' probe.json || true
+              echo "::error::Gemini key or model rejected (HTTP $code). Set the LLM_MODEL variable to a current model if this one was retired."
+              exit 1
+            fi
+          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (CPU torch)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install -e ".[models,tracing]"
+      - uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: raw-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/edgar.py') }}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            data/processed
+            ~/.cache/huggingface
+          key: index-table-${{ hashFiles('eval/golden/**', 'configs/**', 'ledger/ingest/**') }}
+      - name: Download and index (skipped when cached)
+        run: |
+          python eval/run_eval.py --split all --sources financebench xbrl --print-needs > needs.txt
+          awk '{y[$1]=y[$1]" "$2} END {for (t in y) print t y[t]}' needs.txt | while read -r t ys; do
+            ledger download --tickers "$t" --years $ys
+          done
+          ledger ingest | tail -5
+      - name: Ledger
+        run: |
+          python eval/run_eval.py --split ${{ inputs.split }} --judge --sleep 4 \
+            --tag ledger-${{ inputs.split }} --summary ledger.md
+          cat ledger.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Long-context baseline
+        if: inputs.baseline
+        run: |
+          python eval/run_eval.py --system long-context --split ${{ inputs.split }} --judge \
+            --sleep 15 --tag long-context-${{ inputs.split }} --summary baseline.md
+          cat baseline.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name "ledger-eval-bot"
+          git config user.email "ledger-eval-bot@users.noreply.github.com"
+          git add eval/results
+          git commit -m "eval: full ${{ inputs.split }} run" || exit 0
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push
