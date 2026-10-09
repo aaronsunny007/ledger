@@ -201,7 +201,10 @@ def download_filings(
         wanted.discard(filing.fiscal_year)  # newest first; skip amendments of the same year
         dest = raw_dir / filing.ticker / str(filing.fiscal_year)
         html_path = dest / "filing.htm"
-        if html_path.exists():
+        meta_path = dest / "meta.json"
+        # Filings saved before exhibits were fetched have no "exhibits" key.
+        current = meta_path.exists() and "exhibits" in json.loads(meta_path.read_text())
+        if html_path.exists() and current:
             log.info("skip %s (already downloaded)", filing.doc_id)
         else:
             dest.mkdir(parents=True, exist_ok=True)
@@ -222,7 +225,7 @@ def download_filings(
                 "doc_id": filing.doc_id,
                 "exhibits": exhibits,
             }
-            (dest / "meta.json").write_text(json.dumps(meta, indent=2))
+            meta_path.write_text(json.dumps(meta, indent=2))
             log.info("saved %s", filing.doc_id)
         saved.append(html_path)
     if wanted:
