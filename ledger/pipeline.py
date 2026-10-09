@@ -48,7 +48,7 @@ class Ledger:
     cache: SemanticCache | None = None
     tracer: Tracer = field(default_factory=Tracer)
     large_llm: LLM | None = None  # COST-1: used for the regeneration attempt
-    max_question_chars: int = 500
+    max_question_chars: int = 1000
 
     # -- helpers -----------------------------------------------------------
 

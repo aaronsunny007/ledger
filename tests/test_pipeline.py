@@ -99,7 +99,7 @@ def test_passages_are_marked_as_untrusted_data(make_ledger: Make) -> None:
 def test_question_length_limit(make_ledger: Make) -> None:
     ledger, _ = make_ledger(lambda s, u: "{}")
     with pytest.raises(QuestionTooLong):
-        ledger.ask("x" * 600)
+        ledger.ask("x" * 1200)
 
 
 def test_cache_hits_same_company_and_year_only(make_ledger: Make) -> None:

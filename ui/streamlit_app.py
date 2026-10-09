@@ -125,7 +125,7 @@ with tab_ask:
         st.caption("Not investment advice. Answers come only from ingested 10-K filings.")
 
     example = st.selectbox("Try an example", ["", *EXAMPLES])
-    question = st.text_input("Question", value=example, max_chars=500)
+    question = st.text_input("Question", value=example, max_chars=1000)
     if st.button("Ask", type="primary") and question:
         with st.spinner("Searching, drafting and verifying…"):
             try:

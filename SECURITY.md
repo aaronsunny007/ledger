@@ -16,7 +16,7 @@ tab) rather than in a public issue.
   which limits what an injected instruction can make the answer say.
 - **No `eval()` on model output.** Calculations are parsed into a syntax tree and evaluated with
   an allow-list of numbers, `+ - * /` and parentheses, with a length cap.
-- **Abuse limits (SEC-3, COST-3).** Questions are capped at 500 characters, each IP is
+- **Abuse limits (SEC-3, COST-3).** Questions are capped at 1,000 characters, each IP is
   rate-limited (10 requests/minute by default) and the public demo has a hard daily spend cap.
 - **Data kept.** Request logs hold the question, timings, cost and a random request ID. No
   account, name or IP address is stored.

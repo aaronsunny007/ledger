@@ -35,6 +35,18 @@ Filled in by `make eval`; every number links to a committed JSON in `eval/result
 | Long-context baseline (whole filing) | – | – | – | – | – | – |
 | Target (PRF) | ≥ 70% | ≥ 90% | ≥ 85% | ≥ 90% | ≤ 4 s / ≤ 10 s | ≤ $0.02 |
 
+### Baseline log
+
+| Date | Run | Setup | Numeric accuracy | False refusals | Recall@6 | Groundedness | p50 latency |
+|---|---|---|---|---|---|---|---|
+| 2026-10-09 | [week-3 baseline](eval/results/20261009T170958-baseline-week3.json) | 20 FinanceBench dev questions, Qwen2.5-7B on a GitHub CPU runner (Ollama), bge-small + bge-reranker-base | **0 / 16** | 79% | 16% | 75% | 128 s |
+
+What failed: the model refused 15 of 19 answerable questions, and the passages it was given rarely
+contained the evidence (recall@6 of 16%). Both FinanceBench and Financial-NRF showed that small
+local models struggle with this. The next runs separate the two causes: the same questions with
+`--oracle-filters`, then a stronger free-tier model (Gemini), and then the retrieval experiments
+below.
+
 Experiments to report here: chunking (fixed 512 / fixed 1024 / section / table), retrieval
 (vector / keyword / hybrid / hybrid + rerank), verifier on vs off, cache hit vs false-hit rate.
 **What failed** will be listed here too.

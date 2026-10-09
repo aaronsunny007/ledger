@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     daily_spend_cap_usd: float = 1.0  # COST-3
     rate_limit_per_minute: int = 10  # COST-3, per IP
-    max_question_chars: int = 500  # SEC-3
+    max_question_chars: int = 1000  # SEC-3; FinanceBench questions run to ~700
 
     retrieval_config: Path = ROOT / "configs" / "retrieval.yaml"
 
