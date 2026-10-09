@@ -22,7 +22,7 @@ from ledger.evaluation.metrics import (
     score_item,
 )
 from ledger.types import Answer, Chunk, Claim
-from scripts.financebench import parse_numeric
+from scripts.financebench import doc_type_and_year, parse_numeric
 
 
 @pytest.mark.parametrize(
@@ -182,3 +182,19 @@ def test_committed_golden_files_are_valid() -> None:
 def test_financebench_answer_parsing(answer: str, value: float | None, unit: str) -> None:
     v, u = parse_numeric(answer)
     assert (v == pytest.approx(value) if value is not None else v is None) and u == unit
+
+
+@pytest.mark.parametrize(
+    ("row", "expected"),
+    [
+        ({"doc_type": "10k", "doc_period": 2018}, ("10k", 2018)),
+        ({"doc_name": "3M_2018_10K"}, ("10k", 2018)),
+        ({"doc_name": "AMCOR_2023Q2_10Q"}, ("10q", 2023)),
+        ({"doc_name": "PEPSICO_2023_8K_dated-2023-05-30"}, ("8k", 2023)),
+        ({"doc_name": "nothing"}, ("", None)),
+    ],
+)
+def test_financebench_doc_type_and_year(
+    row: dict[str, object], expected: tuple[str, int | None]
+) -> None:
+    assert doc_type_and_year(row) == expected

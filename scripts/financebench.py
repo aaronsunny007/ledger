@@ -96,6 +96,27 @@ def parse_numeric(answer: str) -> tuple[float | None, str]:
     return (-value if neg else value), unit
 
 
+_DOC_NAME = re.compile(r"_(\d{4})(?:_?Q\d)?_(10K|10Q|8K|EARNINGS)", re.IGNORECASE)
+
+
+def doc_type_and_year(row: dict[str, object]) -> tuple[str, int | None]:
+    """From doc_type / doc_period, falling back to the doc name ("3M_2018_10K").
+
+    Mirrors of the dataset do not all carry doc_period, so the name is the
+    reliable source.
+    """
+    doc_type = str(row.get("doc_type") or "").lower()
+    try:
+        year: int | None = int(str(row.get("doc_period")))
+    except ValueError:
+        year = None
+    m = _DOC_NAME.search(str(row.get("doc_name") or ""))
+    if m:
+        year = year or int(m.group(1))
+        doc_type = doc_type or m.group(2).lower()
+    return doc_type, year
+
+
 def convert(
     rows: list[dict[str, object]], registry: CompanyRegistry
 ) -> tuple[list[GoldenItem], list[str]]:
@@ -105,11 +126,7 @@ def convert(
         tickers = registry.find(company)
         if not tickers:
             unmapped.append(company)
-        doc_type = str(row.get("doc_type", "")).lower()
-        try:
-            year = int(str(row.get("doc_period", "")))
-        except ValueError:
-            year = None
+        doc_type, year = doc_type_and_year(row)
         answer = str(row.get("answer", ""))
         value, unit = parse_numeric(answer)
         tags = [str(row.get("question_type", "")).lower().replace(" ", "-")]
@@ -174,6 +191,9 @@ def main() -> None:
             print("\nAdd these to configs/corpus.yaml (no ticker match):", ", ".join(unmapped))
         return
 
+    missing = sum(1 for i in items if i.fiscal_year is None)
+    if missing > len(items) // 10:
+        sys.exit(f"{missing} of {len(items)} questions have no fiscal year; the source changed.")
     n = write_golden(args.out, items)
     print(
         f"wrote {n} items to {args.out.relative_to(ROOT)} "

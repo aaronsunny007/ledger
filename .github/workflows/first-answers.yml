@@ -67,8 +67,11 @@ jobs:
         run: |
           python eval/run_eval.py --split dev --sources financebench --limit ${{ inputs.n }} --print-needs | tee needs.txt
           while read -r t y; do ledger download --tickers "$t" --years "$y"; done < needs.txt
+          test -s needs.txt || { echo "::error::No filings needed: golden items lack ticker/year"; exit 1; }
       - name: Index
-        run: ledger ingest
+        run: |
+          ledger ingest | tee ingest.json
+          python -c "import json; r=json.load(open('ingest.json')); assert r['indexed'] or r['skipped'], 'nothing indexed'"
       - name: Example answers
         run: |
           echo '### Example answers' >> "$GITHUB_STEP_SUMMARY"
