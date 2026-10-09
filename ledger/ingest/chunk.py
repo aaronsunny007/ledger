@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from ledger.ingest.parse import Block, ParsedDoc
+from ledger.ingest.statements import classify_statements
 from ledger.types import Chunk
 
 
@@ -67,6 +68,7 @@ def _make(meta: DocMeta, i: int, text: str, block: Block, is_table: bool = False
         source_url=meta.source_url,
         doc_id=meta.doc_id,
         is_table=is_table,
+        statement=block.statement,
     )
 
 
@@ -121,7 +123,10 @@ class SectionChunker:
 
 
 class TableAwareChunker(SectionChunker):
-    name = "table"
+    # v2: primary statements tagged and kept whole. The name is recorded in the
+    # ingest manifest, so changing it re-indexes filings built the old way.
+    name = "table-v2"
+    statement_size = 6000
 
     def _table_chunks(self, table: Block, intro: str) -> list[str]:
         header = f"[{table.section}]"
@@ -132,7 +137,10 @@ class TableAwareChunker(SectionChunker):
         rows = table.text.split("\n")
         # The first row or two usually hold the column years; repeat them.
         head_rows = rows[:2] if len(rows) > 2 else rows[:1]
-        budget = max(self.size - len(header) - sum(len(r) + 1 for r in head_rows), 200)
+        # A primary statement stays in one piece unless it is very long, so the
+        # model sees every line item of the balance sheet together.
+        size = max(self.size, self.statement_size) if table.statement else self.size
+        budget = max(size - len(header) - sum(len(r) + 1 for r in head_rows), 200)
         pieces: list[list[str]] = []
         current: list[str] = []
         used = 0
@@ -147,6 +155,7 @@ class TableAwareChunker(SectionChunker):
         return ["\n".join([header, *head_rows, *p]) for p in pieces]
 
     def chunk(self, doc: ParsedDoc, meta: DocMeta) -> list[Chunk]:
+        classify_statements(doc)
         out: list[Chunk] = []
         prose: list[Block] = []
 

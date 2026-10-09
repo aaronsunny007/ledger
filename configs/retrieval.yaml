@@ -15,11 +15,13 @@ retrieval:
   reranker: BAAI/bge-reranker-base  # v2-m3 is the measured alternative (ADR-004)
   top_k: 6             # passages given to the model (RET-3: 5-8)
   min_score: 0.0       # refuse below this rerank score; tune on the dev split
+  pin_statements: true # always include the balance sheet / income / cash flow a question needs
+  latest_year_only: true # several years named -> latest filing (it holds the comparatives)
 
 answer:
   verify: true
   regenerate_on_failure: true
-  max_context_chars: 12000
+  max_context_chars: 24000
 
 cache:
   enabled: true

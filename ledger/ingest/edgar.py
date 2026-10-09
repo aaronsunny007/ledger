@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from bs4 import BeautifulSoup
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +46,11 @@ class Filing:
         return f"{SEC_WWW}/Archives/edgar/data/{self.cik}/{acc}/{self.primary_document}"
 
     @property
+    def index_url(self) -> str:
+        acc = self.accession.replace("-", "")
+        return f"{SEC_WWW}/Archives/edgar/data/{self.cik}/{acc}/{self.accession}-index.htm"
+
+    @property
     def doc_id(self) -> str:
         return f"{self.ticker}_{self.fiscal_year}_{self.form.replace('-', '')}"
 
@@ -56,6 +62,7 @@ class EdgarClient:
         min_interval_s: float = 0.125,
         transport: httpx.BaseTransport | None = None,
         max_retries: int = 4,
+        cik_overrides: dict[str, int] | None = None,
     ):
         if "@" not in user_agent:
             raise ValueError("SEC requires a contact email in the User-Agent (SEC_USER_AGENT).")
@@ -69,6 +76,9 @@ class EdgarClient:
         self._last = 0.0
         self._max_retries = max_retries
         self._tickers: dict[str, tuple[int, str]] | None = None
+        # Delisted or renamed companies (ATVI, SQ) are missing from the
+        # current ticker list but still have their filings under their CIK.
+        self._overrides = {t.upper(): c for t, c in (cik_overrides or {}).items()}
 
     def get(self, url: str) -> httpx.Response:
         for attempt in range(self._max_retries + 1):
@@ -91,6 +101,8 @@ class EdgarClient:
 
     def lookup(self, ticker: str) -> tuple[int, str]:
         """Ticker -> (CIK, company title)."""
+        if ticker.upper() in self._overrides:
+            return self._overrides[ticker.upper()], ticker.upper()
         if self._tickers is None:
             data = self.get_json(f"{SEC_WWW}/files/company_tickers.json")
             self._tickers = {
@@ -150,6 +162,26 @@ class EdgarClient:
         return self.get_json(f"{SEC_DATA}/api/xbrl/companyfacts/CIK{cik:010d}.json")
 
 
+def annual_report_exhibits(client: EdgarClient, filing: Filing) -> list[str]:
+    """URLs of EX-13 exhibits (the annual report to shareholders).
+
+    Some 10-Ks, CVS's among them, carry the financial statements only in this
+    exhibit and incorporate them by reference, so the main document alone
+    has no balance sheet.
+    """
+    soup = BeautifulSoup(client.get(filing.index_url).text, "lxml")
+    urls = []
+    for tr in soup.find_all("tr"):
+        cells = tr.find_all("td")
+        if len(cells) < 4 or not cells[3].get_text(strip=True).upper().startswith("EX-13"):
+            continue
+        link = cells[2].find("a")
+        href = str(link.get("href", "")) if link else ""
+        if href.lower().endswith((".htm", ".html")):
+            urls.append(href if href.startswith("http") else SEC_WWW + href)
+    return urls
+
+
 def download_filings(
     client: EdgarClient,
     ticker: str,
@@ -173,10 +205,24 @@ def download_filings(
             log.info("skip %s (already downloaded)", filing.doc_id)
         else:
             dest.mkdir(parents=True, exist_ok=True)
-            html_path.write_bytes(client.get(filing.url).content)
-            (dest / "meta.json").write_text(
-                json.dumps({**asdict(filing), "url": filing.url, "doc_id": filing.doc_id}, indent=2)
-            )
+            content = client.get(filing.url).content
+            try:
+                exhibits = annual_report_exhibits(client, filing)
+            except httpx.HTTPError as e:
+                log.warning("%s: could not read filing index (%s)", filing.doc_id, e)
+                exhibits = []
+            for url in exhibits:
+                # Appended after the main document: the parser reads both, and
+                # citations point at the main document's URL.
+                content += b"\n" + client.get(url).content
+            html_path.write_bytes(content)
+            meta = {
+                **asdict(filing),
+                "url": filing.url,
+                "doc_id": filing.doc_id,
+                "exhibits": exhibits,
+            }
+            (dest / "meta.json").write_text(json.dumps(meta, indent=2))
             log.info("saved %s", filing.doc_id)
         saved.append(html_path)
     if wanted:

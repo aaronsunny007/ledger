@@ -60,12 +60,16 @@ class RetrievalConfig(BaseModel):
     reranker: str = "BAAI/bge-reranker-base"
     top_k: int = 6  # passages given to the generator
     min_score: float = 0.0  # below this after rerank -> refuse (ANS-3)
+    # Always include the primary statements a question needs (ingest.statements).
+    pin_statements: bool = True
+    # "FY2017 vs FY2019" -> search the FY2019 filing, which holds the comparatives.
+    latest_year_only: bool = True
 
 
 class AnswerConfig(BaseModel):
     verify: bool = True
     regenerate_on_failure: bool = True
-    max_context_chars: int = 12000
+    max_context_chars: int = 24000
 
 
 class CacheConfig(BaseModel):

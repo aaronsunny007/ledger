@@ -165,7 +165,8 @@ def main() -> None:
     args = ap.parse_args()
 
     corpus = yaml.safe_load((ROOT / "configs" / "corpus.yaml").read_text())
-    client = EdgarClient(Settings().sec_user_agent)
+    overrides = {c["ticker"]: int(c["cik"]) for c in corpus["companies"] if c.get("cik")}
+    client = EdgarClient(Settings().sec_user_agent, cik_overrides=overrides)
     pool: list[GoldenItem] = []
     for c in corpus["companies"]:
         years = c.get("years") or corpus["years"]

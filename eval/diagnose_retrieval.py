@@ -36,7 +36,6 @@ def main() -> int:
     p.add_argument("--split", default="dev")
     p.add_argument("--sources", nargs="*", default=["financebench"])
     p.add_argument("--limit", type=int, default=20)
-    p.add_argument("--k", type=int, default=6)
     p.add_argument("--threshold", type=float, default=0.5)
     args = p.parse_args()
 
@@ -65,7 +64,7 @@ def main() -> int:
         gold = Filters(tickers=[item.ticker], years=[item.fiscal_year] if item.fiscal_year else [])
         hits = {}
         for name, f in (("extracted", extracted), ("gold", gold)):
-            got = ledger.retriever.retrieve(item.question, f)[: args.k]
+            got = ledger.retriever.retrieve(item.question, f)  # all passages the model sees
             overlaps = [evidence_overlap(c.chunk.text, item) for c in got]
             first = next((r for r, o in enumerate(overlaps, 1) if o >= args.threshold), None)
             hits[name] = {
@@ -116,8 +115,10 @@ def main() -> int:
         f"evidence findable in filing (overlap >= {args.threshold})": share(
             lambda r: r["best_overlap_in_filing"] >= args.threshold
         ),
-        f"hit in top {args.k}, extracted filters": share(lambda r: r["extracted_first_hit_rank"]),
-        f"hit in top {args.k}, gold filters": share(lambda r: r["gold_first_hit_rank"]),
+        "hit in passages given to model, extracted filters": share(
+            lambda r: r["extracted_first_hit_rank"]
+        ),
+        "hit in passages given to model, gold filters": share(lambda r: r["gold_first_hit_rank"]),
     }
 
     out = ROOT / "eval" / "results" / f"{datetime.now(UTC):%Y%m%dT%H%M%S}-diagnose.md"

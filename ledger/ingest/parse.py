@@ -55,6 +55,7 @@ class Block:
     is_table: bool = False
     anchor: str = ""
     units: str = ""  # "thousands" | "millions" | "billions" | ""
+    statement: str = ""  # balance_sheet | income | cash_flow, set by ingest.statements
 
 
 @dataclass
@@ -110,7 +111,26 @@ def _item_heading(text: str) -> str | None:
     return ITEM_TITLES.get(key)
 
 
+_DOC_END = re.compile(r"</html\s*>", re.IGNORECASE)
+
+
 def parse_html(html: str | bytes) -> ParsedDoc:
+    """Parse one HTML document, or several concatenated ones.
+
+    The downloader appends a filing's EX-13 exhibit after the main document;
+    an HTML parser would drop everything after the first ``</html>``, so each
+    document is parsed in turn and its blocks appended.
+    """
+    text = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
+    parts = [p for p in _DOC_END.split(text) if p.strip()]
+    doc = _parse_one(parts[0] if parts else text, "Cover")
+    for extra in parts[1:]:
+        more = _parse_one(extra, "Exhibit 13. Annual Report")
+        doc.blocks.extend(more.blocks)
+    return doc
+
+
+def _parse_one(html: str, start_section: str) -> ParsedDoc:
     soup = BeautifulSoup(html, "lxml")
     for t in soup(["script", "style", "head"]):
         t.decompose()
@@ -121,7 +141,7 @@ def parse_html(html: str | bytes) -> ParsedDoc:
 
     title = _clean(soup.title.get_text()) if soup.title else ""
     doc = ParsedDoc(title=title)
-    state = {"section": "Cover", "anchor": "", "last_text": ""}
+    state = {"section": start_section, "anchor": "", "last_text": ""}
     body = soup.body or soup
 
     def emit_text(text: str) -> None:

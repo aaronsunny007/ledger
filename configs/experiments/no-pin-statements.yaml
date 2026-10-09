@@ -1,0 +1,23 @@
+# Experiment: no-pin-statements. Differs from configs/retrieval.yaml only in: retrieval.pin_statements=false
+chunking:
+  strategy: table
+  size: 1024
+  overlap: 128
+retrieval:
+  embedder: bge-small
+  mode: hybrid
+  candidates: 30
+  rrf_k: 60
+  rerank: true
+  reranker: BAAI/bge-reranker-base
+  top_k: 6
+  min_score: 0.0
+  pin_statements: false
+  latest_year_only: true
+answer:
+  verify: true
+  regenerate_on_failure: true
+  max_context_chars: 24000
+cache:
+  enabled: true
+  threshold: 0.92

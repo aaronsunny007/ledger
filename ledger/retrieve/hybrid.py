@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ledger.config import RetrievalConfig
+from ledger.ingest.statements import statements_needed
 from ledger.retrieve.embed import Embedder
 from ledger.retrieve.filters import Filters
 from ledger.retrieve.rerank import Reranker
@@ -54,6 +55,14 @@ class Retriever:
         return reciprocal_rank_fusion(rankings, cfg.rrf_k)[: cfg.candidates]
 
     def retrieve(self, question: str, filters: Filters) -> list[ScoredChunk]:
+        if self.config.latest_year_only and len(filters.years) > 1:
+            latest = Filters(filters.tickers, [max(filters.years)], filters.sections)
+            found = self._retrieve(question, latest)
+            if found:
+                return found
+        return self._retrieve(question, filters)
+
+    def _retrieve(self, question: str, filters: Filters) -> list[ScoredChunk]:
         cands = self.candidates(question, filters)
         if self.reranker is not None and cands:
             scores = self.reranker.score(question, [c.chunk.text for c in cands])
@@ -62,4 +71,17 @@ class Retriever:
             cands.sort(key=lambda c: -c.score)
             for i, c in enumerate(cands, start=1):
                 c.ranks["rerank"] = i
-        return cands[: self.config.top_k]
+        ranked = cands[: self.config.top_k]
+        if not (self.config.pin_statements and filters.tickers):
+            return ranked
+        needed = statements_needed(question)
+        pinned = self.index.statement_chunks(filters, needed) if needed else []
+        if not pinned:
+            return ranked
+        top = ranked[0].score if ranked else 0.0
+        pinned_ids = {c.id for c in pinned}
+        out = [
+            ScoredChunk(chunk=c, score=top, ranks={"pinned": i})
+            for i, c in enumerate(pinned, start=1)
+        ]
+        return out + [c for c in ranked if c.chunk.id not in pinned_ids]

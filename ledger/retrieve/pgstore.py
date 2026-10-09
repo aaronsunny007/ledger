@@ -127,6 +127,14 @@ class PgVectorIndex:
             for r in rows
         ]
 
+    def statement_chunks(self, filters: Filters, statements: list[str]) -> list[Chunk]:
+        where, params = self._where(filters)
+        rows = self._conn.execute(
+            f"SELECT data FROM chunks WHERE {where} AND data->>'statement' = ANY(%s) ORDER BY id",
+            [*params, statements],
+        ).fetchall()
+        return [Chunk.model_validate(_json(r[0])) for r in rows]
+
     def count(self) -> int:
         return int(self._conn.execute("SELECT count(*) FROM chunks").fetchone()[0])
 

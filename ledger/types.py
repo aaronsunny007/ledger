@@ -21,6 +21,7 @@ class Chunk(BaseModel):
     source_url: str = ""
     doc_id: str = ""
     is_table: bool = False
+    statement: str = ""  # balance_sheet | income | cash_flow for primary statements
 
 
 class ScoredChunk(BaseModel):

@@ -24,7 +24,8 @@ def cmd_download(args: argparse.Namespace) -> None:
     s = Settings()
     corpus = _corpus()
     years = args.years or corpus.get("years", [])
-    client = EdgarClient(s.sec_user_agent)
+    overrides = {str(c["ticker"]): int(str(c["cik"])) for c in corpus["companies"] if c.get("cik")}
+    client = EdgarClient(s.sec_user_agent, cik_overrides=overrides)
     wanted = {t.upper() for t in args.tickers or []}
     for c in corpus["companies"]:
         t = str(c["ticker"])

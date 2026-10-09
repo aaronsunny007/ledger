@@ -1,13 +1,14 @@
 # Ledger corpus (ADR-001): US SEC 10-K filings, ~40 companies, 3 fiscal years.
 #
 # The first block is the companies in the FinanceBench open set. Run
-#   python scripts/financebench_companies.py
+#   python scripts/financebench.py --list
 # to print the exact companies and fiscal years the 150 questions need, and
 # paste any per-company `years:` it reports below. Until then every company
 # uses the default `years`.
 #
 # `aliases` are how people name the company in a question; they drive the
-# company filter (RET-2), so add any you see the eval miss.
+# company filter (RET-2), so add any you see the eval miss. `cik` is needed
+# when a company is no longer under that ticker (acquired or renamed).
 
 years: [2021, 2022, 2023]
 form: 10-K
@@ -15,7 +16,7 @@ form: 10-K
 companies:
   # --- FinanceBench open set ---
   - {ticker: MMM, name: 3M, aliases: [3M Company]}
-  - {ticker: ATVI, name: Activision Blizzard, aliases: [Activision]}
+  - {ticker: ATVI, name: Activision Blizzard, aliases: [Activision], cik: 718877}
   - {ticker: ADBE, name: Adobe, aliases: [Adobe Inc]}
   - {ticker: AES, name: AES Corporation, aliases: [AES Corp]}
   - {ticker: AMZN, name: Amazon, aliases: [Amazon.com]}
@@ -24,7 +25,7 @@ companies:
   - {ticker: AXP, name: American Express, aliases: [AmEx, Amex]}
   - {ticker: AWK, name: American Water Works, aliases: [American Water]}
   - {ticker: BBY, name: Best Buy}
-  - {ticker: SQ, name: Block, aliases: [Block Inc, Square]}
+  - {ticker: SQ, name: Block, aliases: [Block Inc, Square], cik: 1512673}
   - {ticker: BA, name: Boeing}
   - {ticker: KO, name: Coca-Cola, aliases: [Coca Cola, CocaCola]}
   - {ticker: GLW, name: Corning}

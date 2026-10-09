@@ -35,6 +35,8 @@ class Index(Protocol):
 
     def count(self) -> int: ...
 
+    def statement_chunks(self, filters: Filters, statements: list[str]) -> list[Chunk]: ...
+
 
 _STOPWORDS = frozenset(
     [
@@ -168,6 +170,13 @@ class InMemoryIndex:
 
     def count(self) -> int:
         return len(self.chunks)
+
+    def statement_chunks(self, filters: Filters, statements: list[str]) -> list[Chunk]:
+        """Chunks of the primary statements ``statements`` in the filtered filings."""
+        wanted = set(statements)
+        return [
+            self.chunks[i] for i in self._allowed(filters) if self.chunks[i].statement in wanted
+        ]
 
     def get(self, chunk_id: str) -> Chunk | None:
         return next((c for c in self.chunks if c.id == chunk_id), None)

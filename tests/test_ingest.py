@@ -102,6 +102,20 @@ def _edgar_transport(calls: list[str]) -> httpx.MockTransport:
     def handler(req: httpx.Request) -> httpx.Response:
         calls.append(str(req.url))
         assert "@" in req.headers["user-agent"]
+        if req.url.path.endswith("0001-24-000001-index.htm"):
+            return httpx.Response(
+                200,
+                text=(
+                    "<table><tr><th>Seq</th><th>Description</th><th>Document</th><th>Type</th></tr>"
+                    "<tr><td>1</td><td>10-K</td>"
+                    "<td><a href='/x/acme-2024.htm'>acme-2024.htm</a></td>"
+                    "<td>10-K</td></tr><tr><td>2</td><td>Annual report</td>"
+                    "<td><a href='/Archives/edgar/data/1/000124000001/ex13.htm'>ex13.htm</a></td>"
+                    "<td>EX-13</td></tr></table>"
+                ),
+            )
+        if req.url.path.endswith("ex13.htm"):
+            return httpx.Response(200, text="<p>CONSOLIDATED BALANCE SHEETS from exhibit</p>")
         if req.url.path == "/files/company_tickers.json":
             return httpx.Response(
                 200, json={"0": {"cik_str": 1, "ticker": "ACME", "title": "Acme Widgets"}}
@@ -170,3 +184,24 @@ def test_folder_loader_reads_yaml_config(tmp_path: Path) -> None:
     policy = next(d for d in docs if "policy" in d.meta.doc_id)
     assert policy.meta.fiscal_year == 2024
     assert len(policy.parser(policy.path.read_bytes()).blocks) == 2
+
+
+def test_edgar_appends_annual_report_exhibit(tmp_path: Path) -> None:
+    client = EdgarClient("Test test@example.com", min_interval_s=0, transport=_edgar_transport([]))
+    download_filings(client, "ACME", [2024], tmp_path)
+    html = (tmp_path / "ACME" / "2024" / "filing.htm").read_text()
+    assert "<p>filing</p>" in html and "BALANCE SHEETS from exhibit" in html
+    meta = json.loads((tmp_path / "ACME" / "2024" / "meta.json").read_text())
+    assert meta["exhibits"] == ["https://www.sec.gov/Archives/edgar/data/1/000124000001/ex13.htm"]
+
+
+def test_edgar_cik_override_skips_ticker_list(tmp_path: Path) -> None:
+    calls: list[str] = []
+    client = EdgarClient(
+        "Test test@example.com",
+        min_interval_s=0,
+        transport=_edgar_transport(calls),
+        cik_overrides={"OLD": 1},
+    )
+    assert client.lookup("old") == (1, "OLD")
+    assert not any("company_tickers" in c for c in calls)
