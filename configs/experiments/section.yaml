@@ -1,4 +1,4 @@
-# Experiment: section. Differs from configs/retrieval.yaml only in: {'chunking': {'strategy': 'section'}}
+# Experiment: section. Differs from configs/retrieval.yaml only in: chunking.strategy=section
 chunking:
   strategy: section
   size: 1024
@@ -12,10 +12,12 @@ retrieval:
   reranker: BAAI/bge-reranker-base
   top_k: 6
   min_score: 0.0
+  pin_statements: true
+  latest_year_only: true
 answer:
   verify: true
   regenerate_on_failure: true
-  max_context_chars: 12000
+  max_context_chars: 24000
 cache:
   enabled: true
   threshold: 0.92

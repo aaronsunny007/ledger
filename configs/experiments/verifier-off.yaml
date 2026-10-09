@@ -1,4 +1,4 @@
-# Experiment: verifier-off. Differs from configs/retrieval.yaml only in: {'answer': {'verify': False, 'regenerate_on_failure': False}}
+# Experiment: verifier-off. Differs from configs/retrieval.yaml only in: answer.verify=False; answer.regenerate_on_failure=False
 chunking:
   strategy: table
   size: 1024
@@ -12,10 +12,12 @@ retrieval:
   reranker: BAAI/bge-reranker-base
   top_k: 6
   min_score: 0.0
+  pin_statements: true
+  latest_year_only: true
 answer:
   verify: false
   regenerate_on_failure: false
-  max_context_chars: 12000
+  max_context_chars: 24000
 cache:
   enabled: true
   threshold: 0.92

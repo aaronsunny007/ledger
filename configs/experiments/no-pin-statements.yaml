@@ -1,4 +1,4 @@
-# Experiment: no-pin-statements. Differs from configs/retrieval.yaml only in: retrieval.pin_statements=false
+# Experiment: no-pin-statements. Differs from configs/retrieval.yaml only in: retrieval.pin_statements=False
 chunking:
   strategy: table
   size: 1024

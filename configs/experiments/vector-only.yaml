@@ -1,4 +1,4 @@
-# Experiment: vector-only. Differs from configs/retrieval.yaml only in: {'retrieval': {'mode': 'vector', 'rerank': False}}
+# Experiment: vector-only. Differs from configs/retrieval.yaml only in: retrieval.mode=vector
 chunking:
   strategy: table
   size: 1024
@@ -8,14 +8,16 @@ retrieval:
   mode: vector
   candidates: 30
   rrf_k: 60
-  rerank: false
+  rerank: true
   reranker: BAAI/bge-reranker-base
   top_k: 6
   min_score: 0.0
+  pin_statements: true
+  latest_year_only: true
 answer:
   verify: true
   regenerate_on_failure: true
-  max_context_chars: 12000
+  max_context_chars: 24000
 cache:
   enabled: true
   threshold: 0.92
