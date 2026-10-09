@@ -56,6 +56,34 @@ def select(items: list[GoldenItem], args: argparse.Namespace) -> list[GoldenItem
     return items[: args.limit] if args.limit else items
 
 
+def rescore(path: Path) -> int:
+    """Re-score a saved run with the current metrics, without asking the model again."""
+    from ledger.evaluation.metrics import numeric_match
+
+    run = json.loads(path.read_text())
+    gold = {i.id: i for i in load_golden()}
+    items = []
+    for raw in run["items"]:
+        r = ItemResult(**raw)
+        g = gold.get(r.id)
+        if g and r.error is None and g.answer_type == "numeric" and g.value is not None:
+            r.correct = (
+                0.0
+                if r.refused
+                else float(
+                    numeric_match(r.answer, g.value, g.tolerance, percent=g.unit == "percent")
+                )
+            )
+        items.append(r)
+    run["metrics"] = aggregate(items)
+    run["by_source"] = aggregate_by(items, "source")
+    run["items"] = [asdict(r) for r in items]
+    run["rescored_at"] = datetime.now(UTC).isoformat(timespec="seconds")
+    path.write_text(json.dumps(run, indent=2))
+    print(json.dumps(run["metrics"], indent=2))
+    return 0
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--system", choices=["ledger", "long-context"], default="ledger")
@@ -82,7 +110,10 @@ def main() -> int:
         help="print the TICKER YEAR filings the selected items need, then exit",
     )
     p.add_argument("--summary", type=Path, help="write a markdown summary here (CI)")
+    p.add_argument("--rescore", type=Path, help="re-score a saved result JSON and exit")
     args = p.parse_args()
+    if args.rescore:
+        return rescore(args.rescore)
 
     settings = Settings()
     config = LedgerConfig.load(args.config) if args.config else LedgerConfig.load()

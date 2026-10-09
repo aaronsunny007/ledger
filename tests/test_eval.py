@@ -37,6 +37,10 @@ from scripts.financebench import doc_type_and_year, parse_numeric
         ("It grew 13%.", 12.5, False),
         ("A net loss of $(2.0) million.", -2_000_000, True),
         ("In fiscal 2024.", 2_000_000, False),
+        ("Inventories were $5,409 million.", 5409, True),  # gold in USD millions
+        ("Net AR was $1,615.9 million.", 1616, True),
+        ("Revenue was $5.4 billion.", 5409, True),
+        ("The ratio is 825.77.", 0.83, False),
     ],
 )
 def test_numeric_match(text: str, gold: float, ok: bool) -> None:

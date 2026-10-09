@@ -40,6 +40,7 @@ Filled in by `make eval`; every number links to a committed JSON in `eval/result
 | Date | Run | Setup | Numeric accuracy | False refusals | Recall@6 | Groundedness | p50 latency |
 |---|---|---|---|---|---|---|---|
 | 2026-10-09 | [week-3 baseline](eval/results/20261009T170958-baseline-week3.json) | 20 FinanceBench dev questions, Qwen2.5-7B on a GitHub CPU runner (Ollama), bge-small + bge-reranker-base | **0 / 16** | 79% | 16% | 75% | 128 s |
+| 2026-10-09 | [+ statement pinning](eval/results/20261009T192503-baseline-week3.json) | same, after the retrieval fixes below | **2 / 15** | 35% | 85% | 85% | 121 s |
 
 What failed: the model refused 15 of 19 answerable questions, and the passages it was given rarely
 contained the evidence (recall@6 of 16%).
@@ -63,6 +64,20 @@ fixes were:
 - look up Activision and Square by CIK, because they are no longer listed under those tickers.
 
 The 3 misses left are narrative questions (drivers, acquisitions, litigation).
+
+With the right passages in hand, refusals fell from 79% to 35% and recall@k rose from 16% to 85%.
+Accuracy only moved to 2 of 15, and the wrong answers show where the next work is:
+
+- **Unit and scale errors that the verifier passes.** CVS's fixed asset turnover came out as
+  1798.24 instead of 17.98, and Adobe's operating cash flow ratio as 825.77 instead of 0.83. In both,
+  the arithmetic is internally consistent, so the verifier marks it verified. This is the
+  Financial-NRF caveat in practice: verified does not mean correct.
+- **A weak model on hard formulas.** DPO, cash conversion cycle and multi-year averages need several
+  correct steps from a 7B model on CPU. A stronger free-tier model (Gemini) is the next variable to
+  change.
+- **Scoring bugs found on the way.** Gold answers stated in USD millions were not matched, and
+  questions over 500 characters were rejected. Both are fixed, and saved runs can be re-scored with
+  `python eval/run_eval.py --rescore <file>`.
 
 Experiments to report here: chunking (fixed 512 / fixed 1024 / section / table), retrieval
 (vector / keyword / hybrid / hybrid + rerank), verifier on vs off, cache hit vs false-hit rate.

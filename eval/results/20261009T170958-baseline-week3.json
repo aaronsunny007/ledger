@@ -565,5 +565,6 @@
       "error": "QuestionTooLong: Questions are limited to 500 characters.",
       "judge": null
     }
-  ]
+  ],
+  "rescored_at": "2026-10-09T19:31:12+00:00"
 }

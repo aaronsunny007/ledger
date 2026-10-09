@@ -36,7 +36,7 @@
   "metrics": {
     "n": 20,
     "errors": 0,
-    "accuracy": 0.0,
+    "accuracy": 0.1333,
     "accuracy_n": 15,
     "refusal_accuracy": null,
     "false_refusal_rate": 0.35,
@@ -53,7 +53,7 @@
     "financebench": {
       "n": 20,
       "errors": 0,
-      "accuracy": 0.0,
+      "accuracy": 0.1333,
       "accuracy_n": 15,
       "refusal_accuracy": null,
       "false_refusal_rate": 0.35,
@@ -226,7 +226,7 @@
       "gold": "$1616.00",
       "answer": "Amcor's year-end FY2020 net AR is $1,615.9 million. [1]",
       "refused": false,
-      "correct": 0.0,
+      "correct": 1.0,
       "verified": true,
       "recall": 1.0,
       "rr": 1.0,
@@ -351,7 +351,7 @@
       "gold": "$5409.00",
       "answer": "The total amount of inventories for Best Buy at the end of fiscal 2019 was $5,409 million. [1]",
       "refused": false,
-      "correct": 0.0,
+      "correct": 1.0,
       "verified": true,
       "recall": 1.0,
       "rr": 1.0,
@@ -567,5 +567,6 @@
       "error": null,
       "judge": null
     }
-  ]
+  ],
+  "rescored_at": "2026-10-09T19:31:12+00:00"
 }

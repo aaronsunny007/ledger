@@ -21,19 +21,29 @@ def numeric_match(
 ) -> bool:
     """True if any number in the answer equals ``gold`` within ``rel_tol``.
 
-    Scale words and table units are allowed to differ ("$4.5 billion" matches
-    4_500_000_000 and "4,500" in millions), and sign is ignored, because
-    "a loss of $2m" and "-2,000,000" state the same fact.
+    Scale words and units may differ on either side: "$4.5 billion" matches
+    4_500_000_000, "4,500" in a millions table matches it too, and "$5,409
+    million" matches a gold answer of 5409 given in USD millions (FinanceBench
+    states many answers in millions). Sign is ignored, because "a loss of $2m"
+    and "-2,000,000" state the same fact.
     """
     target = abs(gold)
     for n in extract_amounts(answer_text):
         if is_probably_year(n) and not (1900 <= target <= 2100):
             continue
-        scales = (1.0,) if n.is_percentage else _SCALES
-        for s in scales:
-            v = abs(n.magnitude) * s
+        if n.is_percentage:
+            if abs(abs(n.value) - target) <= max(rel_tol * target, 1e-9):
+                return True
+        else:
+            value, magnitude = abs(n.value), abs(n.magnitude)
             tol = max(rel_tol * target, 1e-9)
-            if abs(v - target) <= tol:
+            # The answer's number as written, or scaled up as a table in thousands/millions.
+            if any(abs(value * s - target) <= tol for s in _SCALES):
+                return True
+            # A scale word on the answer ("$5.4 billion") against gold in millions.
+            if magnitude != value and any(
+                abs(magnitude - target * s) <= rel_tol * target * s for s in _SCALES
+            ):
                 return True
         # A ratio stated where a percent was expected, or vice versa.
         if percent and not n.is_percentage and abs(abs(n.value) * 100 - target) <= rel_tol * target:
