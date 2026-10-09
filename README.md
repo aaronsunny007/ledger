@@ -42,10 +42,27 @@ Filled in by `make eval`; every number links to a committed JSON in `eval/result
 | 2026-10-09 | [week-3 baseline](eval/results/20261009T170958-baseline-week3.json) | 20 FinanceBench dev questions, Qwen2.5-7B on a GitHub CPU runner (Ollama), bge-small + bge-reranker-base | **0 / 16** | 79% | 16% | 75% | 128 s |
 
 What failed: the model refused 15 of 19 answerable questions, and the passages it was given rarely
-contained the evidence (recall@6 of 16%). Both FinanceBench and Financial-NRF showed that small
-local models struggle with this. The next runs separate the two causes: the same questions with
-`--oracle-filters`, then a stronger free-tier model (Gemini), and then the retrieval experiments
-below.
+contained the evidence (recall@6 of 16%).
+
+**Retrieval diagnosis** (`eval/diagnose_retrieval.py`, no LLM, same 20 questions):
+
+| | [Before](eval/results/20261009T180700-diagnose.md) | [After](eval/results/20261009T183609-diagnose.md) |
+|---|---|---|
+| Company and year read correctly from the question | 19/20 | 19/20 |
+| Filing in the index | 17/20 | 20/20 |
+| Evidence findable anywhere in the filing | 16/20 | 20/20 |
+| **Evidence in the passages given to the model** | **3/20** | **17/20** |
+
+The evidence was in the index; ranking was the problem. Formula-style questions ("fixed asset
+turnover = revenue / average PP&E") matched narrative text instead of the balance sheet. The
+fixes were:
+
+- tag the three primary statements at ingest and always include the ones a question needs;
+- search the latest filing when several years are named, because it holds the comparatives;
+- download EX-13 exhibits (CVS keeps its statements there);
+- look up Activision and Square by CIK, because they are no longer listed under those tickers.
+
+The 3 misses left are narrative questions (drivers, acquisitions, litigation).
 
 Experiments to report here: chunking (fixed 512 / fixed 1024 / section / table), retrieval
 (vector / keyword / hybrid / hybrid + rerank), verifier on vs off, cache hit vs false-hit rate.
