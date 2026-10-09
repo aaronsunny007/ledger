@@ -1,0 +1,26 @@
+# Experiment knobs (RET-4). Every eval run copies this file into its result
+# JSON so a number can always be traced back to the settings behind it.
+
+chunking:
+  strategy: table      # fixed | section | table
+  size: 1024           # characters
+  overlap: 128
+
+retrieval:
+  embedder: bge-small  # hashing (tests only) | bge-small | bge-base
+  mode: hybrid         # vector | keyword | hybrid
+  candidates: 30       # into the reranker (RET-3: 30-50)
+  rrf_k: 60
+  rerank: true
+  reranker: BAAI/bge-reranker-base  # v2-m3 is the measured alternative (ADR-004)
+  top_k: 6             # passages given to the model (RET-3: 5-8)
+  min_score: 0.0       # refuse below this rerank score; tune on the dev split
+
+answer:
+  verify: true
+  regenerate_on_failure: true
+  max_context_chars: 12000
+
+cache:
+  enabled: true
+  threshold: 0.92      # tune from the hit-rate / false-hit curve (CACHE-2)

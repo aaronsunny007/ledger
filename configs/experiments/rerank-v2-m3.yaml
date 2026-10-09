@@ -1,0 +1,21 @@
+# Experiment: rerank-v2-m3. Differs from configs/retrieval.yaml only in: {'retrieval': {'reranker': 'BAAI/bge-reranker-v2-m3'}}
+chunking:
+  strategy: table
+  size: 1024
+  overlap: 128
+retrieval:
+  embedder: bge-small
+  mode: hybrid
+  candidates: 30
+  rrf_k: 60
+  rerank: true
+  reranker: BAAI/bge-reranker-v2-m3
+  top_k: 6
+  min_score: 0.0
+answer:
+  verify: true
+  regenerate_on_failure: true
+  max_context_chars: 12000
+cache:
+  enabled: true
+  threshold: 0.92

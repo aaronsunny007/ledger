@@ -1,0 +1,9 @@
+# ING-6: index any folder of PDF / HTML / text files.
+#   ledger ingest --folder configs/examples/my_docs.yaml
+company: Acme Ltd
+ticker: ACME            # short id used for filters and citations
+root: ~/Documents/acme  # absolute, or relative to this file
+include: ["**/*.pdf", "**/*.html", "**/*.htm", "**/*.txt", "**/*.md"]
+year_pattern: "(20\\d{2})"   # optional: fiscal year from the file name
+form_type: document
+# base_url: https://intranet.example.com/docs   # optional: makes citations clickable
