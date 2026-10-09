@@ -52,7 +52,9 @@ class Ledger:
 
     # -- helpers -----------------------------------------------------------
 
-    def _check(self, draft: Draft, passages: list[ScoredChunk]) -> list[_Checked]:
+    def _check(
+        self, draft: Draft, passages: list[ScoredChunk], question: str = ""
+    ) -> list[_Checked]:
         out = []
         for claim in draft.claims:
             problems = []
@@ -68,6 +70,7 @@ class Ledger:
                     [passages[n - 1].chunk.text for n in valid],
                     expression=claim.calculation,
                     stated_result=claim.result,
+                    question=question or None,
                 )
                 if not check.passed:
                     problems.append(f'Claim "{claim.text}": {check.message}')
@@ -184,7 +187,7 @@ class Ledger:
             return self._finish(trace, answer, llm_calls, passages)
 
         with trace.span("verify") as s:
-            checked = self._check(draft, passages)
+            checked = self._check(draft, passages, question)
             problems = [p for c in checked for p in c.problems]
             s.attrs.update(problems=len(problems))
         self._log_verifier(trace.request_id, checked, attempt=1)
@@ -203,7 +206,7 @@ class Ledger:
                 )
             if draft2.answerable:
                 with trace.span("verify_retry"):
-                    checked2 = self._check(draft2, passages)
+                    checked2 = self._check(draft2, passages, question)
                 self._log_verifier(trace.request_id, checked2, attempt=2)
                 draft, checked = draft2, checked2
             elif not draft2.parse_error:

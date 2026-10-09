@@ -41,10 +41,15 @@ from ledger.verifier.numbers import (
     extract_numbers,
     is_probably_year,
 )
+from ledger.verifier.plausibility import check_plausible
 
 # Constants a calculation may use without them being "facts" from the
-# filing: percent conversion, scaling, months, quarters, day counts.
-CONVERSION_CONSTANTS = frozenset({1.0, 100.0, 1000.0, 1_000_000.0, 1e9, 12.0, 4.0, 360.0, 365.0})
+# filing: percent conversion, scaling, months, quarters, day counts, and the
+# divisors of an average ("average PP&E between FY2017 and FY2018" is / 2,
+# a three-year average / 3).
+CONVERSION_CONSTANTS = frozenset(
+    {1.0, 2.0, 3.0, 100.0, 1000.0, 1_000_000.0, 1e9, 12.0, 4.0, 360.0, 365.0}
+)
 
 # A claim in billions may be grounded in a table reported in thousands or
 # millions; evidence values are scaled up by these factors when matching.
@@ -184,6 +189,7 @@ class ClaimStatus(StrEnum):
     MISMATCH = "mismatch"  # calculation does not give the stated result
     UNGROUNDED = "ungrounded"  # a number is in neither the cited text nor the calculation
     UNPARSEABLE = "unparseable"  # calculation is not plain arithmetic
+    IMPLAUSIBLE = "implausible"  # wrong size for what was asked (unit or scale error)
 
 
 @dataclass
@@ -244,6 +250,27 @@ class ClaimVerifier:
         cited_texts: Iterable[str],
         expression: str | None = None,
         stated_result: float | None = None,
+        question: str | None = None,
+    ) -> ClaimCheck:
+        check = self._verify(claim_text, cited_texts, expression, stated_result)
+        if question and check.passed:
+            problem = check_plausible(question, claim_text, stated_result)
+            if problem:
+                return ClaimCheck(
+                    ClaimStatus.IMPLAUSIBLE,
+                    expression,
+                    stated_result,
+                    check.recomputed_result,
+                    message=problem,
+                )
+        return check
+
+    def _verify(
+        self,
+        claim_text: str,
+        cited_texts: Iterable[str],
+        expression: str | None,
+        stated_result: float | None,
     ) -> ClaimCheck:
         evidence = [n for t in cited_texts for n in extract_amounts(t)]
         recomputed: float | None = None

@@ -192,3 +192,65 @@ def test_claim_without_numbers_passes(cv: ClaimVerifier) -> None:
 def test_unsafe_calculation_is_unparseable(cv: ClaimVerifier) -> None:
     r = cv.verify("x", [APPLE_TABLE], expression="__import__('os')", stated_result=1.0)
     assert r.status is ClaimStatus.UNPARSEABLE and not r.passed
+
+
+# --- plausibility (unit and scale errors the arithmetic check cannot see) --
+
+from ledger.verifier.plausibility import check_plausible, expected_kind  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    ("question", "claim", "result", "flagged"),
+    [
+        # The two week-3 failures:
+        (
+            "What is the FY2018 fixed asset turnover ratio for CVS Health?",
+            "The FY2018 fixed asset turnover ratio for CVS Health is 1798.24.",
+            1798.24,
+            True,
+        ),
+        (
+            "What is the FY2017 operating cash flow ratio for Adobe?",
+            "The operating cash flow ratio for Adobe in FY2017 is 825.77.",
+            None,
+            True,
+        ),
+        # Their correct versions pass:
+        (
+            "What is the FY2018 fixed asset turnover ratio for CVS Health?",
+            "The ratio is 17.98.",
+            17.98,
+            False,
+        ),
+        ("What is the FY2017 operating cash flow ratio for Adobe?", "It is 0.83.", None, False),
+        # A ratio stated as a percentage is fine:
+        ("What is Coca Cola's FY2022 dividend payout ratio?", "It was 80.1%.", None, False),
+        ("What is Amazon's FY2017 days payable outstanding?", "DPO was 93.86 days.", 93.86, False),
+        ("What is Amazon's FY2017 days payable outstanding?", "DPO was 9386 days.", 9386, True),
+        ("What was Best Buy's gross margin in FY2023?", "It was 2141%.", None, True),
+        # An amount question has no expected kind; big numbers are fine.
+        ("What were Best Buy's inventories in FY2019?", "$5,409 million.", None, False),
+        # A scaled amount inside a ratio question is not the answer being checked.
+        ("What is the quick ratio for AMD?", "Current assets were $9.6 billion.", None, False),
+    ],
+)
+def test_plausibility(question: str, claim: str, result: float | None, flagged: bool) -> None:
+    assert (check_plausible(question, claim, result) is not None) is flagged
+
+
+def test_expected_kind_order() -> None:
+    assert expected_kind("cash conversion cycle ratio")  # days wins over ratio
+    assert expected_kind("cash conversion cycle ratio").name == "days"  # type: ignore[union-attr]
+    assert expected_kind("What industry is Amcor in?") is None
+
+
+def test_claim_verifier_flags_implausible_after_arithmetic_passes(cv: ClaimVerifier) -> None:
+    table = "Net revenues | 194,579\nProperty and equipment, net | 11,349 | 10,292"
+    r = cv.verify(
+        "The FY2018 fixed asset turnover ratio for CVS Health is 1798.24.",
+        [table],
+        expression="194579 / ((11349 + 10292) / 2) * 100",
+        stated_result=1798.24,
+        question="What is the FY2018 fixed asset turnover ratio for CVS Health?",
+    )
+    assert r.status is ClaimStatus.IMPLAUSIBLE and "multiply by 100" in r.message
