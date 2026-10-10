@@ -191,3 +191,19 @@ def test_footer_between_statement_halves() -> None:
         + _table(("Debt", "12,000", "11,000"), ("Total liabilities", "40,000", "30,000"))
     )
     assert len(_tagged(html)["balance_sheet"]) == 2
+
+
+def test_statement_index_is_not_merged_into_the_statement() -> None:
+    # CVS: the index table has page numbers and names the income statement.
+    html = (
+        _table(
+            ("Consolidated Statements of Operations", "105"),
+            ("Consolidated Balance Sheets", "107"),
+            ("Consolidated Statements of Cash Flows", "108"),
+        )
+        + "<p>Index to Consolidated Financial Statements</p>"
+        + "<p>Consolidated Statements of Operations</p>"
+        + _table(("Revenues", "322,467", "292,111"), ("Net income", "4,149", "7,910"))
+    )
+    tagged = _tagged(html)
+    assert set(tagged) == {"income"} and len(tagged["income"]) == 1

@@ -54,6 +54,12 @@ def _squash(text: str) -> str:
     return re.sub(r"\s+", "", text.lower())
 
 
+def _titles_by_position(text: str) -> list[str]:
+    """Statements named in squashed ``text``, the last-named first."""
+    last = {k: max((m.end() for m in t.finditer(text)), default=-1) for k, t in _TITLES.items()}
+    return sorted((k for k in last if last[k] >= 0), key=lambda k: -last[k])
+
+
 def _signature(text: str, kind: str) -> bool:
     return all(p.search(text) for p in _SIGNATURE[kind])
 
@@ -81,15 +87,17 @@ def classify_statements(doc: ParsedDoc, lookback: int = 5) -> None:
         text = _squash(" ".join(b.text for b in run))
         # The title nearest the table names it; earlier lines may still
         # hold the previous statement's title.
-        last = {k: max((m.end() for m in t.finditer(head)), default=-1) for k, t in _TITLES.items()}
-        for kind in sorted((k for k in last if last[k] >= 0), key=lambda k: -last[k]):
+        for kind in _titles_by_position(head):
             if _signature(text, kind):
                 if kind not in best or len(text) > best[kind][0]:
                     best[kind] = (len(text), list(run))
                 break
 
     for b in doc.blocks:
-        if b.is_table and len(_FIGURE.findall(b.text)) >= _MIN_FIGURES:
+        squashed = _squash(b.text)
+        # An index of the statements lists several titles with page numbers.
+        index = len(b.text) < 1500 and len(_titles_by_position(squashed)) >= 2
+        if b.is_table and not index and len(_FIGURE.findall(b.text)) >= _MIN_FIGURES:
             # A table that opens with its own title starts a new statement.
             titled = any(t.search(_squash(b.text[:150])) for t in _TITLES.values())
             if run and gap_ok and not titled:
@@ -102,11 +110,19 @@ def classify_statements(doc: ParsedDoc, lookback: int = 5) -> None:
             continue
         # Text, or a table too short to be a statement (often the title).
         recent = [*recent, b.text][-lookback:]
-        squashed = _squash(b.text)
+        if not run:
+            continue
+        # A title is a short line, not a sentence that mentions a statement.
+        title_line = len(b.text) <= 80 and not b.text.rstrip().endswith(".")
+        named = _titles_by_position(squashed) if title_line else []
+        if named:
+            # A title line continues the run only if it repeats the run's own.
+            gap_ok = gap_ok and named[:1] == _titles_by_position(head)[:1]
+            continue
         furniture = (len(b.text) <= _FURNITURE and not _ANY_TITLE.search(squashed)) or bool(
             _BOILERPLATE.search(squashed) and len(b.text) <= 200
         )
-        if run and not (furniture or squashed in head):
+        if not (furniture or squashed in head):
             gap_ok = False
     close()
     for kind, (_, blocks) in best.items():
