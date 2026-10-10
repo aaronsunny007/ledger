@@ -28,7 +28,8 @@ PRICES: dict[str, tuple[float, float]] = {
 }
 
 DEFAULT_MODELS = {
-    "gemini": ("gemini-2.5-flash-lite", "gemini-2.5-flash"),
+    # 2.5 models are closed to new keys (Google, Oct 2026); these are the current ones.
+    "gemini": ("gemini-3.5-flash-lite", "gemini-3.8-flash"),
     "groq": ("llama-3.1-8b-instant", "llama-3.3-70b-versatile"),
     "ollama": ("qwen2.5:7b-instruct", "qwen2.5:14b-instruct"),
     "fake": ("fake", "fake-large"),
@@ -42,6 +43,11 @@ class LLMResult:
     input_tokens: int = 0
     output_tokens: int = 0
     latency_ms: int = 0
+
+    @property
+    def priced(self) -> bool:
+        """False when the model has no list price on file; cost_usd is then 0."""
+        return self.model in PRICES
 
     @property
     def cost_usd(self) -> float:

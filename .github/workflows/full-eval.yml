@@ -43,7 +43,7 @@ jobs:
             exit 1
           fi
           if [ "$LLM_PROVIDER" = gemini ]; then
-            model="${LLM_MODEL:-gemini-2.5-flash-lite}"
+            model="${LLM_MODEL:-gemini-3.5-flash-lite}"
             code=$(curl -s -o probe.json -w "%{http_code}" \
               -H "x-goog-api-key: $GEMINI_API_KEY" -H "Content-Type: application/json" \
               -d '{"contents":[{"parts":[{"text":"Reply with OK"}]}]}' \

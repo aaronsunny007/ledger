@@ -6,7 +6,7 @@
 
 | Need | Choice | Limit we plan around |
 |---|---|---|
-| Generator | Gemini free tier (`gemini-2.5-flash-lite`, retries on `gemini-2.5-flash`); Groq free tier or local Ollama as drop-in alternatives | Requests per minute/day: the full eval runs nightly, PRs run 50 questions with a 4 s gap |
+| Generator | Gemini free tier (`gemini-3.5-flash-lite`, retries on `gemini-3.8-flash`; the 2.5 models are closed to new keys); Groq free tier or local Ollama as drop-in alternatives | Requests per minute/day: the full eval runs nightly, PRs run 50 questions with a 4 s gap |
 | Judge | Same free tier | Spot-checked by hand on 50 answers; agreement reported |
 | Embeddings / reranker | Open BGE models on CPU | First full index is slow; it is built once and cached in CI |
 | Database | In-memory index on the demo; Postgres + pgvector in Docker; Neon/Supabase free tier online | Storage caps: 40 companies fits |
