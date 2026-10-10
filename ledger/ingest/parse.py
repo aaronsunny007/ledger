@@ -119,7 +119,7 @@ _FIGURE_CELL = re.compile(r"[$€£(\-\u2014\u2013]*\s*[\d,.]*\d[\d,.]*\s*\)?\s*
 # Filings converted from PDF place every text run in its own absolutely
 # positioned div; below this many there is nothing to rebuild.
 _MIN_POSITIONED = 200
-_SAME_LINE_PX = 3.0
+_SAME_LINE_PX = 5.0
 
 
 def _positioned(tag: Tag) -> tuple[float, float] | None:
@@ -159,28 +159,19 @@ def _rebuild_positioned(soup: BeautifulSoup) -> None:
                 lines.append([])
                 line_top = top
             lines[-1].append((left, text))
+        rows = _join_label_lines([_merge_runs([t for _, t in sorted(line)]) for line in lines])
         page.clear()
         table: Tag | None = None
-        for line in lines:
-            cells = [t for _, t in sorted(line)]
-            # Glue label fragments; keep each figure in its own cell.
-            merged: list[str] = []
-            for c in cells:
-                if (
-                    merged
-                    and not _FIGURE_CELL.fullmatch(c)
-                    and not _FIGURE_CELL.fullmatch(merged[-1])
-                ):
-                    merged[-1] += " " + c
-                else:
-                    merged.append(c)
-            figures = sum(bool(_FIGURE_CELL.fullmatch(c)) for c in merged)
-            if len(merged) >= 2 and figures >= 1:
+        for i, row in enumerate(rows):
+            heading = len(row) == 1 and len(row[0]) <= 80
+            upcoming = any(_figure_row(r) for r in rows[i + 1 : i + 3])
+            # Headings inside a statement ("Current assets:") stay in its table.
+            if _figure_row(row) or (table is not None and heading and upcoming):
                 if table is None:
                     table = soup.new_tag("table")
                     page.append(table)
                 tr = soup.new_tag("tr")
-                for c in merged:
+                for c in row:
                     td = soup.new_tag("td")
                     td.string = c
                     tr.append(td)
@@ -188,8 +179,45 @@ def _rebuild_positioned(soup: BeautifulSoup) -> None:
             else:
                 table = None
                 para = soup.new_tag("p")
-                para.string = " ".join(merged)
+                para.string = " ".join(row)
                 page.append(para)
+
+
+def _is_figure(cell: str) -> bool:
+    return bool(_FIGURE_CELL.fullmatch(cell))
+
+
+def _merge_runs(cells: list[str]) -> list[str]:
+    """Glue label fragments of one line; keep each figure in its own cell."""
+    merged: list[str] = []
+    for c in cells:
+        if merged and not _is_figure(c) and not _is_figure(merged[-1]):
+            merged[-1] += " " + c
+        else:
+            merged.append(c)
+    return merged
+
+
+def _figure_row(row: list[str]) -> bool:
+    return len(row) >= 2 and any(_is_figure(c) for c in row)
+
+
+def _join_label_lines(rows: list[list[str]]) -> list[list[str]]:
+    """A label set a few pixels above its figures is one row with them."""
+    out: list[list[str]] = []
+    for row in rows:
+        prev = out[-1] if out else None
+        if (
+            prev is not None
+            and len(prev) == 1
+            and not _is_figure(prev[0])
+            and len(prev[0]) <= 80
+            and all(_is_figure(c) for c in row)
+        ):
+            out[-1] = prev + row
+        else:
+            out.append(row)
+    return out
 
 
 def parse_html(html: str | bytes) -> ParsedDoc:

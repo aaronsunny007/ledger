@@ -228,3 +228,21 @@ def test_pdf_style_positioned_layout_is_rebuilt_into_tables() -> None:
     assert "Other line 3 | 3,0.1 | (3.5)" in tables[0].text
     assert doc.blocks[0].text == "Consolidated Balance Sheets"
     assert set(_tagged(html)) == {"balance_sheet"}
+
+
+def test_positioned_layout_with_offset_labels_and_headings() -> None:
+    def run(top: int, left: int, text: str) -> str:
+        return f'<div style="position:absolute;left:{left}px;top:{top}px;">{text}</div>'
+
+    runs = [run(10, 60, "Consolidated Balance Sheets")]
+    runs += [run(40, 60, "Current assets:")]  # heading line inside the table
+    for i in range(120):
+        top = 60 + 18 * i
+        runs += [run(top, 60, f"Item {i}"), run(top + 4, 600, f"{i}.5"), run(top + 4, 700, "1.0")]
+    runs += [run(2300, 60, "Total assets"), run(2310, 600, "31,091.3")]  # label 10px above
+    runs += [run(2330, 60, "Total equity"), run(2330, 600, "10,000.0")]
+    html = f'<html><body><div style="position:relative">{"".join(runs)}</div></body></html>'
+    tables = [b.text for b in parse_html(html).blocks if b.is_table]
+    assert len(tables) == 1
+    assert "Total assets | 31,091.3" in tables[0] and "Item 7 | 7.5 | 1.0" in tables[0]
+    assert set(_tagged(html)) == {"balance_sheet"}

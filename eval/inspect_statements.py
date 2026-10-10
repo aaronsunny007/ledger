@@ -55,6 +55,20 @@ def inspect(path: Path) -> tuple[dict[str, int], list[str], list[str]]:
     missing = [k for k in STATEMENTS if k not in found]
     if not missing:
         return found, notes, samples
+    # The parsed blocks where the statement's key line sits, as the tagger sees them.
+    keys = {
+        "balance_sheet": "totalassets",
+        "cash_flow": "investingactivities",
+        "income": "netsales",
+    }
+    for kind in missing:
+        at = next((i for i, b in enumerate(doc.blocks) if keys[kind] in _squash(b.text)), None)
+        if at is not None:
+            shown = " // ".join(
+                f"{'T' if b.is_table else 'P'}:{_one_line(b.text, 90)}"
+                for b in doc.blocks[max(at - 6, 0) : at + 2]
+            )
+            notes.append(f"- `{kind}` blocks around its key line: {shown}")
     if len(missing) == len(STATEMENTS):
         n_tables = sum(b.is_table for b in doc.blocks)
         notes.append(
