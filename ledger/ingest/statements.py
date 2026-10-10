@@ -20,59 +20,90 @@ INCOME = "income"
 CASH_FLOW = "cash_flow"
 STATEMENTS = (BALANCE_SHEET, INCOME, CASH_FLOW)
 
+# Titles and row labels are matched on lower-cased text with all whitespace
+# removed: filings split words across HTML spans ("Statement of Incom e",
+# "S TATEMENTS"), and the squashed form reads the same either way.
 _TITLES = {
-    BALANCE_SHEET: re.compile(
-        r"balance\s*sheets?|statements?\s*of\s*financial\s*(position|condition)", re.I
-    ),
+    BALANCE_SHEET: re.compile(r"balancesheets?|statements?offinancial(position|condition)"),
     INCOME: re.compile(
-        r"statements?\s*of\s*(consolidated\s*)?(operations|income|earnings)(?!\s*and\s*compre)"
-        r"(?!.{0,20}comprehensive)",
-        re.I,
+        r"(statements?of(consolidated)?(operations|income|earnings)|(?<!comprehensive)incomestatements?)"
+        r"(?!andcompre)(?!.{0,20}comprehensive)"
     ),
-    CASH_FLOW: re.compile(r"statements?\s*of\s*cash\s*flows?", re.I),
+    CASH_FLOW: re.compile(r"statements?ofcashflows?|cashflows?statements?"),
 }
 
 # Row labels a real statement must contain (titles alone also match notes
 # and MD&A summaries).
 _SIGNATURE = {
-    BALANCE_SHEET: (re.compile(r"total\s+assets", re.I), re.compile(r"total\s+liabilities", re.I)),
-    INCOME: (
-        re.compile(r"revenue|net\s+sales|sales", re.I),
-        re.compile(r"net\s+(income|earnings|loss)", re.I),
-    ),
-    CASH_FLOW: (
-        re.compile(r"operating\s+activities", re.I),
-        re.compile(r"investing\s+activities", re.I),
-    ),
+    BALANCE_SHEET: (re.compile(r"totalassets"), re.compile(r"totalliabilities|equity")),
+    INCOME: (re.compile(r"revenue|sales"), re.compile(r"net(income|earnings|loss)")),
+    CASH_FLOW: (re.compile(r"operatingactivities|operations"), re.compile(r"investing")),
 }
+
+# A table with fewer figures than this is a title or a footnote.
+_MIN_FIGURES = 3
+_FIGURE = re.compile(r"\d[\d,.]*\d")
+# Text between two tables of one statement: page numbers, "Table of Contents".
+# A short line naming any statement is a new title, not furniture.
+_FURNITURE = 40
+_ANY_TITLE = re.compile(r"statement|balancesheet|comprehensive")
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\s+", "", text.lower())
 
 
 def _signature(text: str, kind: str) -> bool:
     return all(p.search(text) for p in _SIGNATURE[kind])
 
 
-def classify_statements(doc: ParsedDoc, lookback: int = 3) -> None:
+def classify_statements(doc: ParsedDoc, lookback: int = 5) -> None:
     """Set ``Block.statement`` on the primary statement tables of ``doc``.
 
-    A table qualifies when its title (in the table or in the few text blocks
-    before it) names the statement and its rows carry the statement's
-    signature. Per statement only the largest qualifying table is kept: the
-    primary statement is the full one, not a summary of it.
+    Tables are grouped into runs: a statement printed across pages, or split
+    into an assets table and a liabilities table, is one run when only page
+    furniture or a repeat of its own header lines sits between the tables. A
+    run qualifies when its title (in the few lines before it, including
+    title-only tables) names the statement and its rows carry the
+    statement's signature. Per statement only the largest qualifying run is
+    kept: the primary statement is the full one, not a summary of it.
     """
-    best: dict[str, Block] = {}
+    best: dict[str, tuple[int, list[Block]]] = {}
     recent: list[str] = []
-    for b in doc.blocks:
-        if not b.is_table:
-            recent = [*recent, b.text][-lookback:]
-            continue
-        head = " ".join(recent) + " " + b.text[:300]
+    run: list[Block] = []
+    head = ""
+    gap_ok = True
+
+    def close() -> None:
+        if not run:
+            return
+        text = _squash(" ".join(b.text for b in run))
         for kind, title in _TITLES.items():
-            if title.search(head) and _signature(b.text, kind):
-                if kind not in best or len(b.text) > len(best[kind].text):
-                    best[kind] = b
+            if title.search(head) and _signature(text, kind):
+                if kind not in best or len(text) > best[kind][0]:
+                    best[kind] = (len(text), list(run))
                 break
-    for kind, b in best.items():
-        b.statement = kind
+
+    for b in doc.blocks:
+        if b.is_table and len(_FIGURE.findall(b.text)) >= _MIN_FIGURES:
+            if run and gap_ok:
+                run.append(b)
+            else:
+                close()
+                run = [b]
+                head = _squash(" ".join(recent) + " " + b.text[:300])
+            recent, gap_ok = [], True
+            continue
+        # Text, or a table too short to be a statement (often the title).
+        recent = [*recent, b.text][-lookback:]
+        squashed = _squash(b.text)
+        furniture = len(b.text) <= _FURNITURE and not _ANY_TITLE.search(squashed)
+        if run and not (furniture or squashed in head):
+            gap_ok = False
+    close()
+    for kind, (_, blocks) in best.items():
+        for blk in blocks:
+            blk.statement = kind
 
 
 _NEEDS = {

@@ -74,3 +74,78 @@ def test_latest_year_only_falls_back_when_latest_missing() -> None:
     r = _retriever(False)
     assert r.retrieve("revenue", Filters(["ACME"], [2023, 2024]))  # latest (2024) exists
     assert r.retrieve("revenue", Filters(["ACME"], [2024, 2025]))  # 2025 missing -> all years
+
+
+def _tagged(html: str) -> dict[str, list[str]]:
+    from ledger.ingest.statements import classify_statements
+
+    doc = parse_html(html)
+    classify_statements(doc)
+    out: dict[str, list[str]] = {}
+    for b in doc.blocks:
+        if b.statement:
+            out.setdefault(b.statement, []).append(b.text)
+    return out
+
+
+def _table(*rows: tuple[str, ...]) -> str:
+    return (
+        "<table>"
+        + "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
+        + "</table>"
+    )
+
+
+def test_title_in_its_own_table_and_split_words() -> None:
+    # Corning: the title is a one-row table; 3M: "Statement of Incom e".
+    html = (
+        _table(("Consolidated Balance Sheets",), ("Corning Incorporated",))
+        + _table(("Total assets", "9,000", "8,000"), ("Total equity", "4,000", "3,500"))
+        + "<p>3M Company</p><p>Consolidated Statement of Incom e</p><p>Years ended</p>"
+        + _table(("Net sales", "32,765", "31,657"), ("Net income", "5,349", "4,858"))
+    )
+    assert set(_tagged(html)) == {"balance_sheet", "income"}
+
+
+def test_statement_split_across_tables_is_tagged_whole_but_notes_are_not() -> None:
+    # American Water: assets and liabilities in two tables, header repeated.
+    header = "<p>American Water Works</p><p>Consolidated Balance Sheets</p><p>(In millions)</p>"
+    html = (
+        header
+        + _table(("Cash", "547", "60"), ("Total assets", "26,075", "24,766"))
+        + "<p>80</p><p>Table of Contents</p>"
+        + header
+        + _table(("Long-term debt", "9,656", "8,644"), ("Total liabilities", "19,000", "18,500"))
+        + "<p>The following lease table reconciles amounts on the balance sheets.</p>"
+        + _table(("Lease assets", "680", "504"), ("Lease liabilities", "633", "450"))
+    )
+    tagged = _tagged(html)["balance_sheet"]
+    assert len(tagged) == 2 and not any("Lease" in t for t in tagged)
+
+
+def test_microsoft_and_nike_wording() -> None:
+    html = (
+        "<p>INCOME STATEMENTS</p>"
+        + _table(("Total revenue", "211,915", "198,270"), ("Net income", "72,361", "72,738"))
+        + "<p>COMPREHENSIVE INCOME STATEMENTS</p>"
+        + _table(("Net income", "72,361", "72,738"), ("Comprehensive income", "71,4", "63,0"))
+        + "<p>CASH FLOWS S TATEMENTS</p>"
+        + _table(
+            ("Net cash from operations", "87,582", "89,035"),
+            ("Net cash used in investing", "(22,680)", "(30,311)"),
+        )
+    )
+    tagged = _tagged(html)
+    assert set(tagged) == {"income", "cash_flow"}
+    assert "Total revenue" in tagged["income"][0]
+
+
+def test_title_a_few_lines_up() -> None:
+    # PepsiCo: company, period and units lines sit between title and table.
+    html = (
+        "<p>Consolidated Statement of Income</p><p>PepsiCo, Inc. and Subsidiaries</p>"
+        "<p>Fiscal years ended December 31, 2022, December 25, 2021</p>"
+        "<p>(in millions except per share amounts)</p>"
+        + _table(("Net Revenue", "86,392", "79,474"), ("Net income", "8,978", "7,679"))
+    )
+    assert set(_tagged(html)) == {"income"}

@@ -23,6 +23,7 @@ from ledger.ingest.statements import (  # noqa: E402
     _SIGNATURE,
     _TITLES,
     STATEMENTS,
+    _squash,
     classify_statements,
 )
 
@@ -45,12 +46,12 @@ def inspect(path: Path) -> tuple[dict[str, int], list[str]]:
     recent: list[str] = []
     for b in doc.blocks:
         if not b.is_table:
-            recent = [*recent, b.text][-3:]
+            recent = [*recent, b.text][-5:]
             continue
-        head = " ".join(recent) + " " + b.text[:300]
+        head = _squash(" ".join(recent) + " " + b.text[:300])
         for kind in missing:
             title = bool(_TITLES[kind].search(head))
-            rows = [bool(p.search(b.text)) for p in _SIGNATURE[kind]]
+            rows = [bool(p.search(_squash(b.text))) for p in _SIGNATURE[kind]]
             # A near miss: the title matched, or every signature row matched.
             if title or all(rows):
                 notes.append(

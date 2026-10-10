@@ -123,9 +123,10 @@ class SectionChunker:
 
 
 class TableAwareChunker(SectionChunker):
-    # v2: primary statements tagged and kept whole. The name is recorded in the
-    # ingest manifest, so changing it re-indexes filings built the old way.
-    name = "table-v2"
+    # v2: primary statements tagged and kept whole. v3: statements split across
+    # tables, titles in their own table and split words recognised. The name is
+    # recorded in the ingest manifest, so changing it re-indexes old filings.
+    name = "table-v3"
     statement_size = 6000
 
     def _table_chunks(self, table: Block, intro: str) -> list[str]:
