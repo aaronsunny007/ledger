@@ -6,8 +6,8 @@ Cells give the tagged table's size in characters.
 
 | Ticker | Year | Balance sheet | Income | Cash flow |
 |---|---|---|---|---|
-| AAPL | 2021 | 1,496 | 2,062 | 2,687 |
-| AAPL | 2022 | 1,525 | 2,088 | 2,474 |
+| AAPL | 2021 | 1,496 | 1,051 | 2,687 |
+| AAPL | 2022 | 1,525 | 1,056 | 2,474 |
 | ADBE | 2015 | 2,012 | 1,642 | 3,310 |
 | ADBE | 2016 | 1,854 | 1,647 | 3,169 |
 | ADBE | 2017 | 1,855 | 1,597 | 3,132 |
@@ -47,9 +47,9 @@ Cells give the tagged table's size in characters.
 | COST | 2022 | 1,597 | 1,029 | 2,356 |
 | COST | 2023 | 1,601 | 1,063 | 2,503 |
 | CVS | 2018 | 1,999 | 1,877 | 3,304 |
-| CVS | 2021 | 2,127 | 2,512 | 3,154 |
-| CVS | 2022 | 2,207 | 2,613 | 3,265 |
-| CVS | 2023 | 2,229 | 2,159 | 3,380 |
+| CVS | 2021 | 2,127 | 1,867 | 3,154 |
+| CVS | 2022 | 2,207 | 1,953 | 3,265 |
+| CVS | 2023 | 2,229 | 1,435 | 3,380 |
 | GIS | 2019 | 1,399 | 1,081 | 2,954 |
 | GIS | 2020 | 4,211 | 2,330 | 3,167 |
 | GIS | 2021 | 4,090 | 2,301 | 3,107 |
@@ -116,8 +116,8 @@ Cells give the tagged table's size in characters.
 | PG | 2023 | 1,798 | 805 | 2,232 |
 | PYPL | 2022 | 1,730 | 973 | 2,805 |
 | PYPL | 2023 | 1,725 | 969 | 2,865 |
-| SQ | 2016 | 2,110 | 8,062 | 3,267 |
-| SQ | 2020 | 2,247 | 7,967 | 3,705 |
+| SQ | 2016 | 2,110 | 1,815 | 3,267 |
+| SQ | 2020 | 2,247 | 1,732 | 3,705 |
 | TSLA | 2021 | 1,895 | 1,761 | 3,600 |
 | TSLA | 2022 | 1,847 | 1,743 | 3,367 |
 | TSLA | 2023 | 1,830 | 1,780 | 3,280 |
@@ -141,10 +141,10 @@ None.
 
 | Ticker | Year | Statement |
 |---|---|---|
-| AAPL | 2021 | income (2 tables): Years ended September 25, 2021 / September 26, 2020 / September 28, 2019 Net sales: Products / $297,392 / $220 |
+| AAPL | 2021 | income (1 table): Years ended September 25, 2021 / September 26, 2020 / September 28, 2019 Net sales: Products / $297,392 / $220 |
 | AAPL | 2021 | balance_sheet (1 table): September 25, 2021 / September 26, 2020 ASSETS: Current assets: Cash and cash equivalents / $34,940 / $38,016  |
 | AAPL | 2021 | cash_flow (1 table): Years ended September 25, 2021 / September 26, 2020 / September 28, 2019 Cash, cash equivalents and restricted |
-| AAPL | 2022 | income (2 tables): Years ended September 24, 2022 / September 25, 2021 / September 26, 2020 Net sales: Products / $316,199 / $297 |
+| AAPL | 2022 | income (1 table): Years ended September 24, 2022 / September 25, 2021 / September 26, 2020 Net sales: Products / $316,199 / $297 |
 | AAPL | 2022 | balance_sheet (1 table): September 24, 2022 / September 25, 2021 ASSETS: Current assets: Cash and cash equivalents / $23,646 / $34,940  |
 | AAPL | 2022 | cash_flow (1 table): Years ended September 24, 2022 / September 25, 2021 / September 26, 2020 Cash, cash equivalents and restricted |
 | ADBE | 2015 | balance_sheet (1 table): November 27, 2015 / November 28, 2014 ASSETS Current assets: Cash and cash equivalents / $876,560 / $1,117,400 |
@@ -264,13 +264,13 @@ None.
 | CVS | 2018 | income (1 table): For the Years Ended December 31, In millions, except per share amounts / 2018 / 2017 / 2016 Revenues: Products |
 | CVS | 2018 | balance_sheet (1 table): At December 31, In millions, except per share amounts / 2018 / 2017 Assets: Cash and cash equivalents / $4,059 |
 | CVS | 2018 | cash_flow (2 tables): For the Years Ended December 31, In millions / 2018 / 2017 / 2016 Cash flows from operating activities: Cash r |
-| CVS | 2021 | income (2 tables): For the Years Ended December 31, In millions, except per share amounts / 2021 / 2020 / 2019 Revenues: Products |
+| CVS | 2021 | income (1 table): For the Years Ended December 31, In millions, except per share amounts / 2021 / 2020 / 2019 Revenues: Products |
 | CVS | 2021 | balance_sheet (1 table): At December 31, In millions, except per share amounts / 2021 / 2020 Assets: Cash and cash equivalents / $9,408 |
 | CVS | 2021 | cash_flow (2 tables): For the Years Ended December 31, In millions / 2021 / 2020 / 2019 Cash flows from operating activities: Cash r |
-| CVS | 2022 | income (2 tables): For the Years Ended December 31, In millions, except per share amounts / 2022 / 2021 / 2020 Revenues: Products |
+| CVS | 2022 | income (1 table): For the Years Ended December 31, In millions, except per share amounts / 2022 / 2021 / 2020 Revenues: Products |
 | CVS | 2022 | balance_sheet (1 table): At December 31, In millions, except per share amounts / 2022 / 2021 Assets: Cash and cash equivalents / $12,94 |
 | CVS | 2022 | cash_flow (2 tables): For the Years Ended December 31, In millions / 2022 / 2021 / 2020 Cash flows from operating activities: Cash r |
-| CVS | 2023 | income (2 tables): For the Years Ended December 31, In millions, except per share amounts / 2023 / 2022 / 2021 Revenues: Products |
+| CVS | 2023 | income (1 table): For the Years Ended December 31, In millions, except per share amounts / 2023 / 2022 / 2021 Revenues: Products |
 | CVS | 2023 | balance_sheet (1 table): At December 31, In millions, except per share amounts / 2023 / 2022 Assets: Cash and cash equivalents / $8,196 |
 | CVS | 2023 | cash_flow (2 tables): For the Years Ended December 31, In millions / 2023 / 2022 / 2021 Cash flows from operating activities: Cash r |
 | GIS | 2019 | income (1 table): Fiscal Year 2019 / 2018 / 2017 Net sales / $16,865.2 / $15,740.4 / $15,619.8 Cost of sales / 11,108.4 / 10,304 |
@@ -471,11 +471,11 @@ None.
 | PYPL | 2023 | balance_sheet (1 table): As of December 31, 2023 / 2022 (In millions, except par value) ASSETS Current assets: Cash and cash equivalent |
 | PYPL | 2023 | income (1 table): Year Ended December 31, 2023 / 2022 / 2021 (In millions, except for per share amounts) Net revenues / $29,771  |
 | PYPL | 2023 | cash_flow (1 table): Year Ended December 31, 2023 / 2022 / 2021 (In millions) Cash flows from operating activities: Net income (los |
-| SQ | 2016 | income (6 tables): Three Months Ended, Dec. 31, 2016 / Sep. 30, 2016 / Jun. 30, 2016 / Mar. 31, 2016 / Dec. 31, 2015 / Sep. 30, 2 |
 | SQ | 2016 | balance_sheet (1 table): December 31, 2016 / 2015 Assets Current assets: Cash and cash equivalents / $452,030 / $461,329 Short-term inv |
+| SQ | 2016 | income (1 table): Year Ended December 31, 2016 / 2015 / 2014 Revenue: Transaction-based revenue / $1,456,160 / $1,050,445 / $707 |
 | SQ | 2016 | cash_flow (2 tables): Year Ended December 31, 2016 / 2015 / 2014 Cash flows from operating activities: Net loss / $(171,590) / $(179 |
-| SQ | 2020 | income (5 tables): Three Months Ended, Dec. 31, 2020 / Sep. 30, 2020 / Jun. 30, 2020 / Mar. 31, 2020 / Dec. 31, 2019 / Sep. 30, 2 |
 | SQ | 2020 | balance_sheet (1 table): December 31, 2020 / 2019 Assets Current assets: Cash and cash equivalents / $3,158,058 / $1,047,118 Investment |
+| SQ | 2020 | income (1 table): Year Ended December 31, 2020 / 2019 / 2018 Revenue: Transaction-based revenue / $3,294,978 / $3,081,074 / $2,4 |
 | SQ | 2020 | cash_flow (1 table): Year Ended December 31, 2020 / 2019 / 2018 Cash flows from operating activities: Net income (loss) / $213,105  |
 | TSLA | 2021 | balance_sheet (1 table): December 31, / December 31, 2021 / 2020 Assets Current assets Cash and cash equivalents / $17,576 / $19,384 Sh |
 | TSLA | 2021 | income (1 table): Year Ended December 31, 2021 / 2020 / 2019 Revenues Automotive sales / $44,125 / $24,604 / $19,358 Automotive  |
