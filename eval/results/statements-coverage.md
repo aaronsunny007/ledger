@@ -136,10 +136,14 @@ Cells give the tagged table's size in characters.
 ### GIS 2022
 
 - nothing found: 27264 blocks, 0 tables, 4,418,333 bytes, sections ['Cover', 'Item 1. Business', 'Item 1A. Risk Factors', 'Item 1B. Unresolved Staff Comments', 'Item 2. Properties', 'Item 3. Legal Proceedings', 'Item 4. Mine Safety Disclosures', 'Item 5. Market for Common Equity', 'Item 7. MD&A', 'Item 7A. Market Risk', 'Item 8. Financial Statements', 'Item 9. Changes in Accountants']
+- tags: [('div', 31864), ('ix:nonfraction', 2403), ('xbrldi:explicitmember', 1084), ('xbrli:context', 729), ('xbrli:entity', 729), ('xbrli:identifier', 729), ('xbrli:period', 729), ('xbrli:segment', 713), ('xbrli:instant', 405), ('xbrli:startdate', 324), ('xbrli:enddate', 324), ('ix:nonnumeric', 245), ('ix:continuation', 208), ('a', 87), ('xbrli:measure', 7)]
+- around 'Total assets': `nonFraction id="ID_123" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May29_2022_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,228.1</ix:nonFraction></div><div id="a10573" style="position:absolute;font-family:'Times New Roman';left:724px;top:307px;"><ix:nonFraction id="ID_88" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May30_2021_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,267.6</ix:nonFraction></div><div id="a10575" style="position:absolute;font-family:'Times New Roman';left:66px;top:325px;">`
 
 ### GIS 2023
 
 - nothing found: 25859 blocks, 0 tables, 4,360,437 bytes, sections ['Cover', 'Item 1. Business', 'Item 1A. Risk Factors', 'Item 1B. Unresolved Staff Comments', 'Item 2. Properties', 'Item 3. Legal Proceedings', 'Item 4. Mine Safety Disclosures', 'Item 5. Market for Common Equity', 'Item 7. MD&A', 'Item 7A. Market Risk', 'Item 8. Financial Statements', 'Item 9. Changes in Accountants']
+- tags: [('div', 30545), ('ix:nonfraction', 2419), ('xbrldi:explicitmember', 1086), ('xbrli:context', 740), ('xbrli:entity', 740), ('xbrli:identifier', 740), ('xbrli:period', 740), ('xbrli:segment', 721), ('xbrli:instant', 406), ('xbrli:startdate', 334), ('xbrli:enddate', 334), ('ix:nonnumeric', 258), ('ix:continuation', 219), ('a', 87), ('xbrli:measure', 7)]
+- around 'Total assets': `nonFraction id="ID_122" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May28_2023_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,160.3</ix:nonFraction></div><div id="a10221" style="position:absolute;font-family:'Times New Roman';left:724px;top:307px;"><ix:nonFraction id="ID_88" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May29_2022_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,228.1</ix:nonFraction></div><div id="a10223" style="position:absolute;font-family:'Times New Roman';left:66px;top:325px;">`
 
 ## What was tagged
 
