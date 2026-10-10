@@ -1,13 +1,13 @@
 # Primary statement coverage
 
-Filings: 124. Found: balance_sheet 122/124, income 124/124, cash_flow 122/124.
+Filings: 124. Found: balance_sheet 124/124, income 124/124, cash_flow 122/124.
 
 Cells give the tagged table's size in characters.
 
 | Ticker | Year | Balance sheet | Income | Cash flow |
 |---|---|---|---|---|
-| AAPL | 2021 | 1,496 | 1,051 | 2,687 |
-| AAPL | 2022 | 1,525 | 1,056 | 2,474 |
+| AAPL | 2021 | 1,496 | 2,062 | 2,687 |
+| AAPL | 2022 | 1,525 | 2,088 | 2,474 |
 | ADBE | 2015 | 2,012 | 1,642 | 3,310 |
 | ADBE | 2016 | 1,854 | 1,647 | 3,169 |
 | ADBE | 2017 | 1,855 | 1,597 | 3,132 |
@@ -53,8 +53,8 @@ Cells give the tagged table's size in characters.
 | GIS | 2019 | 1,399 | 1,081 | 2,954 |
 | GIS | 2020 | 4,211 | 2,330 | 3,167 |
 | GIS | 2021 | 4,090 | 2,301 | 3,107 |
-| GIS | 2022 | **missing** | 1,028 | **missing** |
-| GIS | 2023 | **missing** | 1,040 | **missing** |
+| GIS | 2022 | 3,661 | 1,028 | **missing** |
+| GIS | 2023 | 3,599 | 1,040 | **missing** |
 | GLW | 2020 | 1,929 | 1,117 | 2,760 |
 | GLW | 2021 | 1,900 | 3,882 | 2,836 |
 | GLW | 2022 | 1,776 | 1,527 | 2,818 |
@@ -135,40 +135,38 @@ Cells give the tagged table's size in characters.
 
 ### GIS 2022
 
-- `balance_sheet` blocks around its key line: P:Consolidated Balance Sheets // P:GENERAL MILLS, INC. AND SUBSIDIARIES // P:(In Millions, Except Par Value) // P:May 29, 2022 May 30, 2021 // P:ASSETS // P:Current assets: // T:Cash and cash equivalents $ / 569.4 / $1,505.2 Receivables / 1,692.1 / 1,638.5 Inventories // P:GENERAL MILLS, INC. AND SUBSIDIARIES
 - `cash_flow` blocks around its key line: P:growth. // P:operating segment. // P:a product recall in fiscal 2020 in our international Green Giant business. // T:IMPACT OF INFLATION / 25 // P:Cash Flows from Operations // P:Fiscal Year // T:In Millions / 2022 / 2021 $2,735.0 / $2,346.0 Depreciation and amortization / 570.3 / 601. // P:26
 - `cash_flow` title=n rows=[True, True] len=1127 section='Item 4. Mine Safety Disclosures'
-  - before: growth. / operating segment. / a product recall in fiscal 2020 in our international Green Giant business. / Cash Flows from Operations / Fiscal Year
+  - before: (a) / Fiscal 2022 vs. 2021 / Percentage Change / growth. / operating segment. / a product recall in fiscal 2020 in our international Green Giant business. / Cash Flows from Operations / Fiscal Year
   - table: In Millions / 2022 / 2021 $2,735.0 / $2,346.0 Depreciation and amortization / 570.3 / 601.3 After-tax earnings from joint ventures / (111.7) / (117.7) Distributions of earnings from joint ventures / 107.5 / 95.2 Stock-ba
-- `balance_sheet` title=n rows=[True, True] len=1335 section='Item 4. Mine Safety Disclosures'
-  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except Par Value) / May 29, 2022 May 30, 2021 / ASSETS / Current assets:
-  - table: Cash and cash equivalents $ / 569.4 / $1,505.2 Receivables / 1,692.1 / 1,638.5 Inventories / 1,867.3 / 1,820.5 Prepaid expenses and other current assets / 802.1 / 790.3 Assets held for sale / 158.9 / - 5,089.8 / 5,754.5 
 - `cash_flow` title=Y rows=[True, False] len=175 section='Item 4. Mine Safety Disclosures'
-  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions)
+  - before: May 29, 2022 May 30, 2021 / ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Mill
   - table: Fiscal Year / 2022 Cash Flows - Operating Activities Net earnings, including earnings attributable to redeemable and noncontrolling interests $ / 2,735.0 / $2,346.0 / $2,210.8
 - `cash_flow` title=Y rows=[True, True] len=2333 section='Item 4. Mine Safety Disclosures'
-  - before: (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net cash provided by operating activities:
+  - before: ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to recon
   - table: Depreciation and amortization / 570.3 / 601.3 / 594.7 After-tax earnings from joint ventures / ( 111.7 ) / ( 117.7 ) / ( 91.1 ) Distributions of earnings from joint ventures / 107.5 / 95.2 / 76.5 Stock-based compensation
 - `cash_flow` title=Y rows=[False, False] len=390 section='Item 4. Mine Safety Disclosures'
-  - before: Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net cash provided by operating activities: / Cash flow from changes in current asset
+  - before: Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net 
   - table: Receivables $ / ( 166.3 ) / $27.9 / $37.9 Inventories / ( 85.8 ) / ( 354.7 ) / 103.1 Prepaid expenses and other current assets / ( 35.3 ) / ( 42.7 ) / 94.2 Accounts payable / 456.7 / 343.1 / 392.5 Other current liabiliti
+- `cash_flow` title=Y rows=[False, False] len=41 section='Item 4. Mine Safety Disclosures'
+  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net ca
+  - table: GENERAL MILLS, INC. AND SUBSIDIARIES / 50
 
 ### GIS 2023
 
-- `balance_sheet` blocks around its key line: P:Consolidated Balance Sheets // P:GENERAL MILLS, INC. AND SUBSIDIARIES // P:(In Millions, Except Par Value) // P:May 28, 2023 May 29, 2022 // P:ASSETS // P:Current assets: // T:Cash and cash equivalents $ / 585.5 / $569.4 Receivables / 1,683.2 / 1,692.1 Inventories / // P:GENERAL MILLS, INC. AND SUBSIDIARIES
 - `cash_flow` blocks around its key line: P:increased in fiscal 2023 compared to fiscal 2022. // T:IMPACT OF INFLATION / 23 // P:Cash Flows from Operations // P:Fiscal Year // T:In Millions / 2023 / 2022 $2,609.6 / $2,735.0 Depreciation and amortization / 546.6 / 570. // P:receivable. // P:Cash Flows from Investing Activities // P:Fiscal Year
-- `balance_sheet` title=n rows=[True, True] len=1309 section='Item 8. Financial Statements'
-  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except Par Value) / May 28, 2023 May 29, 2022 / ASSETS / Current assets:
-  - table: Cash and cash equivalents $ / 585.5 / $569.4 Receivables / 1,683.2 / 1,692.1 Inventories / 2,172.0 / 1,867.3 Prepaid expenses and other current assets / 735.7 / 802.1 Assets held for sale / - / 158.9 5,176.4 / 5,089.8 La
 - `cash_flow` title=Y rows=[True, False] len=175 section='Item 8. Financial Statements'
-  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions)
+  - before: May 28, 2023 May 29, 2022 / ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Mill
   - table: Fiscal Year / 2023 Cash Flows - Operating Activities Net earnings, including earnings attributable to redeemable and noncontrolling interests $ / 2,609.6 / $2,735.0 / $2,346.0
 - `cash_flow` title=Y rows=[True, True] len=2385 section='Item 8. Financial Statements'
-  - before: (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net cash provided by operating activities:
+  - before: ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to recon
   - table: Depreciation and amortization / 546.6 / 570.3 / 601.3 After-tax earnings from joint ventures / ( 81.3 ) / ( 111.7 ) / ( 117.7 ) Distributions of earnings from joint ventures / 69.9 / 107.5 / 95.2 Stock-based compensation
 - `cash_flow` title=Y rows=[False, False] len=400 section='Item 8. Financial Statements'
-  - before: Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net cash provided by operating activities: / Cash flow from changes in current asset
+  - before: Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net 
   - table: Receivables $ / ( 41.2 ) / $( 166.3 ) / $27.9 Inventories / ( 319.0 ) / ( 85.8 ) / ( 354.7 ) Prepaid expenses and other current assets / 61.6 / ( 35.3 ) / ( 42.7 ) Accounts payable / 199.8 / 456.7 / 343.1 Other current l
+- `cash_flow` title=Y rows=[False, False] len=41 section='Item 8. Financial Statements'
+  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net ca
+  - table: GENERAL MILLS, INC. AND SUBSIDIARIES / 47
 
 ## What was tagged
 
@@ -176,10 +174,10 @@ Cells give the tagged table's size in characters.
 
 | Ticker | Year | Statement |
 |---|---|---|
-| AAPL | 2021 | income (1 table): Years ended September 25, 2021 / September 26, 2020 / September 28, 2019 Net sales: Products / $297,392 / $220 |
+| AAPL | 2021 | income (2 tables): Years ended September 25, 2021 / September 26, 2020 / September 28, 2019 Net sales: Products / $297,392 / $220 |
 | AAPL | 2021 | balance_sheet (1 table): September 25, 2021 / September 26, 2020 ASSETS: Current assets: Cash and cash equivalents / $34,940 / $38,016  |
 | AAPL | 2021 | cash_flow (1 table): Years ended September 25, 2021 / September 26, 2020 / September 28, 2019 Cash, cash equivalents and restricted |
-| AAPL | 2022 | income (1 table): Years ended September 24, 2022 / September 25, 2021 / September 26, 2020 Net sales: Products / $316,199 / $297 |
+| AAPL | 2022 | income (2 tables): Years ended September 24, 2022 / September 25, 2021 / September 26, 2020 Net sales: Products / $316,199 / $297 |
 | AAPL | 2022 | balance_sheet (1 table): September 24, 2022 / September 25, 2021 ASSETS: Current assets: Cash and cash equivalents / $23,646 / $34,940  |
 | AAPL | 2022 | cash_flow (1 table): Years ended September 24, 2022 / September 25, 2021 / September 26, 2020 Cash, cash equivalents and restricted |
 | ADBE | 2015 | balance_sheet (1 table): November 27, 2015 / November 28, 2014 ASSETS Current assets: Cash and cash equivalents / $876,560 / $1,117,400 |
@@ -318,7 +316,9 @@ Cells give the tagged table's size in characters.
 | GIS | 2021 | balance_sheet (2 tables): Consolidated Balance Sheets GENERAL MILLS, INC. AND SUBSIDIARIES (In Millions, Except Par Value) May 30, 2021  |
 | GIS | 2021 | cash_flow (1 table): Consolidated Statements of Cash Flows GENERAL MILLS, INC. AND SUBSIDIARIES (In Millions) Fiscal Year 2021 / 20 |
 | GIS | 2022 | income (1 table): Fiscal Year / 2022 / 2021 / 2020 Net sales $ / 18,992.8 / $18,127.0 / $17,626.6 Cost of sales / 12,590.6 / 11, |
+| GIS | 2022 | balance_sheet (2 tables): Cash and cash equivalents $ / 569.4 / $1,505.2 Receivables / 1,692.1 / 1,638.5 Inventories / 1,867.3 / 1,820.5 |
 | GIS | 2023 | income (1 table): Fiscal Year / 2023 / 2022 / 2021 Net sales $ / 20,094.2 / $18,992.8 / $18,127.0 Cost of sales / 13,548.4 / 12, |
+| GIS | 2023 | balance_sheet (2 tables): Cash and cash equivalents $ / 585.5 / $569.4 Receivables / 1,683.2 / 1,692.1 Inventories / 2,172.0 / 1,867.3 P |
 | GLW | 2020 | income (1 table): Year ended December 31, (In millions, except per share amounts) / 2020 / 2019 / 2018 Net sales / $11,303 / $11 |
 | GLW | 2020 | balance_sheet (1 table): December 31, (In millions, except share and per share amounts) / 2020 / 2019 Assets Current assets: Cash and c |
 | GLW | 2020 | cash_flow (1 table): Year ended December 31, (In millions) / 2020 / 2019 / 2018 Cash Flows from Operating Activities: Net income /  |
