@@ -1,6 +1,6 @@
 # Primary statement coverage
 
-Filings: 124. Found: balance_sheet 122/124, income 122/124, cash_flow 122/124.
+Filings: 124. Found: balance_sheet 122/124, income 124/124, cash_flow 122/124.
 
 Cells give the tagged table's size in characters.
 
@@ -53,8 +53,8 @@ Cells give the tagged table's size in characters.
 | GIS | 2019 | 1,399 | 1,081 | 2,954 |
 | GIS | 2020 | 4,211 | 2,330 | 3,167 |
 | GIS | 2021 | 4,090 | 2,301 | 3,107 |
-| GIS | 2022 | **missing** | **missing** | **missing** |
-| GIS | 2023 | **missing** | **missing** | **missing** |
+| GIS | 2022 | **missing** | 948 | **missing** |
+| GIS | 2023 | **missing** | 960 | **missing** |
 | GLW | 2020 | 1,929 | 1,117 | 2,760 |
 | GLW | 2021 | 1,900 | 3,882 | 2,836 |
 | GLW | 2022 | 1,776 | 1,527 | 2,818 |
@@ -133,17 +133,7 @@ Cells give the tagged table's size in characters.
 
 ## Near misses for missing statements
 
-### GIS 2022
-
-- nothing found: 27264 blocks, 0 tables, 4,418,333 bytes, sections ['Cover', 'Item 1. Business', 'Item 1A. Risk Factors', 'Item 1B. Unresolved Staff Comments', 'Item 2. Properties', 'Item 3. Legal Proceedings', 'Item 4. Mine Safety Disclosures', 'Item 5. Market for Common Equity', 'Item 7. MD&A', 'Item 7A. Market Risk', 'Item 8. Financial Statements', 'Item 9. Changes in Accountants']
-- tags: [('div', 31864), ('ix:nonfraction', 2403), ('xbrldi:explicitmember', 1084), ('xbrli:context', 729), ('xbrli:entity', 729), ('xbrli:identifier', 729), ('xbrli:period', 729), ('xbrli:segment', 713), ('xbrli:instant', 405), ('xbrli:startdate', 324), ('xbrli:enddate', 324), ('ix:nonnumeric', 245), ('ix:continuation', 208), ('a', 87), ('xbrli:measure', 7)]
-- around 'Total assets': `nonFraction id="ID_123" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May29_2022_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,228.1</ix:nonFraction></div><div id="a10573" style="position:absolute;font-family:'Times New Roman';left:724px;top:307px;"><ix:nonFraction id="ID_88" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May30_2021_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,267.6</ix:nonFraction></div><div id="a10575" style="position:absolute;font-family:'Times New Roman';left:66px;top:325px;">`
-
-### GIS 2023
-
-- nothing found: 25859 blocks, 0 tables, 4,360,437 bytes, sections ['Cover', 'Item 1. Business', 'Item 1A. Risk Factors', 'Item 1B. Unresolved Staff Comments', 'Item 2. Properties', 'Item 3. Legal Proceedings', 'Item 4. Mine Safety Disclosures', 'Item 5. Market for Common Equity', 'Item 7. MD&A', 'Item 7A. Market Risk', 'Item 8. Financial Statements', 'Item 9. Changes in Accountants']
-- tags: [('div', 30545), ('ix:nonfraction', 2419), ('xbrldi:explicitmember', 1086), ('xbrli:context', 740), ('xbrli:entity', 740), ('xbrli:identifier', 740), ('xbrli:period', 740), ('xbrli:segment', 721), ('xbrli:instant', 406), ('xbrli:startdate', 334), ('xbrli:enddate', 334), ('ix:nonnumeric', 258), ('ix:continuation', 219), ('a', 87), ('xbrli:measure', 7)]
-- around 'Total assets': `nonFraction id="ID_122" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May28_2023_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,160.3</ix:nonFraction></div><div id="a10221" style="position:absolute;font-family:'Times New Roman';left:724px;top:307px;"><ix:nonFraction id="ID_88" name="us-gaap:OtherAssetsNoncurrent" contextRef="AS_OF_May29_2022_Entity_0000040704" unitRef="USD" decimals="-5" format="ixt:numdotdecimal" scale="6">1,228.1</ix:nonFraction></div><div id="a10223" style="position:absolute;font-family:'Times New Roman';left:66px;top:325px;">`
+None.
 
 ## What was tagged
 
@@ -292,6 +282,8 @@ Cells give the tagged table's size in characters.
 | GIS | 2021 | income (2 tables): Consolidated Statements of Earnings GENERAL MILLS, INC. AND SUBSIDIARIES (In Millions, Except per Share Data)  |
 | GIS | 2021 | balance_sheet (2 tables): Consolidated Balance Sheets GENERAL MILLS, INC. AND SUBSIDIARIES (In Millions, Except Par Value) May 30, 2021  |
 | GIS | 2021 | cash_flow (1 table): Consolidated Statements of Cash Flows GENERAL MILLS, INC. AND SUBSIDIARIES (In Millions) Fiscal Year 2021 / 20 |
+| GIS | 2022 | income (1 table): 2022 / 2021 / 2020 Net sales $ / 18,992.8 / $18,127.0 / $17,626.6 Cost of sales / 12,590.6 / 11,678.7 / 11,496 |
+| GIS | 2023 | income (1 table): 2023 / 2022 / 2021 Net sales $ / 20,094.2 / $18,992.8 / $18,127.0 Cost of sales / 13,548.4 / 12,590.6 / 11,678 |
 | GLW | 2020 | income (1 table): Year ended December 31, (In millions, except per share amounts) / 2020 / 2019 / 2018 Net sales / $11,303 / $11 |
 | GLW | 2020 | balance_sheet (1 table): December 31, (In millions, except share and per share amounts) / 2020 / 2019 Assets Current assets: Cash and c |
 | GLW | 2020 | cash_flow (1 table): Year ended December 31, (In millions) / 2020 / 2019 / 2018 Cash Flows from Operating Activities: Net income /  |
