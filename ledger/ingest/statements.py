@@ -35,7 +35,8 @@ _TITLES = {
 # Row labels a real statement must contain (titles alone also match notes
 # and MD&A summaries).
 _SIGNATURE = {
-    BALANCE_SHEET: (re.compile(r"totalassets"), re.compile(r"totalliabilities|equity")),
+    # MGM prints total assets as an unlabelled line; current assets are labelled.
+    BALANCE_SHEET: (re.compile(r"total(current)?assets"), re.compile(r"totalliabilities|equity")),
     INCOME: (re.compile(r"revenue|sales"), re.compile(r"net(income|earnings|loss)")),
     CASH_FLOW: (re.compile(r"operatingactivities|operations"), re.compile(r"investing")),
 }

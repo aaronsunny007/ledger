@@ -53,6 +53,12 @@ def inspect(path: Path) -> tuple[dict[str, int], list[str], list[str]]:
     missing = [k for k in STATEMENTS if k not in found]
     if not missing:
         return found, notes, samples
+    if len(missing) == len(STATEMENTS):
+        n_tables = sum(b.is_table for b in doc.blocks)
+        notes.append(
+            f"- nothing found: {len(doc.blocks)} blocks, {n_tables} tables, "
+            f"{len(path.read_bytes()):,} bytes, sections {doc.sections()[:12]}"
+        )
     recent: list[str] = []
     for b in doc.blocks:
         if not b.is_table:
