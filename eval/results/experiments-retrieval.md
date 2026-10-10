@@ -4,7 +4,7 @@ Recall = share of questions where the passages given to the model contain the go
 
 | Run | What changes | FinanceBench recall | FinanceBench MRR | XBRL recall | XBRL MRR | Passages | Context chars | p50 ms |
 |---|---|---|---|---|---|---|---|---|
-| `default` | Default: table chunks, hybrid + rerank, statements pinned | 74.1% | 0.690 | 60.7% | 0.525 | 6.64 | 5845 | 12514.0 |
+| `hybrid-rerank` | Previous default: hybrid search + bge-reranker-base | 74.1% | 0.690 | 60.7% | 0.525 | 6.64 | 5845 | 12514.0 |
 | `no-pin-statements` | Statement pinning off | 28.2% | 0.162 | 47.5% | 0.304 | 5.97 | 4836 | 15055.6 |
 | `hybrid-no-rerank` | Reranker off | 70.6% | 0.669 | 52.5% | 0.446 | 6.79 | 5492 | 76.1 |
 | `rerank-v2-m3` | Reranker bge-reranker-v2-m3 instead of -base | 76.5% | 0.690 | 62.3% | 0.543 | 6.56 | 6027 | 52104.2 |

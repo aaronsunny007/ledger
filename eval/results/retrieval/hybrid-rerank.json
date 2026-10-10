@@ -1,6 +1,6 @@
 {
-  "tag": "default",
-  "config_file": "configs/retrieval.yaml",
+  "tag": "hybrid-rerank",
+  "config_file": "configs/experiments/hybrid-rerank.yaml",
   "config": {
     "chunking": {
       "strategy": "table",
