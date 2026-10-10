@@ -115,3 +115,23 @@ def test_unparseable_model_output_refuses(make_ledger: Make) -> None:
     ledger, _ = make_ledger(lambda s, u: "I think revenue went up")
     a = ledger.ask(Q)
     assert a.refused
+
+
+def test_citations_in_any_common_format_are_read() -> None:
+    from ledger.answer.generate import parse_draft
+
+    d = parse_draft(
+        '{"answerable": true, "claims": [{"text": "a", "citations": ["[1]", "passage 2", 3]},'
+        ' {"text": "b", "citations": "4"}]}'
+    )
+    assert [c.citations for c in d.claims] == [[1, 2, 3], [4]]
+
+
+def test_answerable_without_claims_records_why() -> None:
+    from ledger.answer.generate import parse_draft
+
+    d = parse_draft('{"answerable": true, "answer": "Revenue was $5 billion."}')
+    assert not d.answerable
+    assert (
+        d.refusal_reason and "no usable claims" in d.refusal_reason and "answer" in d.refusal_reason
+    )

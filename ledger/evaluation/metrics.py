@@ -114,6 +114,7 @@ class ItemResult:
     tags: list[str] = field(default_factory=list)
     error: str | None = None
     judge: dict[str, Any] | None = None
+    refusal_reason: str | None = None
 
 
 def score_item(item: GoldenItem, answer: Answer, k: int = 6) -> ItemResult:
@@ -156,6 +157,7 @@ def score_item(item: GoldenItem, answer: Answer, k: int = 6) -> ItemResult:
         cache_hit=answer.cache_hit,
         regenerated=answer.regenerated,
         tags=list(item.tags),
+        refusal_reason=answer.refusal_reason if answer.refused else None,
     )
 
 

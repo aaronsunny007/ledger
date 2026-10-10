@@ -102,7 +102,11 @@ def parse_draft(text: str) -> Draft:
     for c in data.get("claims") or []:
         if not isinstance(c, dict) or not str(c.get("text", "")).strip():
             continue
-        cites = [int(n) for n in c.get("citations") or [] if str(n).strip().isdigit()]
+        raw_cites = c.get("citations") or []
+        if not isinstance(raw_cites, list):
+            raw_cites = [raw_cites]
+        # Models write citations as 1, "1", "[1]" or "passage 1"; keep the numbers.
+        cites = [int(m) for n in raw_cites for m in re.findall(r"\d+", str(n))]
         calc = c.get("calculation")
         claims.append(
             DraftClaim(
@@ -113,11 +117,18 @@ def parse_draft(text: str) -> Draft:
             )
         )
     conf = str(data.get("confidence", "low")).lower()
+    answerable = bool(data.get("answerable", bool(claims)))
+    reason = data.get("refusal_reason")
+    if answerable and not claims:
+        # Said it could answer but gave nothing usable: record what came back,
+        # so a format mismatch is not mistaken for a genuine refusal.
+        keys = ", ".join(sorted(data)) if isinstance(data, dict) else type(data).__name__
+        reason = f"Model output had no usable claims (keys: {keys})."
     return Draft(
-        answerable=bool(data.get("answerable", bool(claims))) and bool(claims),
+        answerable=answerable and bool(claims),
         claims=claims,
         confidence=conf if conf in ("high", "medium", "low") else "low",
-        refusal_reason=data.get("refusal_reason"),
+        refusal_reason=str(reason) if reason else None,
     )
 
 
