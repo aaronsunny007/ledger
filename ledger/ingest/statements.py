@@ -106,6 +106,16 @@ _ANY_TITLE = re.compile(r"statement|balancesheet|comprehensive")
 _BOILERPLATE = re.compile(r"accompanyingnotes|integralpart|tableofcontents|continued")
 
 
+# Quarterly data repeats the income statement's line items by quarter.
+_QUARTERLY = re.compile(r"threemonthsended|quarterended|(first|fourth)quarter")
+
+
+def _title_like(text: str) -> bool:
+    """A heading line, not a sentence that mentions a statement in passing."""
+    text = text.strip()
+    return len(text) <= 150 and not text.endswith((".", ":"))
+
+
 def _squash(text: str) -> str:
     return re.sub(r"\s+", "", text.lower())
 
@@ -157,6 +167,11 @@ def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
         index = len(b.text) < 1500 and len(_titles_by_position(squashed)) >= 2
         if b.is_table and not index and len(_FIGURE.findall(b.text)) >= _MIN_FIGURES:
             # A table that opens with its own title starts a new statement.
+            if _QUARTERLY.search(_squash(b.text[:100])):
+                # Quarterly data: never a statement, never part of one.
+                close()
+                run, recent, gap_ok = [], [], True
+                continue
             opening = _squash(b.text[:60])
             titled = any(t.search(opening) for t in _TITLES.values())
             if run and gap_ok and not titled:
@@ -164,7 +179,8 @@ def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
             else:
                 close()
                 run = [b]
-                head = _squash(" ".join(recent) + " " + b.text[:60])
+                titles = [t for t in recent if _title_like(t)]
+                head = _squash(" ".join(titles) + " " + b.text[:60])
             recent, gap_ok = [], True
             continue
         # Text, or a table too short to be a statement (often the title).

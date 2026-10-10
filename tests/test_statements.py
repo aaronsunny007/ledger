@@ -281,3 +281,23 @@ def test_line_items_beat_size_when_choosing_the_statement() -> None:
     )
     html = "<p>Consolidated Statement of Income</p>" + real + "<p>Note 12</p>" + note
     assert "Gross profit" in _tagged(html)["income"][0]
+
+
+def test_restatement_notes_and_quarterly_tables_are_not_statements() -> None:
+    items = (
+        ("Revenues", "93,392", "94,571"),
+        ("Cost of products", "76,066", "80,790"),
+        ("Operating earnings", "10,278", "5,834"),
+        ("Net earnings", "8,197", "4,895"),
+    )
+    html = (
+        "<p>The following shows the effects on our Consolidated Statements of Operations.</p>"
+        + _table(("Reported", "Impact", "Restated"), *items, *items)
+        + "<p>Consolidated Statements of Operations</p>"
+        + _table(("Years ended", "2018", "2017"), *items)
+        + "<p>Note 21. Quarterly results (unaudited)</p>"
+        + _table(("Three Months Ended", "Dec. 31", "Sep. 30"), *items, *items, *items)
+    )
+    assert _tagged(html)["income"] == [
+        "Years ended | 2018 | 2017\n" + "\n".join(" | ".join(r) for r in items)
+    ]
