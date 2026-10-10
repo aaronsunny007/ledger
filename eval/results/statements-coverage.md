@@ -1,6 +1,6 @@
 # Primary statement coverage
 
-Filings: 124. Found: balance_sheet 124/124, income 124/124, cash_flow 122/124.
+Filings: 124. Found: balance_sheet 124/124, income 124/124, cash_flow 124/124.
 
 Cells give the tagged table's size in characters.
 
@@ -10,7 +10,7 @@ Cells give the tagged table's size in characters.
 | AAPL | 2022 | 1,525 | 2,088 | 2,474 |
 | ADBE | 2015 | 2,012 | 1,642 | 3,310 |
 | ADBE | 2016 | 1,854 | 1,647 | 3,169 |
-| ADBE | 2017 | 1,855 | 1,597 | 3,132 |
+| ADBE | 2017 | 2,244 | 1,597 | 3,132 |
 | ADBE | 2021 | 1,707 | 1,353 | 2,480 |
 | ADBE | 2022 | 1,688 | 1,366 | 2,468 |
 | ADBE | 2023 | 1,692 | 1,347 | 2,430 |
@@ -53,8 +53,8 @@ Cells give the tagged table's size in characters.
 | GIS | 2019 | 1,399 | 1,081 | 2,954 |
 | GIS | 2020 | 4,211 | 2,330 | 3,167 |
 | GIS | 2021 | 4,090 | 2,301 | 3,107 |
-| GIS | 2022 | 3,661 | 1,028 | **missing** |
-| GIS | 2023 | 3,599 | 1,040 | **missing** |
+| GIS | 2022 | 3,661 | 1,028 | 2,593 |
+| GIS | 2023 | 3,599 | 1,040 | 2,645 |
 | GLW | 2020 | 1,929 | 1,117 | 2,760 |
 | GLW | 2021 | 1,900 | 3,882 | 2,836 |
 | GLW | 2022 | 1,776 | 1,527 | 2,818 |
@@ -71,9 +71,9 @@ Cells give the tagged table's size in characters.
 | JPM | 2022 | 2,627 | 2,529 | 3,349 |
 | JPM | 2023 | 2,629 | 2,505 | 3,473 |
 | KHC | 2019 | 4,669 | 4,149 | 5,765 |
-| KHC | 2021 | 1,898 | 1,734 | 2,728 |
-| KHC | 2022 | 1,858 | 1,597 | 2,780 |
-| KHC | 2023 | 1,822 | 1,591 | 2,718 |
+| KHC | 2021 | 1,898 | 1,313 | 2,728 |
+| KHC | 2022 | 1,858 | 1,245 | 2,780 |
+| KHC | 2023 | 1,822 | 1,461 | 2,718 |
 | KO | 2017 | 2,025 | 1,633 | 2,515 |
 | KO | 2021 | 1,807 | 1,390 | 2,467 |
 | KO | 2022 | 1,809 | 1,244 | 2,552 |
@@ -116,8 +116,8 @@ Cells give the tagged table's size in characters.
 | PG | 2023 | 1,798 | 805 | 2,232 |
 | PYPL | 2022 | 1,730 | 973 | 2,805 |
 | PYPL | 2023 | 1,725 | 969 | 2,865 |
-| SQ | 2016 | 2,110 | 3,233 | 3,267 |
-| SQ | 2020 | 2,247 | 3,195 | 3,705 |
+| SQ | 2016 | 2,110 | 8,062 | 3,267 |
+| SQ | 2020 | 2,247 | 7,967 | 3,705 |
 | TSLA | 2021 | 1,895 | 1,761 | 3,600 |
 | TSLA | 2022 | 1,847 | 1,743 | 3,367 |
 | TSLA | 2023 | 1,830 | 1,780 | 3,280 |
@@ -133,40 +133,7 @@ Cells give the tagged table's size in characters.
 
 ## Near misses for missing statements
 
-### GIS 2022
-
-- `cash_flow` blocks around its key line: P:growth. // P:operating segment. // P:a product recall in fiscal 2020 in our international Green Giant business. // T:IMPACT OF INFLATION / 25 // P:Cash Flows from Operations // P:Fiscal Year // T:In Millions / 2022 / 2021 $2,735.0 / $2,346.0 Depreciation and amortization / 570.3 / 601. // P:26
-- `cash_flow` title=n rows=[True, True] len=1127 section='Item 4. Mine Safety Disclosures'
-  - before: (a) / Fiscal 2022 vs. 2021 / Percentage Change / growth. / operating segment. / a product recall in fiscal 2020 in our international Green Giant business. / Cash Flows from Operations / Fiscal Year
-  - table: In Millions / 2022 / 2021 $2,735.0 / $2,346.0 Depreciation and amortization / 570.3 / 601.3 After-tax earnings from joint ventures / (111.7) / (117.7) Distributions of earnings from joint ventures / 107.5 / 95.2 Stock-ba
-- `cash_flow` title=Y rows=[True, False] len=175 section='Item 4. Mine Safety Disclosures'
-  - before: May 29, 2022 May 30, 2021 / ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Mill
-  - table: Fiscal Year / 2022 Cash Flows - Operating Activities Net earnings, including earnings attributable to redeemable and noncontrolling interests $ / 2,735.0 / $2,346.0 / $2,210.8
-- `cash_flow` title=Y rows=[True, True] len=2333 section='Item 4. Mine Safety Disclosures'
-  - before: ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to recon
-  - table: Depreciation and amortization / 570.3 / 601.3 / 594.7 After-tax earnings from joint ventures / ( 111.7 ) / ( 117.7 ) / ( 91.1 ) Distributions of earnings from joint ventures / 107.5 / 95.2 / 76.5 Stock-based compensation
-- `cash_flow` title=Y rows=[False, False] len=390 section='Item 4. Mine Safety Disclosures'
-  - before: Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net 
-  - table: Receivables $ / ( 166.3 ) / $27.9 / $37.9 Inventories / ( 85.8 ) / ( 354.7 ) / 103.1 Prepaid expenses and other current assets / ( 35.3 ) / ( 42.7 ) / 94.2 Accounts payable / 456.7 / 343.1 / 392.5 Other current liabiliti
-- `cash_flow` title=Y rows=[False, False] len=41 section='Item 4. Mine Safety Disclosures'
-  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net ca
-  - table: GENERAL MILLS, INC. AND SUBSIDIARIES / 50
-
-### GIS 2023
-
-- `cash_flow` blocks around its key line: P:increased in fiscal 2023 compared to fiscal 2022. // T:IMPACT OF INFLATION / 23 // P:Cash Flows from Operations // P:Fiscal Year // T:In Millions / 2023 / 2022 $2,609.6 / $2,735.0 Depreciation and amortization / 546.6 / 570. // P:receivable. // P:Cash Flows from Investing Activities // P:Fiscal Year
-- `cash_flow` title=Y rows=[True, False] len=175 section='Item 8. Financial Statements'
-  - before: May 28, 2023 May 29, 2022 / ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Mill
-  - table: Fiscal Year / 2023 Cash Flows - Operating Activities Net earnings, including earnings attributable to redeemable and noncontrolling interests $ / 2,609.6 / $2,735.0 / $2,346.0
-- `cash_flow` title=Y rows=[True, True] len=2385 section='Item 8. Financial Statements'
-  - before: ASSETS / Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to recon
-  - table: Depreciation and amortization / 546.6 / 570.3 / 601.3 After-tax earnings from joint ventures / ( 81.3 ) / ( 111.7 ) / ( 117.7 ) Distributions of earnings from joint ventures / 69.9 / 107.5 / 95.2 Stock-based compensation
-- `cash_flow` title=Y rows=[False, False] len=400 section='Item 8. Financial Statements'
-  - before: Current assets: / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net 
-  - table: Receivables $ / ( 41.2 ) / $( 166.3 ) / $27.9 Inventories / ( 319.0 ) / ( 85.8 ) / ( 354.7 ) Prepaid expenses and other current assets / 61.6 / ( 35.3 ) / ( 42.7 ) Accounts payable / 199.8 / 456.7 / 343.1 Other current l
-- `cash_flow` title=Y rows=[False, False] len=41 section='Item 8. Financial Statements'
-  - before: GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions, Except per Share Data) / Consolidated Statements of Cash Flows / GENERAL MILLS, INC. AND SUBSIDIARIES / (In Millions) / Adjustments to reconcile net earnings to net ca
-  - table: GENERAL MILLS, INC. AND SUBSIDIARIES / 47
+None.
 
 ## What was tagged
 
@@ -186,9 +153,9 @@ Cells give the tagged table's size in characters.
 | ADBE | 2016 | balance_sheet (1 table): December 2, 2016 / November 27, 2015 ASSETS Current assets: Cash and cash equivalents / $1,011,315 / $876,560  |
 | ADBE | 2016 | income (1 table): Years Ended December 2, 2016 / November 27, 2015 / November 28, 2014 Revenue: Subscription / $4,584,833 / $3,2 |
 | ADBE | 2016 | cash_flow (1 table): Years Ended December 2, 2016 / November 27, 2015 / November 28, 2014 Cash flows from operating activities: Net |
-| ADBE | 2017 | balance_sheet (1 table): December 1, 2017 / December 2, 2016 ASSETS Current assets: Cash and cash equivalents / $2,306,072 / $1,011,315 |
 | ADBE | 2017 | income (1 table): Years Ended December 1, 2017 / December 2, 2016 / November 27, 2015 Revenue: Subscription / $6,133,869 / $4,58 |
 | ADBE | 2017 | cash_flow (1 table): Years Ended December 1, 2017 / December 2, 2016 / November 27, 2015 Cash flows from operating activities: Net  |
+| ADBE | 2017 | balance_sheet (4 tables): Fair Value Measurements at Reporting Date Using Quoted Prices in Active Markets for Identical Assets / Signifi |
 | ADBE | 2021 | balance_sheet (1 table): December 3, 2021 / November 27, 2020 ASSETS Current assets: Cash and cash equivalents / $3,844 / $4,478 Short- |
 | ADBE | 2021 | income (1 table): Years Ended December 3, 2021 / November 27, 2020 / November 29, 2019 Revenue: Subscription / $14,573 / $11,626 |
 | ADBE | 2021 | cash_flow (1 table): Years Ended December 3, 2021 / November 27, 2020 / November 29, 2019 Cash flows from operating activities: Net |
@@ -317,8 +284,10 @@ Cells give the tagged table's size in characters.
 | GIS | 2021 | cash_flow (1 table): Consolidated Statements of Cash Flows GENERAL MILLS, INC. AND SUBSIDIARIES (In Millions) Fiscal Year 2021 / 20 |
 | GIS | 2022 | income (1 table): Fiscal Year / 2022 / 2021 / 2020 Net sales $ / 18,992.8 / $18,127.0 / $17,626.6 Cost of sales / 12,590.6 / 11, |
 | GIS | 2022 | balance_sheet (2 tables): Cash and cash equivalents $ / 569.4 / $1,505.2 Receivables / 1,692.1 / 1,638.5 Inventories / 1,867.3 / 1,820.5 |
+| GIS | 2022 | cash_flow (1 table): Fiscal Year / 2022 Cash Flows - Operating Activities Net earnings, including earnings attributable to redeemab |
 | GIS | 2023 | income (1 table): Fiscal Year / 2023 / 2022 / 2021 Net sales $ / 20,094.2 / $18,992.8 / $18,127.0 Cost of sales / 13,548.4 / 12, |
 | GIS | 2023 | balance_sheet (2 tables): Cash and cash equivalents $ / 585.5 / $569.4 Receivables / 1,683.2 / 1,692.1 Inventories / 2,172.0 / 1,867.3 P |
+| GIS | 2023 | cash_flow (1 table): Fiscal Year / 2023 Cash Flows - Operating Activities Net earnings, including earnings attributable to redeemab |
 | GLW | 2020 | income (1 table): Year ended December 31, (In millions, except per share amounts) / 2020 / 2019 / 2018 Net sales / $11,303 / $11 |
 | GLW | 2020 | balance_sheet (1 table): December 31, (In millions, except share and per share amounts) / 2020 / 2019 Assets Current assets: Cash and c |
 | GLW | 2020 | cash_flow (1 table): Year ended December 31, (In millions) / 2020 / 2019 / 2018 Cash Flows from Operating Activities: Net income /  |
@@ -369,13 +338,13 @@ Cells give the tagged table's size in characters.
 | KHC | 2019 | cash_flow (3 tables): Parent Guarantor / Subsidiary Issuer / Non-Guarantor Subsidiaries / Eliminations / Consolidated CASH FLOWS FRO |
 | KHC | 2021 | balance_sheet (1 table): December 25, 2021 / December 26, 2020 ASSETS Cash and cash equivalents / $3,445 / $3,417 Trade receivables (ne |
 | KHC | 2021 | cash_flow (1 table): December 25, 2021 / December 26, 2020 / December 28, 2019 CASH FLOWS FROM OPERATING ACTIVITIES: Net income/(lo |
-| KHC | 2021 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Reclassified from Accumulated Other Comprehensive  |
+| KHC | 2021 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Gains/(Losses) Recognized in Other Comprehensive I |
 | KHC | 2022 | balance_sheet (1 table): December 31, 2022 / December 25, 2021 ASSETS Cash and cash equivalents / $1,040 / $3,445 Trade receivables (ne |
 | KHC | 2022 | cash_flow (1 table): December 31, 2022 / December 25, 2021 / December 26, 2020 CASH FLOWS FROM OPERATING ACTIVITIES: Net income/(lo |
-| KHC | 2022 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Reclassified from Accumulated Other Comprehensive  |
+| KHC | 2022 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Gains/(Losses) Recognized in Other Comprehensive I |
 | KHC | 2023 | balance_sheet (1 table): December 30, 2023 / December 31, 2022 ASSETS Cash and cash equivalents / $1,400 / $1,040 Trade receivables (ne |
 | KHC | 2023 | cash_flow (1 table): December 30, 2023 / December 31, 2022 / December 25, 2021 CASH FLOWS FROM OPERATING ACTIVITIES: Net income/(lo |
-| KHC | 2023 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Reclassified from Accumulated Other Comprehensive  |
+| KHC | 2023 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Gains/(Losses) Recognized in Other Comprehensive I |
 | KO | 2017 | balance_sheet (1 table): December 31, / 2017 / 2016 (In millions except par value) ASSETS CURRENT ASSETS Cash and cash equivalents / $6 |
 | KO | 2017 | cash_flow (1 table): Year Ended December 31, / 2017 / 2016 / 2015 (In millions) OPERATING ACTIVITIES Consolidated net income / $1,2 |
 | KO | 2017 | income (1 table): Description of AOCI Component / Financial Statement Line Item / Amount Reclassified from AOCI into Income Fore |
@@ -502,10 +471,10 @@ Cells give the tagged table's size in characters.
 | PYPL | 2023 | balance_sheet (1 table): As of December 31, 2023 / 2022 (In millions, except par value) ASSETS Current assets: Cash and cash equivalent |
 | PYPL | 2023 | income (1 table): Year Ended December 31, 2023 / 2022 / 2021 (In millions, except for per share amounts) Net revenues / $29,771  |
 | PYPL | 2023 | cash_flow (1 table): Year Ended December 31, 2023 / 2022 / 2021 (In millions) Cash flows from operating activities: Net income (los |
-| SQ | 2016 | income (1 table): Three Months Ended, Dec. 31, 2016 / Sep. 30, 2016 / Jun. 30, 2016 / Mar. 31, 2016 / Dec. 31, 2015 / Sep. 30, 2 |
+| SQ | 2016 | income (6 tables): Three Months Ended, Dec. 31, 2016 / Sep. 30, 2016 / Jun. 30, 2016 / Mar. 31, 2016 / Dec. 31, 2015 / Sep. 30, 2 |
 | SQ | 2016 | balance_sheet (1 table): December 31, 2016 / 2015 Assets Current assets: Cash and cash equivalents / $452,030 / $461,329 Short-term inv |
 | SQ | 2016 | cash_flow (2 tables): Year Ended December 31, 2016 / 2015 / 2014 Cash flows from operating activities: Net loss / $(171,590) / $(179 |
-| SQ | 2020 | income (1 table): Three Months Ended, Dec. 31, 2020 / Sep. 30, 2020 / Jun. 30, 2020 / Mar. 31, 2020 / Dec. 31, 2019 / Sep. 30, 2 |
+| SQ | 2020 | income (5 tables): Three Months Ended, Dec. 31, 2020 / Sep. 30, 2020 / Jun. 30, 2020 / Mar. 31, 2020 / Dec. 31, 2019 / Sep. 30, 2 |
 | SQ | 2020 | balance_sheet (1 table): December 31, 2020 / 2019 Assets Current assets: Cash and cash equivalents / $3,158,058 / $1,047,118 Investment |
 | SQ | 2020 | cash_flow (1 table): Year Ended December 31, 2020 / 2019 / 2018 Cash flows from operating activities: Net income (loss) / $213,105  |
 | TSLA | 2021 | balance_sheet (1 table): December 31, / December 31, 2021 / 2020 Assets Current assets Cash and cash equivalents / $17,576 / $19,384 Sh |
