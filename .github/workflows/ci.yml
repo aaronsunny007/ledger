@@ -97,10 +97,15 @@ jobs:
             data/raw
             data/processed
             ~/.cache/huggingface
-          key: corpus-${{ hashFiles('configs/corpus.yaml', 'configs/retrieval.yaml', 'ledger/ingest/**') }}
-      - name: Download and index filings (cached after the first run)
+          key: smoke-${{ hashFiles('eval/golden/**', 'configs/**', 'ledger/ingest/**') }}
+      - name: Download and index the smoke set's filings (cached after the first run)
         if: steps.pre.outputs.run == 'true'
-        run: ledger download && ledger ingest
+        run: |
+          python eval/run_eval.py --smoke --print-needs > needs.txt
+          awk '{y[$1]=y[$1]" "$2} END {for (t in y) print t y[t]}' needs.txt | while read -r t ys; do
+            ledger download --tickers "$t" --years $ys
+          done
+          ledger ingest | tail -5
       - name: Smoke eval + regression gate
         if: steps.pre.outputs.run == 'true'
         run: python eval/run_eval.py --smoke --gate --sleep 4 --summary smoke.md

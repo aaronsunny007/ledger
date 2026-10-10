@@ -42,12 +42,21 @@ jobs:
           pip install -e ".[models,tracing]"
       - uses: actions/cache@v4
         with:
+          path: data/raw
+          key: raw-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/edgar.py') }}
+      - uses: actions/cache@v4
+        with:
           path: |
-            data/raw
             data/processed
             ~/.cache/huggingface
-          key: corpus-${{ hashFiles('configs/corpus.yaml', 'configs/retrieval.yaml', 'ledger/ingest/**') }}
-      - run: ledger download && ledger ingest
+          key: index-table-${{ hashFiles('eval/golden/**', 'configs/**', 'ledger/ingest/**') }}
+      - name: Download and index every filing the golden set needs (cached)
+        run: |
+          python eval/run_eval.py --split all --sources financebench xbrl --print-needs > needs.txt
+          awk '{y[$1]=y[$1]" "$2} END {for (t in y) print t y[t]}' needs.txt | while read -r t ys; do
+            ledger download --tickers "$t" --years $ys
+          done
+          ledger ingest | tail -5
       - name: Smoke set (refresh the PR baseline)
         run: python eval/run_eval.py --smoke --sleep 4 --write-baseline
       - name: Full eval
