@@ -41,6 +41,61 @@ _SIGNATURE = {
     CASH_FLOW: (re.compile(r"operatingactivities|operations"), re.compile(r"investing")),
 }
 
+# Standard line items of each statement. Among the tables that pass the
+# signature, the one carrying the most of these is the statement: segment
+# notes and reclassification tables share a few labels, not most of them.
+_LINE_ITEMS = {
+    BALANCE_SHEET: (
+        r"cashandcashequivalents|^cash",
+        r"receivable",
+        r"inventor",
+        r"totalcurrentassets",
+        r"property|equipment",
+        r"goodwill",
+        r"totalassets",
+        r"accountspayable|payable",
+        r"totalcurrentliabilities",
+        r"long-?termdebt|borrowings",
+        r"retainedearnings|deficit",
+        r"totalliabilitiesand",
+        r"commonstock|sharecapital|paid-?in",
+    ),
+    INCOME: (
+        r"revenue|netsales",
+        r"costof",
+        r"grossprofit|grossmargin",
+        r"operating(income|profit)",
+        r"interestexpense|interest,net|interestincome",
+        r"before(income)?tax",
+        r"(provision|benefit)forincometax|incometax(expense|es)",
+        r"net(income|earnings)",
+        r"pershare|pershare",
+        r"diluted",
+        r"weighted|averageshares|sharesoutstanding",
+        r"selling|general|administrative|research",
+    ),
+    CASH_FLOW: (
+        r"net(income|earnings)",
+        r"depreciation",
+        r"operatingactivities|operations",
+        r"capitalexpenditure|purchases?ofproperty|additionstoproperty|propertyandequipment",
+        r"investingactivities|investing",
+        r"financingactivities|financing",
+        r"dividends",
+        r"repurchase|treasury",
+        r"endof(the)?(year|period)|endingbalance",
+        r"deferredincometax",
+        r"stock-?basedcompensation|share-?basedcompensation",
+        r"acquisition",
+    ),
+}
+_LINE_ITEM_RES = {k: [re.compile(p) for p in v] for k, v in _LINE_ITEMS.items()}
+
+
+def _line_items(text: str, kind: str) -> int:
+    return sum(bool(p.search(text)) for p in _LINE_ITEM_RES[kind])
+
+
 # A table with fewer figures than this is a title or a footnote.
 _MIN_FIGURES = 3
 _FIGURE = re.compile(r"\d[\d,.]*\d")
@@ -73,10 +128,11 @@ def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
     furniture or a repeat of its own header lines sits between the tables. A
     run qualifies when its title (in the few lines before it, including
     title-only tables) names the statement and its rows carry the
-    statement's signature. Per statement only the largest qualifying run is
-    kept: the primary statement is the full one, not a summary of it.
+    statement's signature. Per statement the qualifying run carrying the
+    most of its standard line items is kept (then the largest): the primary
+    statement, not a segment note or a summary of it.
     """
-    best: dict[str, tuple[int, list[Block]]] = {}
+    best: dict[str, tuple[tuple[int, int], list[Block]]] = {}
     recent: list[str] = []
     run: list[Block] = []
     head = ""
@@ -90,8 +146,9 @@ def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
         # hold the previous statement's title.
         for kind in _titles_by_position(head):
             if _signature(text, kind):
-                if kind not in best or len(text) > best[kind][0]:
-                    best[kind] = (len(text), list(run))
+                score = (_line_items(text, kind), len(text))
+                if kind not in best or score > best[kind][0]:
+                    best[kind] = (score, list(run))
                 break
 
     for b in doc.blocks:
@@ -100,13 +157,14 @@ def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
         index = len(b.text) < 1500 and len(_titles_by_position(squashed)) >= 2
         if b.is_table and not index and len(_FIGURE.findall(b.text)) >= _MIN_FIGURES:
             # A table that opens with its own title starts a new statement.
-            titled = any(t.search(_squash(b.text[:150])) for t in _TITLES.values())
+            opening = _squash(b.text[:60])
+            titled = any(t.search(opening) for t in _TITLES.values())
             if run and gap_ok and not titled:
                 run.append(b)
             else:
                 close()
                 run = [b]
-                head = _squash(" ".join(recent) + " " + b.text[:300])
+                head = _squash(" ".join(recent) + " " + b.text[:60])
             recent, gap_ok = [], True
             continue
         # Text, or a table too short to be a statement (often the title).

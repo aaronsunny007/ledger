@@ -261,3 +261,23 @@ def test_subheading_line_between_cash_flow_tables() -> None:
         )
     )
     assert len(_tagged(html)["cash_flow"]) == 2
+
+
+def test_line_items_beat_size_when_choosing_the_statement() -> None:
+    # PepsiCo: a larger reclassification note mentions "Income Statement".
+    real = _table(
+        ("Net Revenue", "86,392", "79,474"),
+        ("Cost of sales", "40,576", "37,075"),
+        ("Gross profit", "45,816", "42,399"),
+        ("Operating Profit", "11,512", "11,162"),
+        ("Provision for income taxes", "1,727", "2,142"),
+        ("Net Income", "8,978", "7,679"),
+        ("Diluted net income per share", "6.42", "5.49"),
+    )
+    note = _table(
+        ("Affected Line Item in the Income Statement", "2022", "2021"),
+        *[(f"Reclassification of item {i} to net revenue", "1,000", "2,000") for i in range(12)],
+        ("Net income", "100", "200"),
+    )
+    html = "<p>Consolidated Statement of Income</p>" + real + "<p>Note 12</p>" + note
+    assert "Gross profit" in _tagged(html)["income"][0]
