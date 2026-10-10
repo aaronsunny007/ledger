@@ -187,7 +187,8 @@ def main() -> int:
             )
         results.append(r)
         mark = {1.0: "ok ", 0.0: "XX ", None: "?? "}[r.correct] if not r.error else "ERR"
-        print(f"[{n}/{len(items)}] {mark} {item.id}  {r.latency_ms}ms  {r.answer[:80]!r}")
+        detail = r.error if r.error else repr(r.answer[:80])
+        print(f"[{n}/{len(items)}] {mark} {item.id}  {r.latency_ms}ms  {detail}", flush=True)
         if args.sleep:
             time.sleep(args.sleep)
 

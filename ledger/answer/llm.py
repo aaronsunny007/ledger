@@ -55,6 +55,23 @@ class LLM(Protocol):
     def complete(self, system: str, user: str) -> LLMResult: ...
 
 
+class LLMError(RuntimeError):
+    def __init__(self, status: int, message: str):
+        super().__init__(f"HTTP {status}: {message}")
+        self.status = status
+
+
+def _error_message(resp: httpx.Response) -> str:
+    try:
+        data = resp.json()
+    except ValueError:
+        return resp.text[:300]
+    err = data.get("error", data) if isinstance(data, dict) else data
+    if isinstance(err, dict):
+        return str(err.get("message") or err)[:300]
+    return str(err)[:300]
+
+
 class _HttpLLM:
     model: str
 
@@ -71,7 +88,10 @@ class _HttpLLM:
                 log.warning("LLM %s, retrying in %.0fs", resp.status_code, wait)
                 time.sleep(min(wait, 60))
                 continue
-            resp.raise_for_status()
+            if resp.is_error:
+                # Keep the provider's own message ("quota exceeded", "model not
+                # found", "API key not valid"): a bare status code hides the fix.
+                raise LLMError(resp.status_code, _error_message(resp))
             return resp.json()
         raise RuntimeError("unreachable")
 

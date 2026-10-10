@@ -1,0 +1,49 @@
+name: llm-check
+
+# One-minute check that the configured model answers: three real calls
+# through Ledger's own client, printing the provider's exact error if any.
+
+on:
+  workflow_dispatch:
+
+env:
+  LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'gemini' }}
+  LLM_MODEL: ${{ vars.LLM_MODEL }}
+  LLM_MODEL_LARGE: ${{ vars.LLM_MODEL_LARGE }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Which models does this key see?
+        if: env.LLM_PROVIDER == 'gemini'
+        run: |
+          curl -s -H "x-goog-api-key: $GEMINI_API_KEY" \
+            "https://generativelanguage.googleapis.com/v1beta/models?pageSize=200" \
+            | python -c "import json,sys; d=json.load(sys.stdin); print(d.get('error') or '\n'.join(m['name'] for m in d.get('models',[]) if 'generateContent' in m.get('supportedGenerationMethods',[])))"
+      - name: Three calls through Ledger's client
+        run: |
+          python - <<'PY'
+          import time
+          from ledger.config import Settings
+          from ledger.factory import build_llms
+          s = Settings()
+          small, large = build_llms(s)
+          for llm in [small, large or small, small]:
+              t = time.monotonic()
+              try:
+                  r = llm.complete('Reply with JSON {"ok": true}.', "Are you there?")
+                  print(f"OK   {llm.model}: {r.text.strip()[:60]!r} in {time.monotonic() - t:.1f}s "
+                        f"({r.input_tokens} in / {r.output_tokens} out tokens)")
+              except Exception as e:
+                  print(f"FAIL {llm.model}: {e}")
+              time.sleep(5)
+          PY
