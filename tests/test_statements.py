@@ -246,3 +246,18 @@ def test_positioned_layout_with_offset_labels_and_headings() -> None:
     assert len(tables) == 1
     assert "Total assets | 31,091.3" in tables[0] and "Item 7 | 7.5 | 1.0" in tables[0]
     assert set(_tagged(html)) == {"balance_sheet"}
+
+
+def test_subheading_line_between_cash_flow_tables() -> None:
+    html = (
+        "<p>Consolidated Statements of Cash Flows</p>"
+        + _table(("Net earnings", "2,735.0", "2,346.0"), ("Other", "1.0", "2.0"))
+        + "<p>Adjustments to reconcile net earnings to net cash provided by operating"
+        " activities:</p>"
+        + _table(
+            ("Depreciation", "570.3", "601.3"),
+            ("Net cash provided by operating activities", "3,316.3", "2,983.0"),
+            ("Net cash used by investing activities", "(1,011.6)", "(530.5)"),
+        )
+    )
+    assert len(_tagged(html)["cash_flow"]) == 2

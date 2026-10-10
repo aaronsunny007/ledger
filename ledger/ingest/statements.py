@@ -123,7 +123,9 @@ def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
         furniture = (len(b.text) <= _FURNITURE and not _ANY_TITLE.search(squashed)) or bool(
             _BOILERPLATE.search(squashed) and len(b.text) <= 200
         )
-        if not (furniture or squashed in head):
+        # "Adjustments to reconcile net income ...:" introduces the next rows.
+        subheading = b.text.rstrip().endswith(":") and len(b.text) <= 200
+        if not (furniture or subheading or squashed in head):
             gap_ok = False
     close()
     for kind, (_, blocks) in best.items():

@@ -163,7 +163,7 @@ def _rebuild_positioned(soup: BeautifulSoup) -> None:
         page.clear()
         table: Tag | None = None
         for i, row in enumerate(rows):
-            heading = len(row) == 1 and len(row[0]) <= 80
+            heading = len(row) == 1 and (len(row[0]) <= 80 or row[0].endswith(":"))
             upcoming = any(_figure_row(r) for r in rows[i + 1 : i + 3])
             # Headings inside a statement ("Current assets:") stay in its table.
             if _figure_row(row) or (table is not None and heading and upcoming):
