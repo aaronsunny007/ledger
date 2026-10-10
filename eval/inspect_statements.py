@@ -12,7 +12,9 @@ Writes eval/results/statements-coverage.md.
 
 from __future__ import annotations
 
+import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -59,6 +61,16 @@ def inspect(path: Path) -> tuple[dict[str, int], list[str], list[str]]:
             f"- nothing found: {len(doc.blocks)} blocks, {n_tables} tables, "
             f"{len(path.read_bytes()):,} bytes, sections {doc.sections()[:12]}"
         )
+        if n_tables == 0:
+            # Which tags carry the layout, when there is no <table>?
+            raw = path.read_bytes().decode("utf-8", errors="replace")
+            tags = Counter(m.lower() for m in re.findall(r"<([A-Za-z][\w:.-]*)", raw))
+            notes.append(f"- tags: {tags.most_common(15)}")
+            first = raw.find("Total assets")
+            if first >= 0:
+                notes.append(
+                    f"- around 'Total assets': `{_one_line(raw[first - 600 : first], 600)}`"
+                )
     recent: list[str] = []
     for b in doc.blocks:
         if not b.is_table:
