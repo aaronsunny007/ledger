@@ -4,6 +4,7 @@ Recall = share of questions where the passages given to the model contain the go
 
 | Run | What changes | FinanceBench recall | FinanceBench MRR | XBRL recall | XBRL MRR | Passages | Context chars | p50 ms |
 |---|---|---|---|---|---|---|---|---|
+| `default` | Default: table chunks, vector search, no reranker, statements pinned | 74.1% | 0.690 | 53.3% | 0.449 | 6.73 | 5466 | 58.1 |
 | `hybrid-rerank` | Previous default: hybrid search + bge-reranker-base | 74.1% | 0.690 | 60.7% | 0.525 | 6.64 | 5845 | 12514.0 |
 | `no-pin-statements` | Statement pinning off | 28.2% | 0.162 | 47.5% | 0.304 | 5.97 | 4836 | 15055.6 |
 | `hybrid-no-rerank` | Reranker off | 70.6% | 0.669 | 52.5% | 0.446 | 6.79 | 5492 | 76.1 |
@@ -17,4 +18,4 @@ Recall = share of questions where the passages given to the model contain the go
 | `fixed-512` | Fixed 512-character chunks | 10.6% | 0.070 | 45.9% | 0.315 | 5.97 | 3026 | 7105.8 |
 
 Questions: 85 FinanceBench (10-K, test split), 122 XBRL (test split).
-Commit: `bcbd21c`.
+Commit: `ed6e6c6`.
