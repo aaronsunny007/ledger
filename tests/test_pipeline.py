@@ -142,3 +142,20 @@ def test_claim_sentence_under_another_key_is_read() -> None:
 
     d = parse_draft('{"answerable": true, "claims": [{"claim": "x", "citations": [1]}, "y"]}')
     assert [c.text for c in d.claims] == ["x", "y"] and d.answerable
+
+
+def test_retry_delay_reads_gemini_retry_info() -> None:
+    import httpx
+
+    from ledger.answer.llm import _error_message, _retry_delay
+
+    body = {
+        "error": {
+            "message": "Quota exceeded\n for metric: tokens",
+            "details": [{"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": "37s"}],
+        }
+    }
+    resp = httpx.Response(429, json=body)
+    assert _retry_delay(resp, 4) == 37.0
+    assert _error_message(resp) == "Quota exceeded for metric: tokens"
+    assert _retry_delay(httpx.Response(503, text="x"), 4) == 4

@@ -83,7 +83,7 @@ jobs:
           path: |
             data/processed
             ~/.cache/huggingface
-          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/**', 'ledger/ingest/**') }}
+          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
       - name: Index (${{ matrix.index }})
         run: |
           first=$(echo "${{ matrix.runs }}" | awk '{print $1}' | cut -d: -f1)

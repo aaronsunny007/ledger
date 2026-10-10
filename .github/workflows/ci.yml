@@ -97,7 +97,7 @@ jobs:
             data/raw
             data/processed
             ~/.cache/huggingface
-          key: smoke-${{ hashFiles('eval/golden/**', 'configs/**', 'ledger/ingest/**') }}
+          key: smoke-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
       - name: Download and index the smoke set's filings (cached after the first run)
         if: steps.pre.outputs.run == 'true'
         run: |

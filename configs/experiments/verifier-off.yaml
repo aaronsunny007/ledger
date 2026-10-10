@@ -17,7 +17,7 @@ retrieval:
 answer:
   verify: false
   regenerate_on_failure: false
-  max_context_chars: 24000
+  max_context_chars: 18000
 cache:
   enabled: true
   threshold: 0.92

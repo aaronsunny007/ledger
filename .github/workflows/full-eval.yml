@@ -72,7 +72,7 @@ jobs:
           path: |
             data/processed
             ~/.cache/huggingface
-          key: index-table-${{ hashFiles('eval/golden/**', 'configs/**', 'ledger/ingest/**') }}
+          key: index-table-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
       - name: Download and index (skipped when cached)
         run: |
           python eval/run_eval.py --split all --sources financebench xbrl --print-needs > needs.txt

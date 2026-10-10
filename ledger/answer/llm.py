@@ -71,17 +71,38 @@ def _error_message(resp: httpx.Response) -> str:
     try:
         data = resp.json()
     except ValueError:
-        return resp.text[:300]
+        return resp.text[:600]
     err = data.get("error", data) if isinstance(data, dict) else data
     if isinstance(err, dict):
-        return str(err.get("message") or err)[:300]
-    return str(err)[:300]
+        return " ".join(str(err.get("message") or err).split())[:600]
+    return str(err)[:600]
+
+
+def _retry_delay(resp: httpx.Response, default: float) -> float:
+    """Seconds the provider asks us to wait: Retry-After, or Gemini's RetryInfo."""
+    if resp.headers.get("retry-after"):
+        try:
+            return float(resp.headers["retry-after"])
+        except ValueError:
+            pass
+    try:
+        details = resp.json().get("error", {}).get("details", [])
+    except (ValueError, AttributeError):
+        return default
+    for d in details if isinstance(details, list) else []:
+        delay = d.get("retryDelay") if isinstance(d, dict) else None
+        if isinstance(delay, str) and delay.endswith("s"):
+            try:
+                return float(delay[:-1])
+            except ValueError:
+                pass
+    return default
 
 
 class _HttpLLM:
     model: str
 
-    def __init__(self, timeout: float = 60, max_retries: int = 3):
+    def __init__(self, timeout: float = 120, max_retries: int = 5):
         self._http = httpx.Client(timeout=timeout)
         self._max_retries = max_retries
 
@@ -97,10 +118,13 @@ class _HttpLLM:
                 continue
             # Free tiers rate-limit per minute; back off and try again.
             if resp.status_code in (429, 500, 503) and attempt < self._max_retries:
-                wait = float(resp.headers.get("retry-after", 2 ** (attempt + 2)))
-                log.warning("LLM %s, retrying in %.0fs", resp.status_code, wait)
-                time.sleep(min(wait, 60))
-                continue
+                wait = _retry_delay(resp, 2 ** (attempt + 2))
+                # A per-minute limit asks for seconds; a long wait means a daily
+                # quota, which retrying within this run cannot fix.
+                if wait <= 120:
+                    log.warning("LLM %s, retrying in %.0fs", resp.status_code, wait)
+                    time.sleep(wait + 1)
+                    continue
             if resp.is_error:
                 # Keep the provider's own message ("quota exceeded", "model not
                 # found", "API key not valid"): a bare status code hides the fix.

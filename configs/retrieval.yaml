@@ -21,7 +21,7 @@ retrieval:
 answer:
   verify: true
   regenerate_on_failure: true
-  max_context_chars: 24000
+  max_context_chars: 18000
 
 cache:
   enabled: true

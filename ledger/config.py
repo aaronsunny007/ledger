@@ -69,7 +69,7 @@ class RetrievalConfig(BaseModel):
 class AnswerConfig(BaseModel):
     verify: bool = True
     regenerate_on_failure: bool = True
-    max_context_chars: int = 24000
+    max_context_chars: int = 18000
 
 
 class CacheConfig(BaseModel):
