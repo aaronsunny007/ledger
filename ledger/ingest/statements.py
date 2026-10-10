@@ -65,7 +65,7 @@ def _signature(text: str, kind: str) -> bool:
     return all(p.search(text) for p in _SIGNATURE[kind])
 
 
-def classify_statements(doc: ParsedDoc, lookback: int = 5) -> None:
+def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
     """Set ``Block.statement`` on the primary statement tables of ``doc``.
 
     Tables are grouped into runs: a statement printed across pages, or split

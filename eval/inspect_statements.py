@@ -88,7 +88,7 @@ def inspect(path: Path) -> tuple[dict[str, int], list[str], list[str]]:
     recent: list[str] = []
     for b in doc.blocks:
         if not b.is_table:
-            recent = [*recent, b.text][-5:]
+            recent = [*recent, b.text][-8:]
             continue
         head = _squash(" ".join(recent) + " " + b.text[:300])
         for kind in missing:
