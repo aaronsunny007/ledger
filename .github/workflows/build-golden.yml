@@ -12,6 +12,10 @@ on:
       xbrl_n:
         description: number of XBRL questions
         default: "150"
+      refresh:
+        description: only recompute the existing XBRL questions (same ids), skip FinanceBench
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -29,6 +33,7 @@ jobs:
           cache: pip
       - run: pip install -e .
       - name: FinanceBench open set
+        if: ${{ !inputs.refresh }}
         run: |
           python scripts/financebench.py --list | tee financebench-needs.txt
           python scripts/financebench.py
@@ -41,13 +46,18 @@ jobs:
             echo "$code $url" | tee -a "$GITHUB_STEP_SUMMARY"
           done
       - name: XBRL questions
-        run: python scripts/make_xbrl_questions.py --n ${{ inputs.xbrl_n }}
+        run: |
+          if [ "${{ inputs.refresh }}" = true ]; then
+            python scripts/make_xbrl_questions.py --refresh | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            python scripts/make_xbrl_questions.py --n ${{ inputs.xbrl_n }}
+          fi
       - name: Summary
         run: |
           echo '### Golden set built' >> "$GITHUB_STEP_SUMMARY"
           wc -l eval/golden/*.jsonl >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat financebench-needs.txt >> "$GITHUB_STEP_SUMMARY"
+          cat financebench-needs.txt >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
       - name: Commit
         run: |

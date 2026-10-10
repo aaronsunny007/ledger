@@ -5,7 +5,7 @@ sentence cites the filing passage it came from, and every number is recomputed b
 before you see it. When the filings do not contain the answer, Ledger says so and shows the
 closest passages instead of guessing.
 
-> Live demo: _coming in week 8 (Hugging Face Spaces)_ · Results: _first baseline in week 4_
+> Live demo: _coming in week 8 (Hugging Face Spaces)_ · Results: [first full test run](#results), 70% on 217 questions
 
 ```text
 Q: How much did Apple's net sales change from FY2023 to FY2024?
@@ -27,13 +27,67 @@ Ledger is not a chatbot. It is the part around the chatbot that companies pay fo
 
 ## Results
 
-Filled in by `make eval`; every number links to a committed JSON in `eval/results/`.
+Test split (217 questions: 85 FinanceBench 10-K, 122 XBRL, 10 hand-written refusals), Gemini
+`gemini-3.5-flash-lite` on the free tier, run on 2026-10-10. Every number links to a committed JSON
+in `eval/results/`.
 
-| System | FinanceBench (10-K subset) | XBRL numeric | Refusals | Citation precision | p50 / p95 latency | Cost / question |
+| System | FinanceBench (10-K subset) | XBRL numeric | Refusals | Groundedness | p50 / p95 latency | Cost / question |
 |---|---|---|---|---|---|---|
-| Ledger (hybrid + rerank + verifier) | – | – | – | – | – | – |
-| Long-context baseline (whole filing) | – | – | – | – | – | – |
+| [Ledger](eval/results/20261010T071950-ledger-test.json) (hybrid + rerank + pinning + verifier) | **57.6%** (49/85) | **78.7%** (96/122) | **100%** (10/10) | 96.2% | 16.0 s / 36.1 s | $0 (free tier) |
+| [Long-context baseline](eval/results/20261010T084724-long-context-test.json) (whole filing, no retrieval) | 61.2% (52/85) | 78.9% (86/109)\* | 100% (10/10) | – (no citations) | 3.5 s / 102 s | $0 (free tier) |
 | Target (PRF) | ≥ 70% | ≥ 90% | ≥ 85% | ≥ 90% | ≤ 4 s / ≤ 10 s | ≤ $0.02 |
+
+\* The baseline stopped at the daily free-tier quota with 13 XBRL questions left; it resumes with
+`--resume`. Groundedness is the share of claims whose cited passage contains their figures.
+
+**Where this stands.** Overall, Ledger answers 70.0% of the 207 scored questions correctly against the baseline's
+71.1%: no better on accuracy yet, and both miss the FinanceBench and XBRL targets. What Ledger adds is that
+96% of its claims are grounded in a cited passage, 94% are arithmetic-verified, and it reads about 6k
+characters per question instead of a whole filing (up to 600k), which is what the cost target is
+about once a paid tier is used. Head to head, each system gets 21–23 questions the other misses.
+
+**What failed** (from the per-question JSON):
+
+- **False refusals on FinanceBench: 20 of 85.** Most are narrative questions (acquisitions, customers,
+  litigation, segment growth) where retrieval brings statement tables, not the right prose. One is a
+  filter bug: "JnJ" is not recognised as Johnson & Johnson, so no filing is searched.
+- **Wrong numbers on XBRL: 17 of 122 (plus 9 refusals).** 9 are "net income change" questions; in the
+  ones checked, the model uses consolidated net income while XBRL's `NetIncomeLoss` is the amount
+  attributable to the parent (Amcor: a $136M fall vs the gold $134M; P&G: $55M vs $89M). 2 are bad gold labels: General Mills'
+  operating margin comes out as 163% and 175%, so the XBRL golden builder mismatches a fact there.
+- **Wrong answers on FinanceBench: 16 of 85.** Half are judged text answers (an assessment rather
+  than the expected yes/no or list); the rest are multi-step ratios and per-share figures.
+- **Latency.** Retrieval alone is about 12 s on a 2-core CPU runner, almost all of it the
+  cross-encoder over long statement chunks; generation adds about 4 s. The target is 4 s.
+- **The larger model's quota.** `gemini-3.8-flash` allows 20 requests a day on the free tier, so
+  regenerations fall back to the default model once it is spent.
+
+### Retrieval experiments
+
+No LLM; [table](eval/results/experiments-retrieval.md), test split, filters read from the question.
+Recall is the share of questions whose passages contain the gold evidence.
+
+| Run | What changes | FinanceBench recall | XBRL recall | p50 retrieval |
+|---|---|---|---|---|
+| **default** | table chunks, hybrid + rerank, statements pinned | **71.8%** | 60.7% | 12.0 s |
+| no-pin-statements | statement pinning off | 28.2% | 47.5% | 15.1 s |
+| hybrid-no-rerank | reranker off | 68.2% | 51.6% | **0.06 s** |
+| rerank-v2-m3 | bge-reranker-v2-m3 instead of -base | **76.5%** | **62.3%** | 52.1 s |
+| vector-only | embeddings only | 71.8% | 62.3% | 16.1 s |
+| keyword-only | BM25 only | 69.4% | 54.1% | 7.9 s |
+| section | section-aware chunks | 27.1% | 54.1% | 11.1 s |
+| fixed-1024 | fixed 1,024-character chunks | 25.9% | 56.6% | 12.7 s |
+| fixed-512 | fixed 512-character chunks | 10.6% | 45.9% | 7.1 s |
+
+- **Statement pinning is the biggest single factor**: FinanceBench recall falls from 71.8% to 28.2%
+  without it. It depends on finding the statements, which ingest now does in
+  [all 124 golden filings](eval/results/statements-coverage.md) (it was 107–114 of 124 before:
+  statements split across tables, titles in their own table, PDF-style layouts).
+- **Table-aware chunking beats section and fixed-size chunking** by 45 points on FinanceBench,
+  because a statement stays in one chunk.
+- **The reranker costs 12 s for 4 points of FinanceBench recall** (9 on XBRL). The larger v2-m3
+  reranker adds 5 more points at four times the latency. Hybrid search does not beat vector-only
+  here: BM25 adds nothing over embeddings once the statements are pinned.
 
 ### Baseline log
 
@@ -79,9 +133,7 @@ Accuracy only moved to 2 of 15, and the wrong answers show where the next work i
   questions over 500 characters were rejected. Both are fixed, and saved runs can be re-scored with
   `python eval/run_eval.py --rescore <file>`.
 
-Experiments to report here: chunking (fixed 512 / fixed 1024 / section / table), retrieval
-(vector / keyword / hybrid / hybrid + rerank), verifier on vs off, cache hit vs false-hit rate.
-**What failed** will be listed here too.
+Still to report: verifier on vs off, and cache hit vs false-hit rate.
 
 ## How it works
 
