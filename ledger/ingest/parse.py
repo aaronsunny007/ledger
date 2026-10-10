@@ -113,6 +113,84 @@ def _item_heading(text: str) -> str | None:
 
 _DOC_END = re.compile(r"</html\s*>", re.IGNORECASE)
 
+_TOP = re.compile(r"top:\s*(-?[\d.]+)px", re.IGNORECASE)
+_LEFT = re.compile(r"left:\s*(-?[\d.]+)px", re.IGNORECASE)
+_FIGURE_CELL = re.compile(r"[$€£(\-\u2014\u2013]*\s*[\d,.]*\d[\d,.]*\s*\)?\s*%?|[\u2014\u2013-]")
+# Filings converted from PDF place every text run in its own absolutely
+# positioned div; below this many there is nothing to rebuild.
+_MIN_POSITIONED = 200
+_SAME_LINE_PX = 3.0
+
+
+def _positioned(tag: Tag) -> tuple[float, float] | None:
+    style = str(tag.get("style", ""))
+    if "absolute" not in style:
+        return None
+    top, left = _TOP.search(style), _LEFT.search(style)
+    return (float(top.group(1)), float(left.group(1))) if top and left else None
+
+
+def _rebuild_positioned(soup: BeautifulSoup) -> None:
+    """Turn a PDF-style layout of positioned divs back into lines and tables.
+
+    Runs on the same line (same ``top`` within a few pixels, per page) are
+    ordered by ``left``. A line with figures after its label becomes a table
+    row, consecutive rows one table; other lines become paragraphs. Without
+    this such filings parse to tens of thousands of fragments and no tables.
+    """
+    if soup.find("table"):
+        return
+    leaves = [d for d in soup.find_all("div") if not d.find("div") and _positioned(d)]
+    if len(leaves) < _MIN_POSITIONED:
+        return
+    pages: dict[int, tuple[Tag, list[tuple[float, float, str]]]] = {}
+    for d in leaves:
+        pos = _positioned(d)
+        text = _clean(d.get_text(" "))
+        if pos is None or not text or not isinstance(d.parent, Tag):
+            continue
+        pages.setdefault(id(d.parent), (d.parent, []))[1].append((pos[0], pos[1], text))
+    for page, runs in pages.values():
+        runs.sort()
+        lines: list[list[tuple[float, str]]] = []
+        line_top = None
+        for top, left, text in runs:
+            if line_top is None or top - line_top > _SAME_LINE_PX:
+                lines.append([])
+                line_top = top
+            lines[-1].append((left, text))
+        page.clear()
+        table: Tag | None = None
+        for line in lines:
+            cells = [t for _, t in sorted(line)]
+            # Glue label fragments; keep each figure in its own cell.
+            merged: list[str] = []
+            for c in cells:
+                if (
+                    merged
+                    and not _FIGURE_CELL.fullmatch(c)
+                    and not _FIGURE_CELL.fullmatch(merged[-1])
+                ):
+                    merged[-1] += " " + c
+                else:
+                    merged.append(c)
+            figures = sum(bool(_FIGURE_CELL.fullmatch(c)) for c in merged)
+            if len(merged) >= 2 and figures >= 1:
+                if table is None:
+                    table = soup.new_tag("table")
+                    page.append(table)
+                tr = soup.new_tag("tr")
+                for c in merged:
+                    td = soup.new_tag("td")
+                    td.string = c
+                    tr.append(td)
+                table.append(tr)
+            else:
+                table = None
+                para = soup.new_tag("p")
+                para.string = " ".join(merged)
+                page.append(para)
+
 
 def parse_html(html: str | bytes) -> ParsedDoc:
     """Parse one HTML document, or several concatenated ones.
@@ -138,6 +216,7 @@ def _parse_one(html: str, start_section: str) -> ParsedDoc:
         t.decompose()
     for t in soup.find_all(re.compile(r"^ix:header$", re.IGNORECASE)):
         t.decompose()
+    _rebuild_positioned(soup)
 
     title = _clean(soup.title.get_text()) if soup.title else ""
     doc = ParsedDoc(title=title)

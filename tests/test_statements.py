@@ -207,3 +207,24 @@ def test_statement_index_is_not_merged_into_the_statement() -> None:
     )
     tagged = _tagged(html)
     assert set(tagged) == {"income"} and len(tagged["income"]) == 1
+
+
+def test_pdf_style_positioned_layout_is_rebuilt_into_tables() -> None:
+    # General Mills 2022: every text run is an absolutely positioned div.
+    def run(top: int, left: int, text: str) -> str:
+        return f'<div style="position:absolute;left:{left}px;top:{top}px;">{text}</div>'
+
+    runs = [run(10, 60, "Consolidated Balance Sheets"), run(30, 60, "(In Millions)")]
+    for i in range(110):
+        top = 50 + 18 * i
+        runs += [run(top, 60, "Other"), run(top, 110, f"line {i}"), run(top, 600, f"{i},0.1")]
+        runs.append(run(top + 1, 720, f"({i}.5)"))
+    runs += [run(3000, 60, "Total assets"), run(3000, 600, "31,091.3")]
+    runs += [run(3020, 60, "Total equity"), run(3020, 600, "10,000.0")]
+    html = f'<html><body><div style="position:relative">{"".join(runs)}</div></body></html>'
+    doc = parse_html(html)
+    tables = [b for b in doc.blocks if b.is_table]
+    assert len(tables) == 1
+    assert "Other line 3 | 3,0.1 | (3.5)" in tables[0].text
+    assert doc.blocks[0].text == "Consolidated Balance Sheets"
+    assert set(_tagged(html)) == {"balance_sheet"}
