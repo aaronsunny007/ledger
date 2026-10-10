@@ -106,8 +106,12 @@ _ANY_TITLE = re.compile(r"statement|balancesheet|comprehensive")
 _BOILERPLATE = re.compile(r"accompanyingnotes|integralpart|tableofcontents|continued")
 
 
-# Quarterly data repeats the income statement's line items by quarter.
-_QUARTERLY = re.compile(r"threemonthsended|quarterended|(first|fourth)quarter")
+# Quarterly data and restatement notes ("Reported / Impact of New Standards /
+# Restated") repeat a statement's line items without being the statement.
+_NOT_PRIMARY = re.compile(
+    r"threemonthsended|quarterended|(first|fourth)quarter|restated|previouslyreported|"
+    r"impactof(new|adoption)|effectof(the)?(adoption|change)"
+)
 
 
 def _title_like(text: str) -> bool:
@@ -167,8 +171,8 @@ def classify_statements(doc: ParsedDoc, lookback: int = 8) -> None:
         index = len(b.text) < 1500 and len(_titles_by_position(squashed)) >= 2
         if b.is_table and not index and len(_FIGURE.findall(b.text)) >= _MIN_FIGURES:
             # A table that opens with its own title starts a new statement.
-            if _QUARTERLY.search(_squash(b.text[:100])):
-                # Quarterly data: never a statement, never part of one.
+            if _NOT_PRIMARY.search(_squash(b.text[:200])):
+                # Never a statement, never part of one.
                 close()
                 run, recent, gap_ok = [], [], True
                 continue
