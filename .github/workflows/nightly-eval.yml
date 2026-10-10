@@ -1,8 +1,9 @@
 name: nightly-eval
 
-# CI-3: the full eval runs nightly and on release tags; result JSON is
-# committed to eval/results/. A run on main also refreshes the smoke
-# baseline that the PR gate compares against.
+# CI-3: the smoke eval runs nightly on main and refreshes the baseline the
+# PR gate compares against; result JSON is committed to eval/results/. The
+# full test split runs in full-eval.yml, which spreads it over several days
+# so both stay inside the free tier's daily request quota.
 
 on:
   schedule:
@@ -10,10 +11,6 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      split:
-        description: "dev | test | all"
-        default: test
 
 permissions:
   contents: write
@@ -59,9 +56,8 @@ jobs:
           ledger ingest | tail -5
       - name: Smoke set (refresh the PR baseline)
         run: python eval/run_eval.py --smoke --sleep 4 --write-baseline
-      - name: Full eval
-        run: python eval/run_eval.py --split ${{ inputs.split || 'test' }} --judge --sleep 4
       - name: Commit results
+        if: always()
         run: |
           git config user.name "ledger-eval-bot"
           git config user.email "ledger-eval-bot@users.noreply.github.com"

@@ -9,6 +9,9 @@
 Each run writes eval/results/<timestamp>-<tag>.json with the metrics, the
 exact config, the git commit and every item, so numbers in the README can
 be traced back. Free model tiers cap requests per minute: use --sleep.
+When a daily free-tier quota runs out, the run stops and is saved as
+partial; --resume continues the latest partial run with the same --tag the
+next day, so the full test split fits the free tier over a few days.
 """
 
 from __future__ import annotations
@@ -25,6 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from ledger.answer.llm import QuotaExhausted  # noqa: E402
 from ledger.config import LedgerConfig, Settings  # noqa: E402
 from ledger.evaluation.gate import check_regression, markdown_summary  # noqa: E402
 from ledger.evaluation.golden import GoldenItem, load_golden, smoke_set  # noqa: E402
@@ -54,6 +58,15 @@ def select(items: list[GoldenItem], args: argparse.Namespace) -> list[GoldenItem
     if not args.include_out_of_corpus:
         items = [i for i in items if "out-of-corpus" not in i.tags]
     return items[: args.limit] if args.limit else items
+
+
+def latest_partial(tag: str) -> Path | None:
+    """The newest saved run with this tag, if it stopped before the end."""
+    runs = sorted(RESULTS.glob(f"*-{tag}.json"))
+    if not runs:
+        return None
+    last = runs[-1]
+    return last if json.loads(last.read_text()).get("partial") else None
 
 
 def rescore(path: Path) -> int:
@@ -111,6 +124,11 @@ def main() -> int:
     )
     p.add_argument("--summary", type=Path, help="write a markdown summary here (CI)")
     p.add_argument("--rescore", type=Path, help="re-score a saved result JSON and exit")
+    p.add_argument(
+        "--resume",
+        action="store_true",
+        help="continue the latest partial run with this --tag (no-op when there is none)",
+    )
     args = p.parse_args()
     if args.rescore:
         return rescore(args.rescore)
@@ -144,9 +162,50 @@ def main() -> int:
         registry = CompanyRegistry.from_yaml(corpus)
         system = LongContextBaseline(llm, ROOT / "data" / "raw", registry)  # type: ignore[assignment]
 
+    tag = args.tag or ("smoke" if args.smoke else f"{args.system}-{args.split}")
+    done: dict[str, ItemResult] = {}
+    path = RESULTS / f"{datetime.now(UTC):%Y%m%dT%H%M%S}-{tag}.json"
+    if args.resume:
+        prev = latest_partial(tag)
+        if prev is not None:
+            # Keep finished items; re-ask the ones that errored or were not reached.
+            done = {
+                r["id"]: ItemResult(**r)
+                for r in json.loads(prev.read_text())["items"]
+                if r.get("error") is None
+            }
+            path = prev
+            print(f"resuming {prev.relative_to(ROOT)}: {len(done)} of {len(items)} done")
+
     judge_llm = build_llms(settings)[0] if args.judge else None
-    results: list[ItemResult] = []
-    for n, item in enumerate(items, 1):
+    fresh: dict[str, ItemResult] = {}
+
+    def save(partial: bool) -> tuple[dict[str, object], int]:
+        answered = {**done, **fresh}
+        results = [answered[i.id] for i in items if i.id in answered]
+        metrics = aggregate(results)
+        remaining = len(items) - len(results)
+        out = {
+            "run": tag,
+            "system": args.system,
+            "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
+            "git_sha": _git_sha(),
+            "llm_provider": settings.llm_provider,
+            "llm_model": settings.llm_model,
+            "config": config.model_dump(),
+            "metrics": metrics,
+            "by_source": aggregate_by(results, "source"),
+            "partial": partial,
+            "remaining": remaining,
+            "items": [asdict(r) for r in results],
+        }
+        RESULTS.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(out, indent=2))
+        return metrics, remaining
+
+    partial = False
+    todo = [i for i in items if i.id not in done]
+    for n, item in enumerate(todo, 1):
         # By default Ledger must find company and year in the question itself (RET-2);
         # --oracle-filters measures retrieval with them handed over, as a UI filter would.
         filters = None
@@ -163,6 +222,12 @@ def main() -> int:
 
                 r.judge = judge(judge_llm, item.question, item.answer, answer.answer)
                 r.correct = 1.0 if r.judge["correct"] else 0.0
+        except QuotaExhausted as e:
+            # Daily quota: every further call would fail the same way. Save
+            # what we have; --resume picks up from here.
+            print(f"[{n}/{len(todo)}] STOP {item.id}  {e}", flush=True)
+            partial = True
+            break
         except Exception as e:  # keep going; errors are counted, not hidden
             r = ItemResult(
                 item.id,
@@ -185,34 +250,24 @@ def main() -> int:
                 item.tags,
                 error=f"{type(e).__name__}: {e}",
             )
-        results.append(r)
+        fresh[item.id] = r
         mark = {1.0: "ok ", 0.0: "XX ", None: "?? "}[r.correct] if not r.error else "ERR"
         detail = r.error or (f"REFUSED ({r.refusal_reason})" if r.refused else repr(r.answer[:80]))
-        print(f"[{n}/{len(items)}] {mark} {item.id}  {r.latency_ms}ms  {detail}", flush=True)
+        print(f"[{n}/{len(todo)}] {mark} {item.id}  {r.latency_ms}ms  {detail}", flush=True)
+        if n % 10 == 0:
+            save(partial=True)  # a killed or timed-out run can still --resume
         if args.sleep:
             time.sleep(args.sleep)
 
-    metrics = aggregate(results)
-    tag = args.tag or ("smoke" if args.smoke else f"{args.system}-{args.split}")
-    out = {
-        "run": tag,
-        "system": args.system,
-        "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
-        "git_sha": _git_sha(),
-        "llm_provider": settings.llm_provider,
-        "llm_model": settings.llm_model,
-        "config": config.model_dump(),
-        "metrics": metrics,
-        "by_source": aggregate_by(results, "source"),
-        "items": [asdict(r) for r in results],
-    }
-    RESULTS.mkdir(parents=True, exist_ok=True)
-    path = RESULTS / f"{datetime.now(UTC):%Y%m%dT%H%M%S}-{tag}.json"
-    path.write_text(json.dumps(out, indent=2))
+    metrics, remaining = save(partial)
     print(json.dumps(metrics, indent=2))
     print(f"wrote {path.relative_to(ROOT)}")
+    if partial:
+        print(f"PARTIAL: daily quota reached, {remaining} questions left; rerun with --resume")
 
-    if args.write_baseline:
+    if args.write_baseline and (partial or metrics.get("errors")):
+        print("not updating the baseline: the run was partial or had errors")
+    elif args.write_baseline:
         BASELINE.write_text(json.dumps(metrics, indent=2))
         print(f"updated {BASELINE.relative_to(ROOT)}")
 
@@ -221,7 +276,13 @@ def main() -> int:
     if args.gate and baseline:
         failures = check_regression(metrics, baseline)
     if args.summary:
-        args.summary.write_text(markdown_summary(metrics, baseline, failures))
+        note = (
+            f"\n\n**Partial run:** the daily free-tier quota ran out with {remaining} of "
+            f"{len(items)} questions left; it continues with `--resume`.\n"
+            if partial
+            else ""
+        )
+        args.summary.write_text(markdown_summary(metrics, baseline, failures) + note)
     for f in failures:
         print(f"REGRESSION: {f}")
     return 1 if failures else 0

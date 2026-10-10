@@ -5,8 +5,14 @@ name: full-eval
 # and the long-context baseline (whole filing, no retrieval) on the same
 # questions. Needs the GEMINI_API_KEY secret (or GROQ_API_KEY with the
 # repository variable LLM_PROVIDER=groq). Results are committed.
+#
+# Free tiers cap requests per day. When the cap is hit, a run stops and is
+# saved as partial; the next manual run, or the daily schedule below,
+# continues it, so the test split completes over a few days at no cost.
 
 on:
+  schedule:
+    - cron: "17 9 * * *"  # after the Gemini daily quota resets (midnight Pacific)
   workflow_dispatch:
     inputs:
       split:
@@ -31,9 +37,32 @@ env:
   LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
 
 jobs:
-  eval:
+  check:
+    # A scheduled run only continues a partial run; it never starts a new one.
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    outputs:
+      go: ${{ steps.check.outputs.go }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [ "${{ github.event_name }}" != schedule ]; then
+            echo go=true >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          go=false
+          for tag in ledger-test long-context-test; do
+            last=$(ls eval/results/*-"$tag".json 2>/dev/null | sort | tail -1)
+            if [ -n "$last" ] && grep -q '"partial": true' "$last"; then go=true; fi
+          done
+          echo "go=$go" | tee -a "$GITHUB_OUTPUT"
+
+  eval:
+    needs: check
+    if: needs.check.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    env:
+      SPLIT: ${{ inputs.split || 'test' }}
     steps:
       - uses: actions/checkout@v4
       - name: Check the API key
@@ -80,16 +109,20 @@ jobs:
             ledger download --tickers "$t" --years $ys
           done
           ledger ingest | tail -5
+      # Step timeouts leave time to commit; results are saved every 10 questions.
       - name: Ledger
+        id: ledger
+        timeout-minutes: 150
         run: |
-          python eval/run_eval.py --split ${{ inputs.split }} --judge --sleep 4 \
-            --tag ledger-${{ inputs.split }} --summary ledger.md
+          python eval/run_eval.py --split "$SPLIT" --judge --sleep 4 --resume \
+            --tag "ledger-$SPLIT" --summary ledger.md
           cat ledger.md >> "$GITHUB_STEP_SUMMARY"
       - name: Long-context baseline
-        if: inputs.baseline
+        if: always() && steps.ledger.outcome != 'skipped' && (github.event_name == 'schedule' || inputs.baseline)
+        timeout-minutes: 150
         run: |
-          python eval/run_eval.py --system long-context --split ${{ inputs.split }} --judge \
-            --sleep 15 --tag long-context-${{ inputs.split }} --summary baseline.md
+          python eval/run_eval.py --system long-context --split "$SPLIT" --judge \
+            --sleep 15 --resume --tag "long-context-$SPLIT" --summary baseline.md
           cat baseline.md >> "$GITHUB_STEP_SUMMARY"
       - name: Commit results
         if: always()
@@ -97,6 +130,6 @@ jobs:
           git config user.name "ledger-eval-bot"
           git config user.email "ledger-eval-bot@users.noreply.github.com"
           git add eval/results
-          git commit -m "eval: full ${{ inputs.split }} run" || exit 0
+          git commit -m "eval: full $SPLIT run" || exit 0
           git pull --rebase origin "$GITHUB_REF_NAME"
           git push

@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 from ledger.answer.citations import to_citation
 from ledger.answer.generate import Draft, DraftClaim, Generator
-from ledger.answer.llm import LLM, LLMResult
+from ledger.answer.llm import LLM, LLMError, LLMResult, QuotaExhausted
 from ledger.cache.semantic_cache import SemanticCache
 from ledger.config import LedgerConfig
 from ledger.obs.tracing import Trace, Tracer
@@ -196,8 +196,7 @@ class Ledger:
         if problems and self.config.answer.regenerate_on_failure:
             regenerated = True
             with trace.span("generate_retry") as s:
-                retry_llm = self.large_llm or self.generator.llm
-                draft2, res2 = self.generator.draft(question, passages, problems, retry_llm)
+                draft2, res2 = self._redraft(question, passages, problems)
                 llm_calls.append(res2)
                 s.attrs.update(
                     model=res2.model,
@@ -220,6 +219,23 @@ class Ledger:
         if self.cache is not None and self.config.cache.enabled and answer.verified is not False:
             self.cache.store(question, f, answer, {p.chunk.doc_id for p in passages})
         return self._finish(trace, answer, llm_calls, passages)
+
+    def _redraft(
+        self, question: str, passages: list[ScoredChunk], problems: list[str]
+    ) -> tuple[Draft, LLMResult]:
+        """Regenerate with the large model, falling back to the default one.
+
+        Free tiers give the large model far fewer requests (Gemini: 20 a day),
+        so a failure there must not cost the answer.
+        """
+        if self.large_llm is not None:
+            try:
+                return self.generator.draft(question, passages, problems, self.large_llm)
+            except LLMError as e:
+                log.warning("large model failed (%s); regenerating with the default model", e)
+                if isinstance(e, QuotaExhausted):
+                    self.large_llm = None  # spent for the day; stop asking
+        return self.generator.draft(question, passages, problems)
 
     def _finish(
         self,

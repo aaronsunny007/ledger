@@ -159,3 +159,41 @@ def test_retry_delay_reads_gemini_retry_info() -> None:
     assert _retry_delay(resp, 4) == 37.0
     assert _error_message(resp) == "Quota exceeded for metric: tokens"
     assert _retry_delay(httpx.Response(503, text="x"), 4) == 4
+
+
+def test_daily_quota_stops_retrying_at_once() -> None:
+    import httpx
+
+    from ledger.answer.llm import GeminiLLM, QuotaExhausted
+
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        details = [{"retryDelay": "73650s"}]
+        return httpx.Response(429, json={"error": {"message": "quota", "details": details}})
+
+    llm = GeminiLLM("key", "m")
+    llm._http = httpx.Client(transport=httpx.MockTransport(handler))
+    with pytest.raises(QuotaExhausted):
+        llm.complete("s", "u")
+    assert len(calls) == 1
+
+
+def test_regeneration_falls_back_when_the_large_model_is_out_of_quota(make_ledger: Make) -> None:
+    from ledger.answer.llm import QuotaExhausted
+
+    answers = iter([12.0, 12.5])
+    ledger, llm = make_ledger(lambda s, u: growth(u, next(answers)))
+
+    class OutOfQuota:
+        model = "large"
+
+        def complete(self, system: str, user: str) -> object:
+            raise QuotaExhausted(429, "quota")
+
+    ledger.large_llm = OutOfQuota()  # type: ignore[assignment]
+    a = ledger.ask(Q)
+    assert a.regenerated and a.verified is True
+    assert len(llm.calls) == 2  # type: ignore[attr-defined]
+    assert ledger.large_llm is None  # not asked again this run
