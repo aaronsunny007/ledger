@@ -35,7 +35,7 @@ Cells give the tagged table's size in characters.
 | AWK | 2022 | 2,400 | 1,075 | 2,845 |
 | AXP | 2021 | 2,811 | 1,748 | 2,730 |
 | AXP | 2022 | 2,439 | 1,784 | 2,843 |
-| BA | 2018 | 1,825 | 1,622 | 3,415 |
+| BA | 2018 | 1,710 | 1,128 | 2,776 |
 | BA | 2021 | 1,784 | 1,314 | 2,918 |
 | BA | 2022 | 1,777 | 1,342 | 2,718 |
 | BA | 2023 | 1,815 | 1,275 | 2,651 |
@@ -228,9 +228,9 @@ None.
 | AXP | 2022 | income (1 table): Year Ended December 31 (Millions, except per share amounts) / 2022 / 2021 / 2020 Revenues Non-interest revenue |
 | AXP | 2022 | balance_sheet (1 table): December 31 (Millions, except share data) / 2022 / 2021 Assets Cash and cash equivalents Cash and due from ban |
 | AXP | 2022 | cash_flow (2 tables): Years Ended December 31 (Millions) / 2022 / 2021 / 2020 Cash Flows from Operating Activities Net income / $7,5 |
-| BA | 2018 | income (1 table): Years ended December 31 / 2017 / 2016 (Dollars in millions, except per share data) / Reported / Impact of New  |
-| BA | 2018 | balance_sheet (1 table): (Dollars in millions) / December 31, 2017 Assets / Reported / Impact of New Standards / Restated Cash and cash |
-| BA | 2018 | cash_flow (1 table): Years ended December 31 / 2017 / 2016 (Dollars in millions) / Reported / Impact of New Standards / Restated /  |
+| BA | 2018 | income (1 table): (Dollars in millions, except per share data) Years ended December 31, / 2018 / 2017 / 2016 Sales of products / |
+| BA | 2018 | balance_sheet (1 table): (Dollars in millions, except per share data) December 31, / 2018 / 2017 Assets Cash and cash equivalents / $ 7 |
+| BA | 2018 | cash_flow (1 table): (Dollars in millions) Years ended December 31, / 2018 / 2017 / 2016 Cash flows – operating activities: Net ear |
 | BA | 2021 | income (1 table): (Dollars in millions, except per share data) Years ended December 31, / 2021 / 2020 / 2019 Sales of products / |
 | BA | 2021 | balance_sheet (1 table): (Dollars in millions, except per share data) December 31, / 2021 / 2020 Assets Cash and cash equivalents / $ 8 |
 | BA | 2021 | cash_flow (1 table): (Dollars in millions) Years ended December 31, / 2021 / 2020 / 2019 Cash flows – operating activities: Net los |
