@@ -36,7 +36,7 @@ jobs:
             data/raw
             data/processed
             ~/.cache/huggingface
-          key: first-answers-${{ inputs.n }}-${{ hashFiles('configs/**', 'ledger/ingest/**') }}
+          key: first-answers-${{ inputs.n }}-${{ hashFiles('configs/**', 'ledger/ingest/**/*.py') }}
           restore-keys: first-answers-${{ inputs.n }}-
       - name: Download and index (skipped when cached)
         run: |

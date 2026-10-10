@@ -103,7 +103,7 @@ jobs:
           path: |
             data/processed
             ~/.cache/huggingface
-          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
+          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**/*.py') }}
           lookup-only: true
       - if: steps.cached.outputs.cache-hit != 'true'
         uses: actions/setup-python@v5
@@ -130,7 +130,7 @@ jobs:
           path: |
             data/processed
             ~/.cache/huggingface
-          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
+          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**/*.py') }}
 
   retrieval:
     needs: [plan, index]
@@ -155,7 +155,7 @@ jobs:
           path: |
             data/processed
             ~/.cache/huggingface
-          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
+          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**/*.py') }}
           fail-on-cache-miss: true
       - name: Retrieval run (${{ matrix.tag }})
         run: python eval/retrieval_eval.py --config "${{ matrix.config }}" --tag "${{ matrix.tag }}"

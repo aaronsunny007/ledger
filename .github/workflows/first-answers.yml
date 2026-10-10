@@ -60,7 +60,7 @@ jobs:
             data/raw
             data/processed
             ~/.cache/huggingface
-          key: first-answers-${{ inputs.n }}-${{ hashFiles('configs/**', 'ledger/ingest/**') }}
+          key: first-answers-${{ inputs.n }}-${{ hashFiles('configs/**', 'ledger/ingest/**/*.py') }}
       - name: FinanceBench golden set
         run: test -f eval/golden/financebench.jsonl || python scripts/financebench.py
       - name: Download the filings those questions need
