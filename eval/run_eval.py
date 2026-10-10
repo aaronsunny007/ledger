@@ -17,6 +17,7 @@ next day, so the full test split fits the free tier over a few days.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -58,6 +59,19 @@ def select(items: list[GoldenItem], args: argparse.Namespace) -> list[GoldenItem
     if not args.include_out_of_corpus:
         items = [i for i in items if "out-of-corpus" not in i.tags]
     return items[: args.limit] if args.limit else items
+
+
+def code_hash() -> str:
+    """Hash of everything that decides an answer: code, prompts, configs, golden set.
+
+    Results commits change the git sha daily, so resuming checks this instead.
+    """
+    h = hashlib.sha256()
+    for pattern in ("ledger/**/*.py", "ledger/**/*.md", "configs/**/*.yaml", "eval/golden/*"):
+        for f in sorted(ROOT.glob(pattern)):
+            h.update(str(f.relative_to(ROOT)).encode())
+            h.update(f.read_bytes())
+    return h.hexdigest()[:16]
 
 
 def latest_partial(tag: str) -> Path | None:
@@ -167,6 +181,10 @@ def main() -> int:
     path = RESULTS / f"{datetime.now(UTC):%Y%m%dT%H%M%S}-{tag}.json"
     if args.resume:
         prev = latest_partial(tag)
+        if prev is not None and json.loads(prev.read_text()).get("code_hash") != code_hash():
+            # Never mix answers from two versions of the system in one number.
+            print(f"not resuming {prev.relative_to(ROOT)}: the code changed; starting over")
+            prev = None
         if prev is not None:
             # Keep finished items; re-ask the ones that errored or were not reached.
             done = {
@@ -190,6 +208,7 @@ def main() -> int:
             "system": args.system,
             "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
             "git_sha": _git_sha(),
+            "code_hash": code_hash(),
             "llm_provider": settings.llm_provider,
             "llm_model": settings.llm_model,
             "config": config.model_dump(),
