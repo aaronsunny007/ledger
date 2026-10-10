@@ -135,3 +135,10 @@ def test_answerable_without_claims_records_why() -> None:
     assert (
         d.refusal_reason and "no usable claims" in d.refusal_reason and "answer" in d.refusal_reason
     )
+
+
+def test_claim_sentence_under_another_key_is_read() -> None:
+    from ledger.answer.generate import parse_draft
+
+    d = parse_draft('{"answerable": true, "claims": [{"claim": "x", "citations": [1]}, "y"]}')
+    assert [c.text for c in d.claims] == ["x", "y"] and d.answerable

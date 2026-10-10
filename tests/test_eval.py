@@ -202,3 +202,10 @@ def test_financebench_doc_type_and_year(
     row: dict[str, object], expected: tuple[str, int | None]
 ) -> None:
     assert doc_type_and_year(row) == expected
+
+
+def test_smoke_set_excludes_out_of_corpus() -> None:
+    items = [
+        _item(id=f"x{i}", split="dev", tags=["out-of-corpus"] if i % 2 else []) for i in range(10)
+    ]
+    assert all("out-of-corpus" not in i.tags for i in smoke_set(items, 10))

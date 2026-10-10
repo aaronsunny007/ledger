@@ -100,8 +100,22 @@ def parse_draft(text: str) -> Draft:
         )
     claims = []
     for c in data.get("claims") or []:
-        if not isinstance(c, dict) or not str(c.get("text", "")).strip():
+        if isinstance(c, str):
+            c = {"text": c}
+        if not isinstance(c, dict):
             continue
+        # Models sometimes name the sentence field differently.
+        text = next(
+            (
+                str(c[k])
+                for k in ("text", "claim", "statement", "sentence")
+                if str(c.get(k) or "").strip()
+            ),
+            "",
+        )
+        if not text.strip():
+            continue
+        c = {**c, "text": text}
         raw_cites = c.get("citations") or []
         if not isinstance(raw_cites, list):
             raw_cites = [raw_cites]

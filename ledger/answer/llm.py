@@ -87,7 +87,14 @@ class _HttpLLM:
 
     def _post(self, url: str, body: dict[str, Any], headers: dict[str, str]) -> Any:
         for attempt in range(self._max_retries + 1):
-            resp = self._http.post(url, json=body, headers=headers)
+            try:
+                resp = self._http.post(url, json=body, headers=headers)
+            except (httpx.TimeoutException, httpx.TransportError) as e:
+                if attempt >= self._max_retries:
+                    raise LLMError(0, f"{type(e).__name__} after {attempt + 1} attempts") from e
+                log.warning("LLM %s, retrying in %ss", type(e).__name__, 2 ** (attempt + 2))
+                time.sleep(2 ** (attempt + 2))
+                continue
             # Free tiers rate-limit per minute; back off and try again.
             if resp.status_code in (429, 500, 503) and attempt < self._max_retries:
                 wait = float(resp.headers.get("retry-after", 2 ** (attempt + 2)))

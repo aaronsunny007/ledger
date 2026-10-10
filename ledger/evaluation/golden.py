@@ -82,7 +82,11 @@ def write_golden(path: Path, items: Iterable[GoldenItem]) -> int:
 
 def smoke_set(items: list[GoldenItem], n: int = 50) -> list[GoldenItem]:
     """CI-1: a fixed, cheap subset drawn from the dev split, balanced by source."""
-    dev = sorted((i for i in items if i.split == "dev"), key=lambda i: i.id)
+    # Out-of-corpus questions (10-Q, 8-K) are reported separately, never gated on.
+    dev = sorted(
+        (i for i in items if i.split == "dev" and "out-of-corpus" not in i.tags),
+        key=lambda i: i.id,
+    )
     by_source: dict[str, list[GoldenItem]] = {}
     for i in dev:
         by_source.setdefault(i.source, []).append(i)

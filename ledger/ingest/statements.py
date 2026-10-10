@@ -79,7 +79,7 @@ _NEEDS = {
     BALANCE_SHEET: re.compile(
         r"balance\s*sheet|statement\s+of\s+financial\s+position|total\s+assets|current\s+assets|"
         r"current\s+liabilit|working\s+capital|quick\s+ratio|current\s+ratio|inventor|"
-        r"receivable|\bAR\b|payable|\bDPO\b|\bDSO\b|\bDIO\b|cash\s+conversion|PP&E|"
+        r"receivable|\bAR\b|payable|\bDPO\b|\bDSO\b|\bDIO\b|cash\s+conversion|PP&E|\bPPNE\b|"
         r"property,?\s+(plant\s+)?and\s+equipment|fixed\s+asset|total\s+debt|"
         r"debt[-\s]to|equity|\bROA\b|return\s+on\s+assets|liquidity|solvency|leverage",
         re.I,
