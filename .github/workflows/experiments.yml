@@ -50,6 +50,8 @@ jobs:
               "vector-only": ("table", "configs/experiments/vector-only.yaml"),
               "keyword-only": ("table", "configs/experiments/keyword-only.yaml"),
               "rerank-v2-m3": ("table", "configs/experiments/rerank-v2-m3.yaml"),
+              "rerank-top10": ("table", "configs/experiments/rerank-top10.yaml"),
+              "vector-no-rerank": ("table", "configs/experiments/vector-no-rerank.yaml"),
               "section": ("section", "configs/experiments/section.yaml"),
               "fixed-1024": ("fixed-1024", "configs/experiments/fixed-1024.yaml"),
               "fixed-512": ("fixed-512", "configs/experiments/fixed-512.yaml"),
