@@ -35,14 +35,24 @@ def _one_line(text: str, n: int) -> str:
     return " ".join(text.split())[:n].replace("|", "/")
 
 
-def inspect(path: Path) -> tuple[dict[str, int], list[str]]:
+def inspect(path: Path) -> tuple[dict[str, int], list[str], list[str]]:
     doc = parse_html(path.read_bytes())
     classify_statements(doc)
-    found = {b.statement: len(b.text) for b in doc.blocks if b.statement}
+    found: dict[str, int] = {}
+    tables: dict[str, list[str]] = {}
+    for b in doc.blocks:
+        if b.statement:
+            found[b.statement] = found.get(b.statement, 0) + len(b.text)
+            tables.setdefault(b.statement, []).append(b.text)
+    # What was tagged, so a wrong table is as visible as a missing one.
+    samples = [
+        f"{kind} ({len(ts)} table{'s' if len(ts) > 1 else ''}): {_one_line(ts[0], 110)}"
+        for kind, ts in tables.items()
+    ]
     notes: list[str] = []
     missing = [k for k in STATEMENTS if k not in found]
     if not missing:
-        return found, notes
+        return found, notes, samples
     recent: list[str] = []
     for b in doc.blocks:
         if not b.is_table:
@@ -60,7 +70,7 @@ def inspect(path: Path) -> tuple[dict[str, int], list[str]]:
                     f"  - before: {_one_line(' / '.join(recent), 220)}\n"
                     f"  - table: {_one_line(b.text, 220)}"
                 )
-    return found, notes
+    return found, notes, samples
 
 
 def main() -> int:
@@ -71,12 +81,12 @@ def main() -> int:
     if not files:
         print("no filings found under", RAW)
         return 1
-    rows, details = [], []
+    rows, details, tagged = [], [], []
     counts = dict.fromkeys(STATEMENTS, 0)
     for f in files:
         ticker, year = f.parent.parent.name, f.parent.name
         try:
-            found, notes = inspect(f)
+            found, notes, samples = inspect(f)
         except Exception as e:  # report and keep going
             rows.append(f"| {ticker} | {year} | error: {type(e).__name__}: {e} | | |")
             continue
@@ -84,6 +94,7 @@ def main() -> int:
             counts[k] += 1
         cells = " | ".join(f"{found[k]:,}" if k in found else "**missing**" for k in STATEMENTS)
         rows.append(f"| {ticker} | {year} | {cells} |")
+        tagged += [f"| {ticker} | {year} | {s} |" for s in samples]
         if notes:
             details.append(f"### {ticker} {year}\n\n" + "\n".join(notes[:12]))
         print(ticker, year, {k: found.get(k) for k in STATEMENTS}, flush=True)
@@ -98,7 +109,10 @@ def main() -> int:
         + "\n".join(rows)
         + "\n\n## Near misses for missing statements\n\n"
         + ("\n\n".join(details) or "None.")
-        + "\n"
+        + "\n\n## What was tagged\n\n<details><summary>First line of each tagged statement"
+        + "</summary>\n\n| Ticker | Year | Statement |\n|---|---|---|\n"
+        + "\n".join(tagged)
+        + "\n\n</details>\n"
     )
     print(summary)
     print("wrote", OUT.relative_to(ROOT))

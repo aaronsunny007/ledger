@@ -47,6 +47,7 @@ _FIGURE = re.compile(r"\d[\d,.]*\d")
 # A short line naming any statement is a new title, not furniture.
 _FURNITURE = 40
 _ANY_TITLE = re.compile(r"statement|balancesheet|comprehensive")
+_BOILERPLATE = re.compile(r"accompanyingnotes|integralpart|tableofcontents|continued")
 
 
 def _squash(text: str) -> str:
@@ -78,15 +79,20 @@ def classify_statements(doc: ParsedDoc, lookback: int = 5) -> None:
         if not run:
             return
         text = _squash(" ".join(b.text for b in run))
-        for kind, title in _TITLES.items():
-            if title.search(head) and _signature(text, kind):
+        # The title nearest the table names it; earlier lines may still
+        # hold the previous statement's title.
+        last = {k: max((m.end() for m in t.finditer(head)), default=-1) for k, t in _TITLES.items()}
+        for kind in sorted((k for k in last if last[k] >= 0), key=lambda k: -last[k]):
+            if _signature(text, kind):
                 if kind not in best or len(text) > best[kind][0]:
                     best[kind] = (len(text), list(run))
                 break
 
     for b in doc.blocks:
         if b.is_table and len(_FIGURE.findall(b.text)) >= _MIN_FIGURES:
-            if run and gap_ok:
+            # A table that opens with its own title starts a new statement.
+            titled = any(t.search(_squash(b.text[:150])) for t in _TITLES.values())
+            if run and gap_ok and not titled:
                 run.append(b)
             else:
                 close()
@@ -97,7 +103,9 @@ def classify_statements(doc: ParsedDoc, lookback: int = 5) -> None:
         # Text, or a table too short to be a statement (often the title).
         recent = [*recent, b.text][-lookback:]
         squashed = _squash(b.text)
-        furniture = len(b.text) <= _FURNITURE and not _ANY_TITLE.search(squashed)
+        furniture = (len(b.text) <= _FURNITURE and not _ANY_TITLE.search(squashed)) or bool(
+            _BOILERPLATE.search(squashed) and len(b.text) <= 200
+        )
         if run and not (furniture or squashed in head):
             gap_ok = False
     close()

@@ -149,3 +149,45 @@ def test_title_a_few_lines_up() -> None:
         + _table(("Net Revenue", "86,392", "79,474"), ("Net income", "8,978", "7,679"))
     )
     assert set(_tagged(html)) == {"income"}
+
+
+def test_self_titled_tables_between_page_numbers_stay_apart() -> None:
+    # General Mills: each statement is one table opening with its title.
+    html = (
+        "<p>45</p>"
+        + _table(
+            ("Consolidated Statements of Earnings",),
+            ("Net sales", "18,127.0", "17,626.6"),
+            ("Net earnings", "2,339.8", "2,181.2"),
+        )
+        + "<p>46</p>"
+        + _table(
+            ("Consolidated Balance Sheets",),
+            ("Total assets", "36,795.1", "30,806.7"),
+            ("Total equity", "11,195.5", "10,152.6"),
+        )
+        + "<p>47</p>"
+        + _table(
+            ("Consolidated Statements of Cash Flows",),
+            ("Net earnings", "2,346.0", "2,210.8"),
+            ("Net cash provided by operating activities", "3,277.9", "3,676.2"),
+            ("Net cash used by investing activities", "(530.5)", "(461.0)"),
+        )
+    )
+    tagged = _tagged(html)
+    assert set(tagged) == {"income", "balance_sheet", "cash_flow"}
+    assert all(len(v) == 1 for v in tagged.values())
+    assert "Cash Flows" in tagged["cash_flow"][0]
+
+
+def test_footer_between_statement_halves() -> None:
+    header = "<p>MGM Resorts</p><p>Consolidated Balance Sheets</p><p>(In thousands)</p>"
+    footer = "<p>The accompanying notes are an integral part of these statements.</p><p>61</p>"
+    html = (
+        header
+        + _table(("Cash", "4,703", "5,101"), ("Total assets", "45,692", "36,394"))
+        + footer
+        + header
+        + _table(("Debt", "12,000", "11,000"), ("Total liabilities", "40,000", "30,000"))
+    )
+    assert len(_tagged(html)["balance_sheet"]) == 2
