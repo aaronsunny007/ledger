@@ -10,37 +10,37 @@ Cells give the tagged table's size in characters.
 | AAPL | 2022 | 1,525 | 2,088 | 2,474 |
 | ADBE | 2015 | 2,012 | 1,642 | 3,310 |
 | ADBE | 2016 | 1,854 | 1,647 | 3,169 |
-| ADBE | 2017 | 2,244 | 1,597 | 3,132 |
+| ADBE | 2017 | 1,855 | 1,597 | 3,132 |
 | ADBE | 2021 | 1,707 | 1,353 | 2,480 |
 | ADBE | 2022 | 1,688 | 1,366 | 2,468 |
 | ADBE | 2023 | 1,692 | 1,347 | 2,430 |
-| AES | 2022 | 14,760 | 2,731 | 4,322 |
-| AES | 2023 | 10,026 | 2,734 | 4,660 |
+| AES | 2022 | 3,056 | 2,731 | 4,322 |
+| AES | 2023 | 3,006 | 2,734 | 4,660 |
 | AMCR | 2020 | 2,071 | 1,658 | 3,378 |
 | AMCR | 2021 | 1,865 | 1,532 | 3,153 |
 | AMCR | 2022 | 1,959 | 1,519 | 3,054 |
 | AMCR | 2023 | 2,032 | 1,125 | 3,078 |
 | AMD | 2015 | 1,694 | 948 | 2,045 |
 | AMD | 2021 | 1,616 | 877 | 3,314 |
-| AMD | 2022 | 1,714 | 1,062 | 2,421 |
-| AMD | 2023 | 1,754 | 1,070 | 2,448 |
+| AMD | 2022 | 1,714 | 1,062 | 3,304 |
+| AMD | 2023 | 1,754 | 1,070 | 3,181 |
 | AMZN | 2017 | 1,258 | 1,167 | 2,489 |
 | AMZN | 2019 | 1,357 | 1,214 | 2,682 |
 | AMZN | 2021 | 1,378 | 1,232 | 2,319 |
 | AMZN | 2022 | 1,392 | 1,300 | 2,337 |
 | AMZN | 2023 | 1,393 | 1,307 | 2,419 |
-| ATVI | 2019 | 1,556 | 1,925 | 2,415 |
-| AWK | 2020 | 2,342 | 1,754 | 2,847 |
-| AWK | 2021 | 2,397 | 1,911 | 2,960 |
-| AWK | 2022 | 2,400 | 1,676 | 2,845 |
-| AXP | 2021 | 2,811 | 1,748 | 2,412 |
-| AXP | 2022 | 2,439 | 1,875 | 2,525 |
+| ATVI | 2019 | 1,556 | 1,291 | 2,415 |
+| AWK | 2020 | 2,342 | 1,203 | 2,847 |
+| AWK | 2021 | 2,397 | 1,109 | 2,960 |
+| AWK | 2022 | 2,400 | 1,075 | 2,845 |
+| AXP | 2021 | 2,811 | 1,748 | 2,730 |
+| AXP | 2022 | 2,439 | 1,784 | 2,843 |
 | BA | 2018 | 1,825 | 1,622 | 3,415 |
 | BA | 2021 | 1,784 | 1,314 | 2,918 |
 | BA | 2022 | 1,777 | 1,342 | 2,718 |
 | BA | 2023 | 1,815 | 1,275 | 2,651 |
-| BBY | 2017 | 1,688 | 3,166 | 2,298 |
-| BBY | 2019 | 1,604 | 4,645 | 1,975 |
+| BBY | 2017 | 1,688 | 1,638 | 2,298 |
+| BBY | 2019 | 1,604 | 1,248 | 1,975 |
 | BBY | 2022 | 1,735 | 917 | 2,019 |
 | BBY | 2023 | 1,722 | 877 | 2,017 |
 | COST | 2021 | 1,599 | 1,098 | 2,388 |
@@ -56,7 +56,7 @@ Cells give the tagged table's size in characters.
 | GIS | 2022 | 3,661 | 1,028 | 2,593 |
 | GIS | 2023 | 3,599 | 1,040 | 2,645 |
 | GLW | 2020 | 1,929 | 1,117 | 2,760 |
-| GLW | 2021 | 1,900 | 3,882 | 2,836 |
+| GLW | 2021 | 1,900 | 1,506 | 2,836 |
 | GLW | 2022 | 1,776 | 1,527 | 2,818 |
 | GLW | 2023 | 1,766 | 1,452 | 2,656 |
 | GOOGL | 2021 | 2,131 | 872 | 2,471 |
@@ -67,16 +67,16 @@ Cells give the tagged table's size in characters.
 | INTC | 2022 | 1,669 | 1,126 | 3,007 |
 | INTC | 2023 | 1,560 | 1,128 | 3,123 |
 | JNJ | 2022 | 1,999 | 953 | 3,377 |
-| JPM | 2021 | 2,701 | 2,542 | 3,300 |
-| JPM | 2022 | 2,627 | 2,529 | 3,349 |
-| JPM | 2023 | 2,629 | 2,505 | 3,473 |
-| KHC | 2019 | 4,669 | 4,149 | 5,765 |
-| KHC | 2021 | 1,898 | 1,313 | 2,728 |
-| KHC | 2022 | 1,858 | 1,245 | 2,780 |
-| KHC | 2023 | 1,822 | 1,461 | 2,718 |
-| KO | 2017 | 2,025 | 1,633 | 2,515 |
-| KO | 2021 | 1,807 | 1,390 | 2,467 |
-| KO | 2022 | 1,809 | 1,244 | 2,552 |
+| JPM | 2021 | 2,701 | 1,649 | 3,300 |
+| JPM | 2022 | 2,627 | 1,689 | 3,349 |
+| JPM | 2023 | 2,629 | 1,716 | 3,473 |
+| KHC | 2019 | 1,857 | 1,087 | 2,620 |
+| KHC | 2021 | 1,898 | 1,051 | 2,728 |
+| KHC | 2022 | 1,858 | 1,043 | 2,780 |
+| KHC | 2023 | 1,822 | 1,040 | 2,718 |
+| KO | 2017 | 2,025 | 1,651 | 2,515 |
+| KO | 2021 | 1,807 | 1,088 | 2,467 |
+| KO | 2022 | 1,809 | 1,095 | 2,552 |
 | KO | 2023 | 1,811 | 1,108 | 2,733 |
 | LMT | 2020 | 1,330 | 1,306 | 1,874 |
 | LMT | 2021 | 1,326 | 1,394 | 1,839 |
@@ -106,9 +106,9 @@ Cells give the tagged table's size in characters.
 | NVDA | 2021 | 1,565 | 882 | 2,281 |
 | NVDA | 2022 | 1,620 | 890 | 2,290 |
 | NVDA | 2023 | 1,504 | 957 | 2,459 |
-| PEP | 2021 | 1,724 | 1,304 | 3,310 |
-| PEP | 2022 | 1,723 | 1,288 | 3,501 |
-| PEP | 2023 | 1,758 | 1,306 | 3,575 |
+| PEP | 2021 | 1,724 | 894 | 3,310 |
+| PEP | 2022 | 1,723 | 1,028 | 3,501 |
+| PEP | 2023 | 1,758 | 1,028 | 3,575 |
 | PFE | 2021 | 2,236 | 1,827 | 4,534 |
 | PFE | 2022 | 2,203 | 1,810 | 4,315 |
 | PFE | 2023 | 2,208 | 1,928 | 4,200 |
@@ -153,9 +153,9 @@ None.
 | ADBE | 2016 | balance_sheet (1 table): December 2, 2016 / November 27, 2015 ASSETS Current assets: Cash and cash equivalents / $1,011,315 / $876,560  |
 | ADBE | 2016 | income (1 table): Years Ended December 2, 2016 / November 27, 2015 / November 28, 2014 Revenue: Subscription / $4,584,833 / $3,2 |
 | ADBE | 2016 | cash_flow (1 table): Years Ended December 2, 2016 / November 27, 2015 / November 28, 2014 Cash flows from operating activities: Net |
+| ADBE | 2017 | balance_sheet (1 table): December 1, 2017 / December 2, 2016 ASSETS Current assets: Cash and cash equivalents / $2,306,072 / $1,011,315 |
 | ADBE | 2017 | income (1 table): Years Ended December 1, 2017 / December 2, 2016 / November 27, 2015 Revenue: Subscription / $6,133,869 / $4,58 |
 | ADBE | 2017 | cash_flow (1 table): Years Ended December 1, 2017 / December 2, 2016 / November 27, 2015 Cash flows from operating activities: Net  |
-| ADBE | 2017 | balance_sheet (4 tables): Fair Value Measurements at Reporting Date Using Quoted Prices in Active Markets for Identical Assets / Signifi |
 | ADBE | 2021 | balance_sheet (1 table): December 3, 2021 / November 27, 2020 ASSETS Current assets: Cash and cash equivalents / $3,844 / $4,478 Short- |
 | ADBE | 2021 | income (1 table): Years Ended December 3, 2021 / November 27, 2020 / November 29, 2019 Revenue: Subscription / $14,573 / $11,626 |
 | ADBE | 2021 | cash_flow (1 table): Years Ended December 3, 2021 / November 27, 2020 / November 29, 2019 Cash flows from operating activities: Net |
@@ -165,12 +165,12 @@ None.
 | ADBE | 2023 | balance_sheet (1 table): December 1, 2023 / December 2, 2022 ASSETS Current assets: Cash and cash equivalents / $7,141 / $4,236 Short-t |
 | ADBE | 2023 | income (1 table): Years Ended December 1, 2023 / December 2, 2022 / December 3, 2021 Revenue: Subscription / $18,284 / $16,388 / |
 | ADBE | 2023 | cash_flow (1 table): Years Ended December 1, 2023 / December 2, 2022 / December 3, 2021 Cash flows from operating activities: Net i |
+| AES | 2022 | balance_sheet (1 table): 2022 / 2021 (in millions, except share and per share data) ASSETS CURRENT ASSETS Cash and cash equivalents / $ |
 | AES | 2022 | income (1 table): 2022 / 2021 / 2020 (in millions, except per share amounts) Revenue: Regulated / $3,538 / $2,868 / $2,661 Non-R |
 | AES | 2022 | cash_flow (2 tables): 2022 / 2021 / 2020 OPERATING ACTIVITIES: / (in millions) Net income (loss) / $( 505 ) / $( 951 ) / $152 Adjust |
-| AES | 2022 | balance_sheet (3 tables): 3.1 / Sixth Restated Certificate of Incorporation of The AES Corporation is incorporated herein by reference t |
+| AES | 2023 | balance_sheet (1 table): 2023 / 2022 (in millions, except share and per share data) ASSETS CURRENT ASSETS Cash and cash equivalents / $ |
 | AES | 2023 | income (1 table): 2023 / 2022 / 2021 (in millions, except per share amounts) Revenue: Non-Regulated / $9,245 / $9,079 / $8,273 R |
 | AES | 2023 | cash_flow (3 tables): 2023 / 2022 / 2021 OPERATING ACTIVITIES: / (in millions) Net loss / $( 182 ) / $( 505 ) / $( 951 ) Adjustments |
-| AES | 2023 | balance_sheet (2 tables): 3.1 / Sixth Restated Certificate of Incorporation of The AES Corporation is incorporated herein by reference t |
 | AMCR | 2020 | income (1 table): For the years ended June 30, / 2020 / 2019 / 2018 Net sales / $12,467.5 / $9,458.2 / $9,319.1 Cost of sales /  |
 | AMCR | 2020 | balance_sheet (1 table): As of June 30, / 2020 / 2019 Assets Current assets: Cash and cash equivalents / $742.6 / $601.6 Trade receivab |
 | AMCR | 2020 | cash_flow (1 table): For the years ended June 30, / 2020 / 2019 / 2018 Cash flows from operating activities: Net income / $616.6 /  |
@@ -191,10 +191,10 @@ None.
 | AMD | 2021 | cash_flow (2 tables): Year Ended December 25, 2021 / December 26, 2020 / December 28, 2019 (In millions) Cash flows from operating a |
 | AMD | 2022 | income (1 table): Year Ended December 31, 2022 / December 25, 2021 / December 26, 2020 (In millions, except per share amounts) N |
 | AMD | 2022 | balance_sheet (1 table): December 31, 2022 / December 25, 2021 (In millions, except par value amounts) ASSETS Current assets: Cash and  |
-| AMD | 2022 | cash_flow (1 table): Year Ended December 31, 2022 / December 25, 2021 / December 26, 2020 (In millions) Cash flows from operating a |
+| AMD | 2022 | cash_flow (2 tables): Year Ended December 31, 2022 / December 25, 2021 / December 26, 2020 (In millions) Cash flows from operating a |
 | AMD | 2023 | income (1 table): Year Ended December 30, 2023 / December 31, 2022 / December 25, 2021 (In millions, except per share amounts) N |
 | AMD | 2023 | balance_sheet (1 table): December 30, 2023 / December 31, 2022 (In millions, except par value amounts) ASSETS Current assets: Cash and  |
-| AMD | 2023 | cash_flow (1 table): Year Ended December 30, 2023 / December 31, 2022 / December 25, 2021 (In millions) Cash flows from operating a |
+| AMD | 2023 | cash_flow (2 tables): Year Ended December 30, 2023 / December 31, 2022 / December 25, 2021 (In millions) Cash flows from operating a |
 | AMZN | 2017 | cash_flow (1 table): Year Ended December 31, 2015 / 2016 / 2017 CASH AND CASH EQUIVALENTS, BEGINNING OF PERIOD / $14,557 / $15,890  |
 | AMZN | 2017 | income (1 table): Year Ended December 31, 2015 / 2016 / 2017 Net product sales / $79,268 / $94,665 / $118,573 Net service sales  |
 | AMZN | 2017 | balance_sheet (1 table): December 31, 2016 / 2017 ASSETS Current assets: Cash and cash equivalents / $19,334 / $20,522 Marketable secur |
@@ -210,24 +210,24 @@ None.
 | AMZN | 2023 | cash_flow (1 table): Year Ended December 31, 2021 / 2022 / 2023 CASH, CASH EQUIVALENTS, AND RESTRICTED CASH, BEGINNING OF PERIOD /  |
 | AMZN | 2023 | income (1 table): Year Ended December 31, 2021 / 2022 / 2023 Net product sales / $241,787 / $242,901 / $255,887 Net service sale |
 | AMZN | 2023 | balance_sheet (1 table): December 31, 2022 / 2023 ASSETS Current assets: Cash and cash equivalents / $53,888 / $73,387 Marketable secur |
-| ATVI | 2019 | income (3 tables): For the Years Ended December 31, 2019 / 2018 (1) Net revenues Product sales / $1,975 / 30% / $2,255 / 30% Subs |
 | ATVI | 2019 | balance_sheet (1 table): At December 31, 2019 / At December 31, 2018 Assets Current assets: Cash and cash equivalents / $5,794 / $4,225 |
+| ATVI | 2019 | income (1 table): For the Years Ended December 31, 2019 / 2018 / 2017 Net revenues Product sales / $1,975 / $2,255 / $2,110 Subs |
 | ATVI | 2019 | cash_flow (1 table): For the Years Ended December 31, 2019 / 2018 / 2017 Cash flows from operating activities: Net income / $1,503  |
 | AWK | 2020 | balance_sheet (2 tables): December 31, 2020 / December 31, 2019 ASSETS Property, plant and equipment / $25,614 / $23,941 Accumulated dep |
+| AWK | 2020 | income (1 table): For the Years Ended December 31, 2020 / 2019 / 2018 Operating revenues / $3,777 / $3,610 / $3,440 Operating ex |
 | AWK | 2020 | cash_flow (1 table): For the Years Ended December 31, 2020 / 2019 / 2018 CASH FLOWS FROM OPERATING ACTIVITIES Net income / $709 / $ |
-| AWK | 2020 | income (3 tables): 2020 Regulated Businesses / Market-Based Businesses / Other / Consolidated Operating revenues / $3,255 / $540  |
 | AWK | 2021 | balance_sheet (2 tables): December 31, 2021 / December 31, 2020 ASSETS Property, plant and equipment / $27,413 / $25,614 Accumulated dep |
+| AWK | 2021 | income (1 table): For the Years Ended December 31, 2021 / 2020 / 2019 Operating revenues / $3,930 / $3,777 / $3,610 Operating ex |
 | AWK | 2021 | cash_flow (1 table): For the Years Ended December 31, 2021 / 2020 / 2019 CASH FLOWS FROM OPERATING ACTIVITIES Net income / $1,263 / |
-| AWK | 2021 | income (3 tables): 2021 Regulated Businesses / Market-Based Businesses / Other / Consolidated Operating revenues / $3,384 / $563  |
 | AWK | 2022 | balance_sheet (2 tables): December 31, 2022 / December 31, 2021 ASSETS Property, plant and equipment / $29,736 / $27,413 Accumulated dep |
+| AWK | 2022 | income (1 table): For the Years Ended December 31, 2022 / 2021 / 2020 Operating revenues / $3,792 / $3,930 / $3,777 Operating ex |
 | AWK | 2022 | cash_flow (1 table): For the Years Ended December 31, 2022 / 2021 / 2020 CASH FLOWS FROM OPERATING ACTIVITIES Net income / $820 / $ |
-| AWK | 2022 | income (3 tables): 2022 Regulated Businesses / Other / Consolidated Operating revenues / $3,505 / $287 / $3,792 Depreciation and  |
 | AXP | 2021 | income (1 table): Year Ended December 31 (Millions, except per share amounts) / 2021 / 2020 / 2019 Revenues Non-interest revenue |
 | AXP | 2021 | balance_sheet (1 table): December 31 (Millions, except share data) / 2021 / 2020 Assets Cash and cash equivalents Cash and due from ban |
-| AXP | 2021 | cash_flow (1 table): Years Ended December 31 (Millions) / 2021 / 2020 / 2019 Cash Flows from Operating Activities Net income / $8,0 |
-| AXP | 2022 | income (1 table): Years Ended December 31, / Change / Change (Millions, except percentages, per share amounts and where indicate |
+| AXP | 2021 | cash_flow (2 tables): Years Ended December 31 (Millions) / 2021 / 2020 / 2019 Cash Flows from Operating Activities Net income / $8,0 |
+| AXP | 2022 | income (1 table): Year Ended December 31 (Millions, except per share amounts) / 2022 / 2021 / 2020 Revenues Non-interest revenue |
 | AXP | 2022 | balance_sheet (1 table): December 31 (Millions, except share data) / 2022 / 2021 Assets Cash and cash equivalents Cash and due from ban |
-| AXP | 2022 | cash_flow (1 table): Years Ended December 31 (Millions) / 2022 / 2021 / 2020 Cash Flows from Operating Activities Net income / $7,5 |
+| AXP | 2022 | cash_flow (2 tables): Years Ended December 31 (Millions) / 2022 / 2021 / 2020 Cash Flows from Operating Activities Net income / $7,5 |
 | BA | 2018 | income (1 table): Years ended December 31 / 2017 / 2016 (Dollars in millions, except per share data) / Reported / Impact of New  |
 | BA | 2018 | balance_sheet (1 table): (Dollars in millions) / December 31, 2017 Assets / Reported / Impact of New Standards / Restated Cash and cash |
 | BA | 2018 | cash_flow (1 table): Years ended December 31 / 2017 / 2016 (Dollars in millions) / Reported / Impact of New Standards / Restated /  |
@@ -240,11 +240,11 @@ None.
 | BA | 2023 | income (1 table): (Dollars in millions, except per share data) Years ended December 31, / 2023 / 2022 / 2021 Sales of products / |
 | BA | 2023 | balance_sheet (1 table): (Dollars in millions, except per share data) December 31, / 2023 / 2022 Assets Cash and cash equivalents / $ 1 |
 | BA | 2023 | cash_flow (1 table): (Dollars in millions) Years ended December 31, / 2023 / 2022 / 2021 Cash flows – operating activities: Net los |
-| BBY | 2017 | income (3 tables): 12-Month / 11-Month Fiscal Year / 2017 (1) / 2016 (2) / 2015 (3) / 2014 (4) / 2013 (5)(6) Consolidated Stateme |
 | BBY | 2017 | balance_sheet (1 table): January 28, 2017 / January 30, 2016 Assets Current Assets Cash and cash equivalents / $2,240 / $1,976 Short-te |
+| BBY | 2017 | income (1 table): Fiscal Years Ended / January 28, 2017 / January 30, 2016 / January 31, 2015 Revenue / $39,403 / $39,528 / $40, |
 | BBY | 2017 | cash_flow (1 table): Fiscal Years Ended / January 28, 2017 / January 30, 2016 / January 31, 2015 Operating Activities Net earnings  |
-| BBY | 2019 | income (6 tables): Fiscal Year / 2019 (1) / 2018 (2)(3) / 2017 (4) / 2016 (5) / 2015 (6) Consolidated Statements of Earnings Data |
 | BBY | 2019 | balance_sheet (1 table): February 2, 2019 / February 3, 2018 Assets Current assets Cash and cash equivalents / $1,980 / $1,101 Short-te |
+| BBY | 2019 | income (1 table): Fiscal Years Ended / February 2, 2019 / February 3, 2018 / January 28, 2017 Revenue / $42,879 / $42,151 / $39, |
 | BBY | 2019 | cash_flow (1 table): Fiscal Years Ended / February 2, 2019 / February 3, 2018 / January 28, 2017 Operating activities Net earnings  |
 | BBY | 2022 | balance_sheet (1 table): January 29, 2022 / January 30, 2021 Assets Current assets Cash and cash equivalents / $2,936 / $5,494 Receivab |
 | BBY | 2022 | income (1 table): Fiscal Years Ended / January 29, 2022 / January 30, 2021 / February 1, 2020 Revenue / $51,761 / $47,262 / $43, |
@@ -291,7 +291,7 @@ None.
 | GLW | 2020 | income (1 table): Year ended December 31, (In millions, except per share amounts) / 2020 / 2019 / 2018 Net sales / $11,303 / $11 |
 | GLW | 2020 | balance_sheet (1 table): December 31, (In millions, except share and per share amounts) / 2020 / 2019 Assets Current assets: Cash and c |
 | GLW | 2020 | cash_flow (1 table): Year ended December 31, (In millions) / 2020 / 2019 / 2018 Cash Flows from Operating Activities: Net income /  |
-| GLW | 2021 | income (4 tables): Year ended December 31, 2021 Net Sales / Equity earnings / Income before income taxes / Net income / Effective |
+| GLW | 2021 | income (1 table): Year ended December 31, (In millions, except per share amounts) / 2021 / 2020 / 2019 Net sales / $14,082 / $11 |
 | GLW | 2021 | balance_sheet (1 table): December 31, (In millions, except share and per share amounts) / 2021 / 2020 Assets Current assets: Cash and c |
 | GLW | 2021 | cash_flow (1 table): Year ended December 31, (In millions) / 2021 / 2020 / 2019 Cash Flows from Operating Activities: Net income /  |
 | GLW | 2022 | income (1 table): Year ended December 31, (in millions, except per share amounts) / 2022 / 2021 / 2020 Net sales / $14,189 / $14 |
@@ -324,36 +324,36 @@ None.
 | JNJ | 2022 | balance_sheet (1 table): 2021 / 2020 Assets Current assets Cash and cash equivalents (Notes 1 and 2) / $14,487 / 13,985 Marketable secu |
 | JNJ | 2022 | income (1 table): 2021 / 2020 / 2019 Sales to customers / $93,775 / 82,584 / 82,059 Cost of products sold / 29,855 / 28,427 / 27 |
 | JNJ | 2022 | cash_flow (2 tables): 2021 / 2020 / 2019 Cash flows from operating activities Net earnings / $20,878 / 14,714 / 15,119 Adjustments t |
-| JPM | 2021 | income (1 table): As of or for the year ended December 31, (in millions, except per share, ratio, headcount data and where other |
+| JPM | 2021 | income (1 table): Year ended December 31, (in millions, except per share data) / 2021 / 2020 / 2019 Revenue Investment banking f |
 | JPM | 2021 | balance_sheet (1 table): December 31, (in millions, except share data) / 2021 / 2020 Assets Cash and due from banks / $26,438 / $24,874 |
 | JPM | 2021 | cash_flow (1 table): Year ended December 31, (in millions) / 2021 / 2020 / 2019 Operating activities Net income / $48,334 / $29,131 |
-| JPM | 2022 | income (1 table): As of or for the year ended December 31, (in millions, except per share, ratio, headcount data and where other |
+| JPM | 2022 | income (2 tables): Year ended December 31, (in millions, except per share data) / 2022 / 2021 / 2020 Revenue Investment banking f |
 | JPM | 2022 | balance_sheet (1 table): December 31, (in millions, except share data) / 2022 / 2021 Assets Cash and due from banks / $27,697 / $26,438 |
 | JPM | 2022 | cash_flow (2 tables): Year ended December 31, (in millions) / 2022 / 2021 / 2020 Operating activities Net income / $37,676 / $48,334 |
-| JPM | 2023 | income (1 table): As of or for the year ended December 31, (in millions, except per share, ratio, employee data and where otherw |
+| JPM | 2023 | income (2 tables): Year ended December 31, (in millions, except per share data) / 2023 / 2022 / 2021 Revenue Investment banking f |
 | JPM | 2023 | balance_sheet (1 table): December 31, (in millions, except share data) / 2023 / 2022 Assets Cash and due from banks / $29,066 / $27,697 |
 | JPM | 2023 | cash_flow (2 tables): Year ended December 31, (in millions) / 2023 / 2022 / 2021 Operating activities Net income / $49,552 / $37,676 |
-| KHC | 2019 | income (3 tables): Parent Guarantor / Subsidiary Issuer / Non-Guarantor Subsidiaries / Eliminations / Consolidated Net sales / $— |
-| KHC | 2019 | balance_sheet (2 tables): Parent Guarantor / Subsidiary Issuer / Non-Guarantor Subsidiaries / Eliminations / Consolidated ASSETS Cash an |
-| KHC | 2019 | cash_flow (3 tables): Parent Guarantor / Subsidiary Issuer / Non-Guarantor Subsidiaries / Eliminations / Consolidated CASH FLOWS FRO |
+| KHC | 2019 | income (1 table): December 28, 2019 / December 29, 2018 / December 30, 2017 Net sales / $24,977 / $26,268 / $26,076 Cost of prod |
+| KHC | 2019 | balance_sheet (1 table): December 28, 2019 / December 29, 2018 ASSETS Cash and cash equivalents / $2,279 / $1,130 Trade receivables (ne |
+| KHC | 2019 | cash_flow (1 table): December 28, 2019 / December 29, 2018 / December 30, 2017 CASH FLOWS FROM OPERATING ACTIVITIES: Net income/(lo |
+| KHC | 2021 | income (1 table): December 25, 2021 / December 26, 2020 / December 28, 2019 Net sales / $26,042 / $26,185 / $24,977 Cost of prod |
 | KHC | 2021 | balance_sheet (1 table): December 25, 2021 / December 26, 2020 ASSETS Cash and cash equivalents / $3,445 / $3,417 Trade receivables (ne |
 | KHC | 2021 | cash_flow (1 table): December 25, 2021 / December 26, 2020 / December 28, 2019 CASH FLOWS FROM OPERATING ACTIVITIES: Net income/(lo |
-| KHC | 2021 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Gains/(Losses) Recognized in Other Comprehensive I |
+| KHC | 2022 | income (1 table): December 31, 2022 / December 25, 2021 / December 26, 2020 Net sales / $26,485 / $26,042 / $26,185 Cost of prod |
 | KHC | 2022 | balance_sheet (1 table): December 31, 2022 / December 25, 2021 ASSETS Cash and cash equivalents / $1,040 / $3,445 Trade receivables (ne |
 | KHC | 2022 | cash_flow (1 table): December 31, 2022 / December 25, 2021 / December 26, 2020 CASH FLOWS FROM OPERATING ACTIVITIES: Net income/(lo |
-| KHC | 2022 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Gains/(Losses) Recognized in Other Comprehensive I |
+| KHC | 2023 | income (1 table): December 30, 2023 / December 31, 2022 / December 25, 2021 Net sales / $26,640 / $26,485 / $26,042 Cost of prod |
 | KHC | 2023 | balance_sheet (1 table): December 30, 2023 / December 31, 2022 ASSETS Cash and cash equivalents / $1,400 / $1,040 Trade receivables (ne |
 | KHC | 2023 | cash_flow (1 table): December 30, 2023 / December 31, 2022 / December 25, 2021 CASH FLOWS FROM OPERATING ACTIVITIES: Net income/(lo |
-| KHC | 2023 | income (1 table): Accumulated Other Comprehensive Income/(Losses) Component / Gains/(Losses) Recognized in Other Comprehensive I |
+| KO | 2017 | income (1 table): Year Ended December 31, / 2017 / 2016 / 2015 (In millions except per share data) NET OPERATING REVENUES / $35, |
 | KO | 2017 | balance_sheet (1 table): December 31, / 2017 / 2016 (In millions except par value) ASSETS CURRENT ASSETS Cash and cash equivalents / $6 |
 | KO | 2017 | cash_flow (1 table): Year Ended December 31, / 2017 / 2016 / 2015 (In millions) OPERATING ACTIVITIES Consolidated net income / $1,2 |
-| KO | 2017 | income (1 table): Description of AOCI Component / Financial Statement Line Item / Amount Reclassified from AOCI into Income Fore |
+| KO | 2021 | income (1 table): Year Ended December 31, / 2021 / 2020 / 2019 Net Operating Revenues / $38,655 / $33,014 / $37,266 Cost of good |
 | KO | 2021 | balance_sheet (1 table): December 31, / 2021 / 2020 ASSETS Current Assets Cash and cash equivalents / $9,684 / $6,795 Short-term invest |
 | KO | 2021 | cash_flow (1 table): Year Ended December 31, / 2021 / 2020 / 2019 Operating Activities Consolidated net income / $9,804 / $7,768 /  |
-| KO | 2021 | income (1 table): Description of AOCI Component / Financial Statement Line Item / Amount Reclassified from AOCI into Income Fore |
+| KO | 2022 | income (1 table): Year Ended December 31, / 2022 / 2021 / 2020 Net Operating Revenues / $43,004 / $38,655 / $33,014 Cost of good |
 | KO | 2022 | balance_sheet (1 table): December 31, / 2022 / 2021 ASSETS Current Assets Cash and cash equivalents / $9,519 / $9,684 Short-term invest |
 | KO | 2022 | cash_flow (1 table): Year Ended December 31, / 2022 / 2021 / 2020 Operating Activities Consolidated net income / $9,571 / $9,804 /  |
-| KO | 2022 | income (1 table): Description of AOCI Component / Financial Statement Line Item / Amount Reclassified from AOCI into Income Fore |
 | KO | 2023 | income (1 table): Year Ended December 31, / 2023 / 2022 / 2021 Net Operating Revenues / $45,754 / $43,004 / $38,655 Cost of good |
 | KO | 2023 | balance_sheet (1 table): December 31, / 2023 / 2022 ASSETS Current Assets Cash and cash equivalents / $9,366 / $9,519 Short-term invest |
 | KO | 2023 | cash_flow (1 table): Year Ended December 31, / 2023 / 2022 / 2021 Operating Activities Consolidated net income / $10,703 / $9,571 / |
@@ -441,15 +441,15 @@ None.
 | NVDA | 2023 | income (1 table): Year Ended January 29, 2023 / January 30, 2022 / January 31, 2021 Revenue / $26,974 / $26,914 / $16,675 Cost o |
 | NVDA | 2023 | balance_sheet (1 table): January 29, 2023 / January 30, 2022 ASSETS Current assets: Cash and cash equivalents / $3,389 / $1,990 Marketa |
 | NVDA | 2023 | cash_flow (1 table): Year Ended January 29, 2023 / January 30, 2022 / January 31, 2021 Cash flows from operating activities: Net in |
+| PEP | 2021 | income (1 table): 2021 / 2020 / 2019 Net Revenue / $79,474 / $70,372 / $67,161 Cost of sales / 37,075 / 31,797 / 30,132 Gross pr |
 | PEP | 2021 | cash_flow (2 tables): 2021 / 2020 / 2019 Operating Activities Net income / $7,679 / $7,175 / $7,353 Depreciation and amortization /  |
 | PEP | 2021 | balance_sheet (1 table): 2021 / 2020 ASSETS Current Assets Cash and cash equivalents / $5,596 / $8,185 Short-term investments / 392 / 1 |
-| PEP | 2021 | income (1 table): Amount Reclassified from Accumulated Other Comprehensive Loss / Affected Line Item in the Income Statement 202 |
+| PEP | 2022 | income (1 table): 2022 / 2021 / 2020 Net Revenue / $86,392 / $79,474 / $70,372 Cost of sales / 40,576 / 37,075 / 31,797 Gross pr |
 | PEP | 2022 | cash_flow (2 tables): 2022 / 2021 / 2020 Operating Activities Net income / $8,978 / $7,679 / $7,175 Depreciation and amortization /  |
 | PEP | 2022 | balance_sheet (1 table): 2022 / 2021 ASSETS Current Assets Cash and cash equivalents / $4,954 / $5,596 Short-term investments / 394 / 3 |
-| PEP | 2022 | income (1 table): Amount Reclassified from Accumulated Other Comprehensive Loss / Affected Line Item in the Income Statement 202 |
+| PEP | 2023 | income (1 table): 2023 / 2022 / 2021 Net Revenue / $91,471 / $86,392 / $79,474 Cost of sales / 41,881 / 40,576 / 37,075 Gross pr |
 | PEP | 2023 | cash_flow (2 tables): 2023 / 2022 / 2021 Operating Activities Net income / $9,155 / $8,978 / $7,679 Depreciation and amortization /  |
 | PEP | 2023 | balance_sheet (1 table): 2023 / 2022 ASSETS Current Assets Cash and cash equivalents / $9,711 / $4,954 Short-term investments / 292 / 3 |
-| PEP | 2023 | income (1 table): Amount Reclassified from Accumulated Other Comprehensive Loss / Affected Line Item in the Income Statement 202 |
 | PFE | 2021 | income (1 table): Year Ended December 31, (MILLIONS, EXCEPT PER COMMON SHARE DATA) / 2021 / 2020 / 2019 Revenues / $81,288 / $41 |
 | PFE | 2021 | balance_sheet (2 tables): As of December 31, (MILLIONS, EXCEPT PER COMMON SHARE DATA) / 2021 / 2020 Assets Cash and cash equivalents / $ |
 | PFE | 2021 | cash_flow (3 tables): Year Ended December 31, (MILLIONS) / 2021 / 2020 / 2019 Operating Activities Net income before allocation to n |
