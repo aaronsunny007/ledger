@@ -4,10 +4,16 @@ name: experiments
 # no cost): chunking (table / section / fixed 1024 / fixed 512) and, on the
 # table index, search mode, reranker and statement pinning. Every run covers
 # all answerable FinanceBench (10-K) and XBRL questions; the report table
-# uses the test split. Results are committed to eval/results/.
+# uses the test split. Results are committed to eval/results/, and the report
+# merges new runs with the ones already committed, so a subset can be re-run.
 
 on:
   workflow_dispatch:
+    inputs:
+      runs:
+        description: "Run tags to run, space-separated (empty = all)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -16,16 +22,55 @@ env:
   SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'Aaron Gandi aarongandi007@gmail.com' }}
 
 jobs:
-  download:
-    # Once, so parallel jobs do not exceed SEC's 10 requests per second.
+  plan:
+    # Download once, so parallel jobs do not exceed SEC's 10 requests per second.
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      runs: ${{ steps.plan.outputs.runs }}
+      indexes: ${{ steps.plan.outputs.indexes }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
+      - id: plan
+        name: Pick the runs
+        env:
+          ONLY: ${{ inputs.runs }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          # tag -> (index it needs, config file); one parallel job per run.
+          RUNS = {
+              "default": ("table", "configs/retrieval.yaml"),
+              "no-pin-statements": ("table", "configs/experiments/no-pin-statements.yaml"),
+              "hybrid-no-rerank": ("table", "configs/experiments/hybrid-no-rerank.yaml"),
+              "vector-only": ("table", "configs/experiments/vector-only.yaml"),
+              "keyword-only": ("table", "configs/experiments/keyword-only.yaml"),
+              "rerank-v2-m3": ("table", "configs/experiments/rerank-v2-m3.yaml"),
+              "section": ("section", "configs/experiments/section.yaml"),
+              "fixed-1024": ("fixed-1024", "configs/experiments/fixed-1024.yaml"),
+              "fixed-512": ("fixed-512", "configs/experiments/fixed-512.yaml"),
+          }
+          only = os.environ.get("ONLY", "").split()
+          unknown = set(only) - set(RUNS)
+          if unknown:
+              raise SystemExit(f"unknown run tags: {sorted(unknown)}")
+          runs = [
+              {"tag": t, "index": i, "config": c}
+              for t, (i, c) in RUNS.items()
+              if not only or t in only
+          ]
+          first = {}
+          for r in runs:
+              first.setdefault(r["index"], r["config"])
+          indexes = sorted(first.items())
+          print("runs=" + json.dumps(runs))
+          print("indexes=" + json.dumps([{"index": i, "config": c} for i, c in indexes]))
+          PY
+          cat "$GITHUB_OUTPUT"
       - run: pip install -e .
       - uses: actions/cache@v4
         with:
@@ -41,28 +86,60 @@ jobs:
           done
           echo "$(ls data/raw/*/*/filing.htm | wc -l) filings on disk"
 
+  index:
+    # Each index is built once and shared by every run that uses it.
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.indexes) }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: cached
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/processed
+            ~/.cache/huggingface
+          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
+          lookup-only: true
+      - if: steps.cached.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - if: steps.cached.outputs.cache-hit != 'true'
+        name: Install (CPU torch)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install -e ".[models]"
+      - if: steps.cached.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: data/raw
+          key: raw-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/edgar.py') }}
+          fail-on-cache-miss: true
+      - if: steps.cached.outputs.cache-hit != 'true'
+        name: Index (${{ matrix.index }})
+        run: ledger ingest --config "${{ matrix.config }}" | tail -5
+      - if: steps.cached.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            data/processed
+            ~/.cache/huggingface
+          key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
+
   retrieval:
-    needs: download
+    needs: [plan, index]
     runs-on: ubuntu-latest
     timeout-minutes: 330
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - index: table
-            runs: >-
-              configs/retrieval.yaml:default
-              configs/experiments/no-pin-statements.yaml:no-pin-statements
-              configs/experiments/hybrid-no-rerank.yaml:hybrid-no-rerank
-              configs/experiments/vector-only.yaml:vector-only
-              configs/experiments/keyword-only.yaml:keyword-only
-              configs/experiments/rerank-v2-m3.yaml:rerank-v2-m3
-          - index: section
-            runs: configs/experiments/section.yaml:section
-          - index: fixed-1024
-            runs: configs/experiments/fixed-1024.yaml:fixed-1024
-          - index: fixed-512
-            runs: configs/experiments/fixed-512.yaml:fixed-512
+        include: ${{ fromJSON(needs.plan.outputs.runs) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -75,31 +152,19 @@ jobs:
           pip install -e ".[models]"
       - uses: actions/cache/restore@v4
         with:
-          path: data/raw
-          key: raw-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/edgar.py') }}
-          fail-on-cache-miss: true
-      - uses: actions/cache@v4
-        with:
           path: |
             data/processed
             ~/.cache/huggingface
           key: index-${{ matrix.index }}-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**') }}
-      - name: Index (${{ matrix.index }})
-        run: |
-          first=$(echo "${{ matrix.runs }}" | awk '{print $1}' | cut -d: -f1)
-          ledger ingest --config "$first" | tail -5
-      - name: Retrieval runs
-        run: |
-          for run in ${{ matrix.runs }}; do
-            cfg="${run%%:*}"; tag="${run##*:}"
-            echo "::group::$tag"
-            python eval/retrieval_eval.py --config "$cfg" --tag "$tag"
-            echo "::endgroup::"
-          done
+          fail-on-cache-miss: true
+      - name: Retrieval run (${{ matrix.tag }})
+        run: python eval/retrieval_eval.py --config "${{ matrix.config }}" --tag "${{ matrix.tag }}"
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: retrieval-${{ matrix.index }}
-          path: eval/results/retrieval/*.json
+          name: retrieval-${{ matrix.tag }}
+          path: eval/results/retrieval/${{ matrix.tag }}.json
+          if-no-files-found: ignore
 
   report:
     needs: retrieval
@@ -110,6 +175,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Results already committed stay in eval/results/retrieval; new runs overwrite theirs.
       - uses: actions/download-artifact@v4
         with:
           pattern: retrieval-*
