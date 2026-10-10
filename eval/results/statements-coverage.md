@@ -1,6 +1,6 @@
 # Primary statement coverage
 
-Filings: 124. Found: balance_sheet 118/124, income 122/124, cash_flow 122/124.
+Filings: 124. Found: balance_sheet 122/124, income 122/124, cash_flow 122/124.
 
 Cells give the tagged table's size in characters.
 
@@ -84,10 +84,10 @@ Cells give the tagged table's size in characters.
 | LMT | 2023 | 1,247 | 970 | 1,621 |
 | META | 2021 | 1,641 | 1,225 | 3,369 |
 | META | 2022 | 1,639 | 1,244 | 3,572 |
-| MGM | 2018 | **missing** | 1,967 | 4,141 |
-| MGM | 2020 | **missing** | 2,004 | 3,989 |
-| MGM | 2021 | **missing** | 2,091 | 3,857 |
-| MGM | 2022 | **missing** | 2,085 | 3,863 |
+| MGM | 2018 | 1,758 | 1,967 | 4,141 |
+| MGM | 2020 | 1,928 | 2,004 | 3,989 |
+| MGM | 2021 | 1,912 | 2,091 | 3,857 |
+| MGM | 2022 | 1,985 | 2,085 | 3,863 |
 | MMM | 2018 | 1,799 | 1,126 | 2,367 |
 | MMM | 2021 | 1,984 | 1,261 | 2,526 |
 | MMM | 2022 | 1,988 | 1,309 | 2,652 |
@@ -133,146 +133,13 @@ Cells give the tagged table's size in characters.
 
 ## Near misses for missing statements
 
-### MGM 2018
+### GIS 2022
 
-- `balance_sheet` title=n rows=[True, True] len=1405 section='Cover'
-  - before: PERFORMANCE GRAPH / The graph below matches our cumulative Five-Year total shareholder return on common stock with the cumulative total returns of the Dow Jones US Total Return index, the S&P 500 index and the Dow Jones 
-  - table: 2018 / 2017 / 2016 / 2015 / 2014 (In thousands, except per share data) Net revenues / $11,763,096 / $10,797,479 / $9,478,269 / $9,179,590 / $10,081,984 Operating income (loss) / 1,469,486 / 1,712,527 / 2,078,199 / (152,8
-- `balance_sheet` title=Y rows=[False, False] len=547 section='Cover'
-  - before: Off Balance Sheet Arrangements / Our off-balance sheet arrangements consist primarily of investments in unconsolidated affiliates, which consists primarily of our investment in CityCenter. We have not entered into any tr
-  - table: 2019 / 2020 / 2021 / 2022 / 2023 / Thereafter / Total (In millions) Long-term debt (1) / $1,273 / $1,966 / $1,716 / $2,306 / $2,885 / $5,107 / $15,253 Estimated interest payments on long-term debt (2) / 809 / 737 / 636 /
-- `balance_sheet` title=Y rows=[False, False] len=126 section='Cover'
-  - before: Off Balance Sheet Arrangements / Our off-balance sheet arrangements consist primarily of investments in unconsolidated affiliates, which consists primarily of our investment in CityCenter. We have not entered into any tr
-  - table: (1) / Reflects scheduled amortization payments and debt maturities. Refer to Note 9 for further information on long-term debt.
-- `balance_sheet` title=Y rows=[False, False] len=357 section='Cover'
-  - before: Off Balance Sheet Arrangements / Our off-balance sheet arrangements consist primarily of investments in unconsolidated affiliates, which consists primarily of our investment in CityCenter. We have not entered into any tr
-  - table: (2) / Estimated interest payments, including the impact of interest rate swap agreements, are based on principal amounts and expected maturities of debt outstanding at December 31, 2018 and management’s forecasted LIBOR 
-- `balance_sheet` title=Y rows=[False, False] len=67 section='Cover'
-  - before: Off Balance Sheet Arrangements / Our off-balance sheet arrangements consist primarily of investments in unconsolidated affiliates, which consists primarily of our investment in CityCenter. We have not entered into any tr
-  - table: (3) / Refer to Note 11 for further information on operating leases.
-- `balance_sheet` title=Y rows=[False, False] len=484 section='Cover'
-  - before: Off Balance Sheet Arrangements / Our off-balance sheet arrangements consist primarily of investments in unconsolidated affiliates, which consists primarily of our investment in CityCenter. We have not entered into any tr
-  - table: (4) / Reflects future expected cash outlays of our other long-term liabilities recorded on our balance sheet as of December 31, 2018, and, accordingly, we have not included such liabilities above that do not have future 
-- `balance_sheet` title=Y rows=[False, False] len=481 section='Cover'
-  - before: Off Balance Sheet Arrangements / Our off-balance sheet arrangements consist primarily of investments in unconsolidated affiliates, which consists primarily of our investment in CityCenter. We have not entered into any tr
-  - table: (5) / Our purchase obligations represent minimum obligations we have under agreements with certain of our vendors, primarily advertising and entertainment contracts. Also, although open purchase orders are considered enf
-- `balance_sheet` title=Y rows=[False, True] len=580 section='Item 8. Financial Statements'
-  - before: In addition to the inherent risks associated with our normal operations, we are also exposed to additional market risks. Market risk is the risk of loss arising from adverse changes in market rates and prices, such as in
-  - table: Financial Statements: Report of Independent Registered Public Accounting Firm on Internal Control Over Financial Reporting / 53 Report of Independent Registered Public Accounting Firm on Consolidated Financial Statements
-- `balance_sheet` title=Y rows=[False, True] len=1758 section='Item 8. Financial Statements'
-  - before: We have served as the Company's auditor since 2002. / 54 / MGM RESORTS INTERNATIONAL AND SUBSIDIARIES / CONSOLIDATED BALANCE SHEETS / (In thousands, except share data)
-  - table: December 31, 2018 / 2017 ASSETS Current assets Cash and cash equivalents / $1,526,762 / $1,499,995 Accounts receivable, net / 657,206 / 542,273 Inventories / 110,831 / 102,292 Income tax receivable / 28,431 / 42,551 Prep
-- `balance_sheet` title=Y rows=[False, False] len=89 section='Item 8. Financial Statements'
-  - before: The Company evaluates entities for which control is achieved through means other than voting rights to determine if it is the primary beneficiary of a VIE. A VIE is an entity in which either (i) the equity investors as a
-  - table: • / Level 1 and Level 2 inputs for its long-term debt fair value disclosures. See Note 9;
-- `balance_sheet` title=Y rows=[False, False] len=174 section='Item 8. Financial Statements'
-  - before: The Company evaluates entities for which control is achieved through means other than voting rights to determine if it is the primary beneficiary of a VIE. A VIE is an entity in which either (i) the equity investors as a
-  - table: • / Level 2 and Level 3 inputs when assessing the fair value of assets acquired and liabilities assumed during the Northfield transaction and Borgata transaction. See Note 4.
-- `balance_sheet` title=Y rows=[False, False] len=383 section='Item 8. Financial Statements'
-  - before: For casino wager transactions that include incentives earned by customers under the Company’s loyalty programs, the Company allocates a portion of net win based upon the SSP of such incentive (less estimated breakage). T
-  - table: Outstanding Chip Liability / Loyalty Program / Customer Advances and Other 2018 / 2017 / 2018 / 2017 / 2018 / 2017 (in thousands) Balance at January 1 / $597,753 / $227,538 / $91,119 / $88,379 / $539,626 / $437,287 Balan
+- nothing found: 27264 blocks, 0 tables, 4,418,333 bytes, sections ['Cover', 'Item 1. Business', 'Item 1A. Risk Factors', 'Item 1B. Unresolved Staff Comments', 'Item 2. Properties', 'Item 3. Legal Proceedings', 'Item 4. Mine Safety Disclosures', 'Item 5. Market for Common Equity', 'Item 7. MD&A', 'Item 7A. Market Risk', 'Item 8. Financial Statements', 'Item 9. Changes in Accountants']
 
-### MGM 2020
+### GIS 2023
 
-- `balance_sheet` title=Y rows=[False, False] len=501 section='Item 2. Properties'
-  - before: Guarantor Financial Information / As of December 31, 2020, all of our principal debt arrangements are guaranteed by each of our wholly owned material domestic subsidiaries that guarantee our senior credit facility. Our p
-  - table: December 31, 2020 Balance Sheet / (In thousand) Current assets / $4,749,542 Investment in the MGP Operating Partnership / 1,617,055 Intercompany accounts due from non-guarantor subsidiaries / 16,622 MGP master lease righ
-- `balance_sheet` title=Y rows=[False, True] len=579 section='Item 8. Financial Statements'
-  - before: In addition to the inherent risks associated with our normal operations, we are also exposed to additional market risks. Market risk is the risk of loss arising from adverse changes in market rates and prices, such as in
-  - table: Financial Statements: Report of Independent Registered Public Accounting Firm on Internal Control Over Financial Reporting / 59 Report of Independent Registered Public Accounting Firm on Consolidated Financial Statements
-- `balance_sheet` title=Y rows=[False, True] len=1928 section='Item 8. Financial Statements'
-  - before: We have served as the Company's auditor since 2002. / 61 / MGM RESORTS INTERNATIONAL AND SUBSIDIARIES / CONSOLIDATED BALANCE SHEETS / (In thousands, except share data)
-  - table: December 31, 2020 / 2019 ASSETS Current assets Cash and cash equivalents / $5,101,637 / $2,329,604 Accounts receivable, net / 316,502 / 612,717 Inventories / 88,323 / 102,888 Income tax receivable / 243,415 / 27,167 Octo
-- `balance_sheet` title=Y rows=[False, False] len=89 section='Item 8. Financial Statements'
-  - before: Management has determined that Bellagio BREIT Venture is a VIE because the equity holders as a group lack the power through voting or similar rights to direct the activities of such entity that most significantly impact 
-  - table: • / Level 1 and Level 2 inputs for its long-term debt fair value disclosures. See Note 9;
-- `balance_sheet` title=Y rows=[False, False] len=112 section='Item 8. Financial Statements'
-  - before: Management has determined that Bellagio BREIT Venture is a VIE because the equity holders as a group lack the power through voting or similar rights to direct the activities of such entity that most significantly impact 
-  - table: • / Level 2 inputs when measuring the Operating Partnership’s fair value of its interest rate swaps. See Note 9;
-- `balance_sheet` title=Y rows=[False, False] len=151 section='Item 8. Financial Statements'
-  - before: Management has determined that Bellagio BREIT Venture is a VIE because the equity holders as a group lack the power through voting or similar rights to direct the activities of such entity that most significantly impact 
-  - table: • / Level 2 and Level 3 inputs when assessing the fair value of assets acquired and liabilities assumed during the Empire City acquisition. See Note 4;
-- `balance_sheet` title=Y rows=[False, False] len=160 section='Item 8. Financial Statements'
-  - before: Management has determined that Bellagio BREIT Venture is a VIE because the equity holders as a group lack the power through voting or similar rights to direct the activities of such entity that most significantly impact 
-  - table: • / Level 2 and Level 3 inputs when assessing the fair value of the note receivable relating to the Circus Circus Las Vegas and adjacent land sale. See Note 16.
-- `balance_sheet` title=Y rows=[False, False] len=394 section='Item 8. Financial Statements'
-  - before: The transaction price of rooms, food and beverage, and retail contracts is the net amount collected from the customer for such goods and services. The transaction price for such contracts is recorded as revenue when the 
-  - table: Outstanding Chip Liability / Loyalty Program / Customer Advances and Other 2020 / 2019 / 2020 / 2019 / 2020 / 2019 (in thousands) Balance at January 1 / $314,570 / $323,811 / $126,966 / $113,293 / $481,095 / $667,285 Bal
-- `balance_sheet` title=Y rows=[False, False] len=848 section='Item 8. Financial Statements'
-  - before: 73 / Property transactions, net. The Company classifies transactions such as write-downs and impairments, demolition costs, and normal gains and losses on the sale of assets as “Property transactions, net.” See Note 16 f
-  - table: Year Ended December 31, 2020 / 2019 / 2018 Numerator: / (In thousands) Net income (loss) attributable to MGM Resorts International / $( 1,032,724) / $2,049,146 / $466,772 Adjustment related to redeemable noncontrolling i
-- `balance_sheet` title=Y rows=[False, False] len=249 section='Item 8. Financial Statements'
-  - before: 77 / Grand Victoria / Grand Victoria sale. On August 7, 2018, the Company, along with its joint venture partner, completed the sale of Grand Victoria, of which a subsidiary of the Company owned a 50 % interest, for $ 328
-  - table: December 31, 2020 / 2019 (In thousands) Cash and cash equivalents / $96,758 / $246,269 Property and equipment, net / 10,237,004 / 5,937,382 Other assets, net / 256,813 / 204,326 Debt, net / 4,715,997 / 1,734,770 Other li
-- `balance_sheet` title=Y rows=[False, False] len=229 section='Item 8. Financial Statements'
-  - before: Grand Victoria / Grand Victoria sale. On August 7, 2018, the Company, along with its joint venture partner, completed the sale of Grand Victoria, of which a subsidiary of the Company owned a 50 % interest, for $ 328 mill
-  - table: Year Ended December 31, 2020 / 2019 / 2018 (In thousands) Net revenues / $869,638 / $1,294,861 / $1,277,745 Income (loss) from continuing operations / ( 43,749) / 69,143 / 97,091 Net income (loss) / ( 43,749) / 69,143 / 
-- `balance_sheet` title=Y rows=[False, True] len=631 section='Item 8. Financial Statements'
-  - before: Unconsolidated Affiliate Financial Information – CityCenter & MGP BREIT Venture / Summarized balance sheet information is as follows: / Summarized results of operations are as follows: / Basis Differences / The Company’s
-  - table: December 31, 2020 / 2019 (In thousands) Venture-level equity attributable to the Company / $2,981,550 / $2,399,993 Adjustment to CityCenter equity upon contribution of net assets by MGM Resorts International (1) / ( 504,
-
-### MGM 2021
-
-- `balance_sheet` title=Y rows=[False, False] len=562 section='Item 7. MD&A'
-  - before: Guarantor Financial Information / As of December 31, 2021, all of our principal debt arrangements are guaranteed by each of our wholly owned material domestic subsidiaries that guarantee our senior credit facility. Our p
-  - table: December 31, 2021 Balance Sheet / (In thousands) Current assets / $5,663,171 Investment in the MGP Operating Partnership / 2,284,222 Intercompany accounts due from non-guarantor subsidiaries / — MGP master lease right-of
-- `balance_sheet` title=Y rows=[False, True] len=456 section='Item 8. Financial Statements'
-  - before: In addition to the inherent risks associated with our normal operations, we are also exposed to additional market risks. Market risk is the risk of loss arising from adverse changes in market rates and prices, such as in
-  - table: Financial Statements: Report s of Independent Registered Public Accounting Firm (PCAOB ID: 34 ) / 59 Consolidated Balance Sheets — December 31, 202 1 and 20 20 / 62 Years Ended December 31, 2021, 2020 and 2019 Consolidat
-- `balance_sheet` title=Y rows=[False, True] len=1912 section='Item 8. Financial Statements'
-  - before: We have served as the Company's auditor since 2002. / 61 / MGM RESORTS INTERNATIONAL AND SUBSIDIARIES / CONSOLIDATED BALANCE SHEETS / (In thousands, except share data)
-  - table: December 31, 2021 / 2020 ASSETS Current assets Cash and cash equivalents / $4,703,059 / $5,101,637 Restricted cash / 500,000 / — Accounts receivable, net / 583,915 / 316,502 Inventories / 96,374 / 88,323 Income tax recei
-- `balance_sheet` title=Y rows=[False, False] len=394 section='Item 8. Financial Statements'
-  - before: The transaction price of rooms, food and beverage, and retail contracts is the net amount collected from the customer for such goods and services. The transaction price for such contracts is recorded as revenue when the 
-  - table: Outstanding Chip Liability / Loyalty Program / Customer Advances and Other 2021 / 2020 / 2021 / 2020 / 2021 / 2020 (in thousands) Balance at January 1 / $212,671 / $314,570 / $139,756 / $126,966 / $382,287 / $481,095 Bal
-- `balance_sheet` title=Y rows=[False, False] len=853 section='Item 8. Financial Statements'
-  - before: Preopening and start-up expenses. Preopening and start-up costs, including organizational costs, are expensed as incurred. Costs classified as preopening and start-up expenses include payroll, outside services, advertisi
-  - table: Year Ended December 31, 2021 / 2020 / 2019 Numerator: / (In thousands) Net income (loss) attributable to MGM Resorts International / $1,254,370 / $( 1,032,724 ) / $2,049,146 Adjustment related to redeemable noncontrollin
-- `balance_sheet` title=Y rows=[False, False] len=205 section='Item 8. Financial Statements'
-  - before: Currency translation. The Company translates the financial statements of foreign subsidiaries that are not denominated in U.S. dollars. Balance sheet accounts are translated at the exchange rate in effect at each balance
-  - table: December 31, 2021 / 2020 (In thousands) Casino / $380,907 / $260,998 Hotel / 180,098 / 46,288 Other / 151,258 / 135,805 712,263 / 443,091 Less: Loss reserves / ( 128,348 ) / ( 126,589 ) $583,915 / $316,502
-- `balance_sheet` title=Y rows=[False, False] len=242 section='Item 8. Financial Statements'
-  - before: CityCenter distributions. During the year ended December 31, 2020, CityCenter paid $ 101 million in distributions, of which the Company received its 50 % share, or approximately $ 51 million. During the year ended Decemb
-  - table: December 31, 2021 / 2020 (In thousands) Cash and cash equivalents / $16 / $96,758 Property and equipment, net / 4,439,851 / 10,237,004 Other assets, net / 193,184 / 256,813 Debt, net / 2,994,782 / 4,715,997 Other liabili
-- `balance_sheet` title=Y rows=[False, False] len=157 section='Item 8. Financial Statements'
-  - before: CityCenter sale of Harmon land. In June 2021, CityCenter closed the sale of its Harmon land for $ 80 million on which it recorded a $ 30 million gain. The Company recorded a $ 50 million gain, which included $ 15 million
-  - table: Year Ended December 31, 2021 / 2020 / 2019 (In thousands) Net revenues / $1,084,503 / $869,638 / $1,294,861 Net income (loss) / 294,797 / ( 43,749 ) / 69,143
-- `balance_sheet` title=Y rows=[False, False] len=971 section='Item 8. Financial Statements'
-  - before: 91 / Aria lease . The Company leases the real estate assets of Aria (including Vdara) from funds managed by Blackstone. The Aria lease has an initial term of 30 years with three 10-year renewal periods, exercisable at th
-  - table: December 31, 2021 / 2020 Supplemental balance sheet information / (In thousands) Operating leases Operating lease right-of-use assets, net (1) / $11,492,805 / $8,286,694 Operating lease liabilities - current, classified 
-- `balance_sheet` title=Y rows=[False, True] len=415 section='Item 15. Exhibits'
-  - before: We incorporate by reference the information appearing under “Ratification of Selection of Independent Registered Public Accounting Firm” in the Proxy Statement. / 110 / PART IV / ITEM 15. EXHIBITS, FINANCIAL STATEMENT SC
-  - table: Reports of Independent Registered Public Accounting Firm / 59 Consolidated Balance Sheets — December 31, 2021 and 2020 / 62 Years Ended December 31, 2021, 2020 and 2019 Consolidated Statements of Operations / 63 Consolid
-
-### MGM 2022
-
-- `balance_sheet` title=Y rows=[False, False] len=191 section='Item 7. MD&A'
-  - before: As of December 31, 2022, all of our principal debt arrangements are guaranteed by each of our wholly owned material domestic subsidiaries that guarantee our senior credit facility. Our principal debt arrangements are not
-  - table: December 31, 2022 Balance Sheet / (In thousands) Current assets / $6,733,048 Other long-term assets / 28,802,794 Other current liabilities / 3,892,694 Other long-term liabilities / 28,285,295
-- `balance_sheet` title=Y rows=[False, True] len=453 section='Item 8. Financial Statements'
-  - before: In addition to the inherent risks associated with our normal operations, we are also exposed to additional market risks. Market risk is the risk of loss arising from adverse changes in market rates and prices, such as in
-  - table: Financial Statements: Reports of Independent Registered Public Accounting Firm (PCAOB ID: 34 ) / 53 Consolidated Balance Sheets — December 31, 2022 and 2021 / 57 Years Ended December 31, 2022, 2021 and 2020 Consolidated 
-- `balance_sheet` title=Y rows=[False, True] len=1985 section='Item 8. Financial Statements'
-  - before: We have served as the Company's auditor since 2002. / 56 / MGM RESORTS INTERNATIONAL AND SUBSIDIARIES / CONSOLIDATED BALANCE SHEETS / (In thousands, except share data)
-  - table: December 31, 2022 / 2021 ASSETS Current assets Cash and cash equivalents / $5,911,893 / $4,703,059 Restricted cash / — / 500,000 Accounts receivable, net / 852,149 / 583,915 Inventories / 126,065 / 96,374 Income tax rece
-- `balance_sheet` title=Y rows=[False, False] len=492 section='Item 8. Financial Statements'
-  - before: • Level 1, Level 2, and Level 3 inputs when assessing the fair value of assets acquired and liabilities assumed in acquisitions. See Note 4. / Equity investments. Fair value is measured based upon trading prices on the a
-  - table: Fair value level / December 31, 2022 (In thousands) Cash and cash equivalents: Money market funds / Level 1 / $12,009 Commercial paper and certificates of deposit / Level 2 / 5,992 Cash and cash equivalents / 18,001 Shor
-- `balance_sheet` title=Y rows=[False, False] len=385 section='Item 8. Financial Statements'
-  - before: the department that provides the goods or service. Redemption of loyalty incentives at third-party outlets are deducted from the loyalty liability and amounts owed are paid to the third party, with any discount received 
-  - table: Outstanding Chip Liability / Loyalty Program / Customer Advances and Other 2022 / 2021 / 2022 / 2021 / 2022 / 2021 (In thousands) Balance at January 1 / $176,219 / $212,671 / $144,465 / $139,756 / $640,001 / $382,287 Bal
-- `balance_sheet` title=Y rows=[False, False] len=738 section='Item 8. Financial Statements'
-  - before: Property transactions, net. The Company classifies transactions such as write-downs and impairments, demolition costs, and normal gains and losses on the sale of assets as “Property transactions, net.” See Note 16 for a 
-  - table: Year Ended December 31, 2022 / 2021 / 2020 Numerator: / (In thousands) Net income (loss) attributable to MGM Resorts International / $1,473,093 / $1,254,370 / $( 1,032,724 ) Adjustment related to redeemable noncontrollin
-- `balance_sheet` title=Y rows=[False, False] len=206 section='Item 8. Financial Statements'
-  - before: Currency translation. The Company translates the financial statements of foreign subsidiaries that are not denominated in U.S. dollars. Balance sheet accounts are translated at the exchange rate in effect at each balance
-  - table: December 31, 2022 / 2021 (In thousands) Casino / $500,986 / $380,907 Hotel / 273,327 / 180,098 Other / 191,102 / 151,258 965,415 / 712,263 Less: Loss reserves / ( 113,266 ) / ( 128,348 ) $852,149 / $583,915
-- `balance_sheet` title=n rows=[True, True] len=892 section='Item 8. Financial Statements'
-  - before: The operations of The Mirage are not classified as discontinued operations because the Company concluded that the sale is not a strategic shift that has a major effect on the Company’s operations or its financial results
-  - table: VICI Transaction / The Mirage (In thousands) Cash and cash equivalents / $25,387 / $26,230 Accounts receivable, net / — / 22,062 Inventories / — / 6,783 Income tax receivable / 5,486 / — Prepaid expenses and other / 128 
-- `balance_sheet` title=Y rows=[False, True] len=415 section='Item 15. Exhibits'
-  - before: The information required by this Item will be included in the Proxy Statement, and is incorporated herein by reference. / 102 / PART IV / ITEM 15. EXHIBITS, FINANCIAL STATEMENT SCHEDULES / (a)(1). Financial Statements. T
-  - table: Reports of Independent Registered Public Accounting Firm / 53 Consolidated Balance Sheets — December 31, 2022 and 2021 / 57 Years Ended December 31, 2022, 2021 and 2020 Consolidated Statements of Operations / 58 Consolid
+- nothing found: 25859 blocks, 0 tables, 4,360,437 bytes, sections ['Cover', 'Item 1. Business', 'Item 1A. Risk Factors', 'Item 1B. Unresolved Staff Comments', 'Item 2. Properties', 'Item 3. Legal Proceedings', 'Item 4. Mine Safety Disclosures', 'Item 5. Market for Common Equity', 'Item 7. MD&A', 'Item 7A. Market Risk', 'Item 8. Financial Statements', 'Item 9. Changes in Accountants']
 
 ## What was tagged
 
@@ -508,12 +375,16 @@ Cells give the tagged table's size in characters.
 | META | 2022 | balance_sheet (1 table): December 31, 2022 / 2021 Assets Current assets: Cash and cash equivalents / $14,681 / $16,601 Marketable secur |
 | META | 2022 | income (1 table): Year Ended December 31, 2022 / 2021 / 2020 Revenue / $116,609 / $117,929 / $85,965 Costs and expenses: Cost of |
 | META | 2022 | cash_flow (2 tables): Year Ended December 31, 2022 / 2021 / 2020 Cash flows from operating activities Net income / $23,200 / $39,370 |
+| MGM | 2018 | balance_sheet (1 table): December 31, 2018 / 2017 ASSETS Current assets Cash and cash equivalents / $1,526,762 / $1,499,995 Accounts re |
 | MGM | 2018 | income (1 table): Year Ended December 31, 2018 / 2017 / 2016 Revenues Casino / $5,753,150 / $5,016,426 / $4,108,126 Rooms / 2,21 |
 | MGM | 2018 | cash_flow (1 table): Year Ended December 31, 2018 / 2017 / 2016 Cash flows from operating activities Net income / $583,894 / $2,088 |
+| MGM | 2020 | balance_sheet (1 table): December 31, 2020 / 2019 ASSETS Current assets Cash and cash equivalents / $5,101,637 / $2,329,604 Accounts re |
 | MGM | 2020 | income (1 table): Year Ended December 31, 2020 / 2019 / 2018 Revenues Casino / $2,871,720 / $6,517,759 / $5,753,150 Rooms / 830, |
 | MGM | 2020 | cash_flow (1 table): Year Ended December 31, 2020 / 2019 / 2018 Cash flows from operating activities Net income (loss) / $( 1,319,9 |
+| MGM | 2021 | balance_sheet (1 table): December 31, 2021 / 2020 ASSETS Current assets Cash and cash equivalents / $4,703,059 / $5,101,637 Restricted  |
 | MGM | 2021 | income (1 table): Year Ended December 31, 2021 / 2020 / 2019 Revenues Casino / $5,362,912 / $2,871,720 / $6,517,759 Rooms / 1,69 |
 | MGM | 2021 | cash_flow (1 table): Year Ended December 31, 2021 / 2020 / 2019 Cash flows from operating activities Net income (loss) / $1,208,389 |
+| MGM | 2022 | balance_sheet (1 table): December 31, 2022 / 2021 ASSETS Current assets Cash and cash equivalents / $5,911,893 / $4,703,059 Restricted  |
 | MGM | 2022 | income (1 table): Year Ended December 31, 2022 / 2021 / 2020 Revenues Casino / $5,734,173 / $5,362,912 / $2,871,720 Rooms / 3,05 |
 | MGM | 2022 | cash_flow (1 table): Year Ended December 31, 2022 / 2021 / 2020 Cash flows from operating activities Net income (loss) / $206,731 / |
 | MMM | 2018 | income (1 table): (Millions, except per share amounts) / 2018 / 2017 / 2016 Net sales / $32,765 / $31,657 / $30,109 Operating ex |
