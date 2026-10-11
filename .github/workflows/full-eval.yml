@@ -22,6 +22,9 @@ on:
         description: also run the long-context baseline
         type: boolean
         default: true
+      allow_hash:
+        description: "code hashes whose partial runs may be resumed (changes that cannot alter answers)"
+        default: ""
 
 permissions:
   contents: write
@@ -63,6 +66,7 @@ jobs:
     timeout-minutes: 345
     env:
       SPLIT: ${{ inputs.split || 'test' }}
+      ALLOW_HASH: ${{ inputs.allow_hash }}
     steps:
       - uses: actions/checkout@v4
       - name: Check the API key
@@ -129,7 +133,7 @@ jobs:
         id: ledger
         timeout-minutes: 150
         run: |
-          python eval/run_eval.py --split "$SPLIT" --judge --sleep 4 --resume \
+          python eval/run_eval.py --split "$SPLIT" --judge --sleep 4 --resume --allow-hash $ALLOW_HASH \
             --tag "ledger-$SPLIT" --summary ledger.md
           cat ledger.md >> "$GITHUB_STEP_SUMMARY"
       - name: Long-context baseline
@@ -137,7 +141,7 @@ jobs:
         timeout-minutes: 150
         run: |
           python eval/run_eval.py --system long-context --split "$SPLIT" --judge \
-            --sleep 15 --resume --tag "long-context-$SPLIT" --summary baseline.md
+            --sleep 15 --resume --allow-hash $ALLOW_HASH --tag "long-context-$SPLIT" --summary baseline.md
           cat baseline.md >> "$GITHUB_STEP_SUMMARY"
       - name: Commit results
         if: always()

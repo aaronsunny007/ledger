@@ -227,3 +227,37 @@ def test_quota_error_carries_the_providers_wait() -> None:
         assert e.retry_after == 1215.0
     else:
         raise AssertionError("expected QuotaExhausted")
+
+
+def _run_eval_module():  # type: ignore[no-untyped-def]
+    import importlib.util
+    import sys
+
+    path = Path(__file__).resolve().parent.parent / "eval" / "run_eval.py"
+    spec = importlib.util.spec_from_file_location("run_eval_under_test", path)
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_resume_picks_the_finished_run_or_the_fullest_partial(tmp_path: Path) -> None:
+    import json
+
+    mod = _run_eval_module()
+    mod.RESULTS = tmp_path
+
+    def save(name: str, code: str, partial: bool, n: int) -> None:
+        (tmp_path / name).write_text(
+            json.dumps({"code_hash": code, "partial": partial, "items": [{}] * n})
+        )
+
+    save("1-t.json", "A", False, 217)
+    save("2-t.json", "A", True, 0)  # an empty partial left by a rate-limited start
+    save("3-t.json", "B", True, 50)
+    found = mod.best_saved_run("t", {"A"})
+    assert found and found[0].name == "1-t.json" and not found[1]["partial"]
+    found = mod.best_saved_run("t", {"B"})
+    assert found and found[0].name == "3-t.json"
+    assert mod.best_saved_run("t", {"C"}) is None

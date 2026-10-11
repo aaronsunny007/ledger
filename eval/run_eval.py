@@ -25,6 +25,7 @@ import time
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -74,13 +75,22 @@ def code_hash() -> str:
     return h.hexdigest()[:16]
 
 
-def latest_partial(tag: str) -> Path | None:
-    """The newest saved run with this tag, if it stopped before the end."""
-    runs = sorted(RESULTS.glob(f"*-{tag}.json"))
-    if not runs:
-        return None
-    last = runs[-1]
-    return last if json.loads(last.read_text()).get("partial") else None
+def best_saved_run(tag: str, accepted_hashes: set[str]) -> tuple[Path, dict[str, Any]] | None:
+    """The saved run with this tag to continue from, if any.
+
+    Only runs of the same code count (``accepted_hashes``). A complete run wins;
+    otherwise the partial run with the most questions answered, so an empty
+    partial left by a rate-limited start never hides a better one.
+    """
+    best: tuple[tuple[int, int], Path, dict[str, Any]] | None = None
+    for path in sorted(RESULTS.glob(f"*-{tag}.json")):
+        data = json.loads(path.read_text())
+        if data.get("code_hash") not in accepted_hashes:
+            continue
+        key = (0 if data.get("partial") else 1, len(data.get("items", [])))
+        if best is None or key >= best[0]:
+            best = (key, path, data)
+    return (best[1], best[2]) if best else None
 
 
 def rescore(path: Path) -> int:
@@ -135,6 +145,14 @@ def main() -> int:
         "--print-needs",
         action="store_true",
         help="print the TICKER YEAR filings the selected items need, then exit",
+    )
+    p.add_argument(
+        "--allow-hash",
+        nargs="*",
+        default=[],
+        metavar="HASH",
+        help="also resume runs saved under these code hashes: only for changes shown not to "
+        "alter answers (e.g. error handling), and logged",
     )
     p.add_argument(
         "--max-quota-wait",
@@ -192,11 +210,22 @@ def main() -> int:
     done: dict[str, ItemResult] = {}
     path = RESULTS / f"{datetime.now(UTC):%Y%m%dT%H%M%S}-{tag}.json"
     if args.resume:
-        prev = latest_partial(tag)
-        if prev is not None and json.loads(prev.read_text()).get("code_hash") != code_hash():
-            # Never mix answers from two versions of the system in one number.
-            print(f"not resuming {prev.relative_to(ROOT)}: the code changed; starting over")
-            prev = None
+        # Never mix answers from two versions of the system in one number.
+        accepted = {code_hash(), *args.allow_hash}
+        found = best_saved_run(tag, accepted)
+        prev = found[0] if found else None
+        if found and not found[1].get("partial"):
+            # Same code, finished: nothing to ask the model again.
+            print(f"already complete: {found[0].relative_to(ROOT)}")
+            if args.summary:
+                baseline = json.loads(BASELINE.read_text()) if BASELINE.exists() else None
+                args.summary.write_text(
+                    markdown_summary(found[1]["metrics"], baseline, [])
+                    + f"\n\nReused the finished run `{found[0].name}`; the code is unchanged.\n"
+                )
+            return 0
+        if prev is None and list(RESULTS.glob(f"*-{tag}.json")):
+            print(f"no saved {tag} run matches the current code; starting over")
         if prev is not None:
             # Keep finished items; re-ask the ones that errored or were not reached.
             done = {
