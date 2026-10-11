@@ -209,3 +209,21 @@ def test_smoke_set_excludes_out_of_corpus() -> None:
         _item(id=f"x{i}", split="dev", tags=["out-of-corpus"] if i % 2 else []) for i in range(10)
     ]
     assert all("out-of-corpus" not in i.tags for i in smoke_set(items, 10))
+
+
+def test_quota_error_carries_the_providers_wait() -> None:
+    import httpx
+
+    from ledger.answer.llm import GeminiLLM, QuotaExhausted
+
+    body = {"error": {"message": "q", "details": [{"retryDelay": "1215s"}]}}
+    llm = GeminiLLM("key", "m")
+    llm._http = httpx.Client(
+        transport=httpx.MockTransport(lambda r: httpx.Response(429, json=body))
+    )
+    try:
+        llm.complete("s", "u")
+    except QuotaExhausted as e:
+        assert e.retry_after == 1215.0
+    else:
+        raise AssertionError("expected QuotaExhausted")

@@ -136,6 +136,18 @@ def main() -> int:
         action="store_true",
         help="print the TICKER YEAR filings the selected items need, then exit",
     )
+    p.add_argument(
+        "--max-quota-wait",
+        type=float,
+        default=45,
+        help="minutes: wait out a rate limit up to this long, stop (partial) beyond it",
+    )
+    p.add_argument(
+        "--quota-budget",
+        type=float,
+        default=120,
+        help="minutes of waiting on rate limits allowed in one run",
+    )
     p.add_argument("--summary", type=Path, help="write a markdown summary here (CI)")
     p.add_argument("--rescore", type=Path, help="re-score a saved result JSON and exit")
     p.add_argument(
@@ -222,17 +234,7 @@ def main() -> int:
         path.write_text(json.dumps(out, indent=2))
         return metrics, remaining
 
-    partial = False
-    todo = [i for i in items if i.id not in done]
-    for n, item in enumerate(todo, 1):
-        # By default Ledger must find company and year in the question itself (RET-2);
-        # --oracle-filters measures retrieval with them handed over, as a UI filter would.
-        filters = None
-        if args.oracle_filters and item.answer_type != "refusal":
-            filters = Filters(
-                tickers=[item.ticker] if item.ticker else [],
-                years=[item.fiscal_year] if item.fiscal_year else [],
-            )
+    def run_item(item: GoldenItem, filters: Filters | None) -> ItemResult:
         try:
             answer = system.ask(item.question, filters)
             r = score_item(item, answer, config.retrieval.top_k)
@@ -241,14 +243,11 @@ def main() -> int:
 
                 r.judge = judge(judge_llm, item.question, item.answer, answer.answer)
                 r.correct = 1.0 if r.judge["correct"] else 0.0
-        except QuotaExhausted as e:
-            # Daily quota: every further call would fail the same way. Save
-            # what we have; --resume picks up from here.
-            print(f"[{n}/{len(todo)}] STOP {item.id}  {e}", flush=True)
-            partial = True
-            break
+            return r
+        except QuotaExhausted:
+            raise
         except Exception as e:  # keep going; errors are counted, not hidden
-            r = ItemResult(
+            return ItemResult(
                 item.id,
                 item.source,
                 item.answer_type,
@@ -269,6 +268,41 @@ def main() -> int:
                 item.tags,
                 error=f"{type(e).__name__}: {e}",
             )
+
+    partial = False
+    waited = 0.0
+    todo = [i for i in items if i.id not in done]
+    for n, item in enumerate(todo, 1):
+        # By default Ledger must find company and year in the question itself (RET-2);
+        # --oracle-filters measures retrieval with them handed over, as a UI filter would.
+        filters = None
+        if args.oracle_filters and item.answer_type != "refusal":
+            filters = Filters(
+                tickers=[item.ticker] if item.ticker else [],
+                years=[item.fiscal_year] if item.fiscal_year else [],
+            )
+        r: ItemResult | None = None
+        while r is None:
+            try:
+                r = run_item(item, filters)
+            except QuotaExhausted as e:
+                # The free tier's limit is a rolling window, so the wait is often
+                # minutes; sit it out when it is short, stop when it is long.
+                wait = e.retry_after
+                if (
+                    wait is None
+                    or wait > args.max_quota_wait * 60
+                    or waited + wait > args.quota_budget * 60
+                ):
+                    print(f"[{n}/{len(todo)}] STOP {item.id}  {e}", flush=True)
+                    partial = True
+                    break
+                print(f"[{n}/{len(todo)}] quota: waiting {wait / 60:.0f} min ({e})", flush=True)
+                waited += wait + 30
+                save(partial=True)
+                time.sleep(wait + 30)
+        if r is None:
+            break
         fresh[item.id] = r
         mark = {1.0: "ok ", 0.0: "XX ", None: "?? "}[r.correct] if not r.error else "ERR"
         detail = r.error or (f"REFUSED ({r.refusal_reason})" if r.refused else repr(r.answer[:80]))

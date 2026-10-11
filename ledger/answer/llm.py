@@ -68,7 +68,14 @@ class LLMError(RuntimeError):
 
 
 class QuotaExhausted(LLMError):
-    """A daily (or longer) free-tier quota: retrying within this run cannot help."""
+    """A free-tier quota that is too long to wait out inside a request.
+
+    ``retry_after`` is the provider's own wait in seconds, when it gave one.
+    """
+
+    def __init__(self, status: int, message: str, retry_after: float | None = None):
+        super().__init__(status, message)
+        self.retry_after = retry_after
 
 
 def _error_message(resp: httpx.Response) -> str:
@@ -126,7 +133,7 @@ class _HttpLLM:
                 # A per-minute limit asks for seconds; a long wait means a daily
                 # quota, which retrying within this run cannot fix.
                 if resp.status_code == 429 and wait > 120:
-                    raise QuotaExhausted(429, _error_message(resp))
+                    raise QuotaExhausted(429, _error_message(resp), retry_after=wait)
                 if attempt < self._max_retries:
                     log.warning("LLM %s, retrying in %.0fs", resp.status_code, wait)
                     time.sleep(wait + 1)
