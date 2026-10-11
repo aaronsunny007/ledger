@@ -5,10 +5,10 @@ import pytest
 from ledger.config import RetrievalConfig
 from ledger.ingest.chunk import get_chunker
 from ledger.ingest.parse import parse_html
-from ledger.ingest.statements import statements_needed
 from ledger.retrieve.embed import HashingEmbedder
 from ledger.retrieve.filters import Filters
 from ledger.retrieve.hybrid import Retriever
+from ledger.retrieve.needs import statements_needed
 from ledger.retrieve.store import InMemoryIndex
 from tests.conftest import ACME, SAMPLE
 
@@ -43,6 +43,12 @@ def test_primary_statements_are_tagged_and_kept_whole() -> None:
         ("What is the FY2018 capital expenditure amount for 3M?", ["cash_flow"]),
         ("Does AMD have a healthy quick ratio for FY22?", ["balance_sheet"]),
         ("What industry does Amcor operate in?", []),
+        (
+            "What was Alphabet's cash and cash equivalents at the end of fiscal year 2022?",
+            ["balance_sheet"],
+        ),
+        ("What was Apple's research and development expense in fiscal year 2021?", ["income"]),
+        ("What was Coca-Cola's long-term debt in 2023?", ["balance_sheet"]),
     ],
 )
 def test_statements_needed(q: str, needs: list[str]) -> None:

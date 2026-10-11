@@ -10,9 +10,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ledger.config import RetrievalConfig
-from ledger.ingest.statements import statements_needed
 from ledger.retrieve.embed import Embedder
 from ledger.retrieve.filters import Filters
+from ledger.retrieve.needs import statements_needed
 from ledger.retrieve.rerank import Reranker
 from ledger.retrieve.store import Hit, Index
 from ledger.types import ScoredChunk
