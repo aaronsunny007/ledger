@@ -1,0 +1,57 @@
+{
+  "run": "long-context-test",
+  "system": "long-context",
+  "timestamp": "2026-10-11T23:39:44+00:00",
+  "git_sha": "ccc70df",
+  "code_hash": "cb1ce73255cd349f",
+  "llm_provider": "gemini",
+  "llm_model": "",
+  "config": {
+    "chunking": {
+      "strategy": "table",
+      "size": 1024,
+      "overlap": 128
+    },
+    "retrieval": {
+      "embedder": "bge-small",
+      "mode": "vector",
+      "candidates": 30,
+      "rrf_k": 60,
+      "rerank": false,
+      "reranker": "BAAI/bge-reranker-base",
+      "top_k": 6,
+      "min_score": 0.0,
+      "pin_statements": true,
+      "latest_year_only": true
+    },
+    "answer": {
+      "verify": true,
+      "regenerate_on_failure": true,
+      "max_context_chars": 18000
+    },
+    "cache": {
+      "enabled": false,
+      "threshold": 0.92
+    }
+  },
+  "metrics": {
+    "n": 0,
+    "errors": 0,
+    "accuracy": null,
+    "accuracy_n": 0,
+    "refusal_accuracy": null,
+    "false_refusal_rate": null,
+    "groundedness": null,
+    "verified_rate": null,
+    "regenerated_rate": null,
+    "recall_at_k": null,
+    "mrr": null,
+    "latency_p50_ms": null,
+    "latency_p95_ms": null,
+    "cost_per_question_usd": null
+  },
+  "by_source": {},
+  "partial": true,
+  "remaining": 217,
+  "items": []
+}
