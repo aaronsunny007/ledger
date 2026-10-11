@@ -22,8 +22,11 @@ on:
         description: also run the long-context baseline
         type: boolean
         default: true
-      allow_hash:
-        description: "code hashes whose partial runs may be resumed (changes that cannot alter answers)"
+      allow_hash_ledger:
+        description: "Ledger: code hashes whose runs may be reused/resumed (only for changes that cannot alter answers)"
+        default: ""
+      allow_hash_baseline:
+        description: "Baseline: same, for the long-context baseline"
         default: ""
 
 permissions:
@@ -66,7 +69,8 @@ jobs:
     timeout-minutes: 345
     env:
       SPLIT: ${{ inputs.split || 'test' }}
-      ALLOW_HASH: ${{ inputs.allow_hash }}
+      ALLOW_HASH_LEDGER: ${{ inputs.allow_hash_ledger }}
+      ALLOW_HASH_BASELINE: ${{ inputs.allow_hash_baseline }}
     steps:
       - uses: actions/checkout@v4
       - name: Check the API key
@@ -78,15 +82,30 @@ jobs:
           fi
           if [ "$LLM_PROVIDER" = gemini ]; then
             model="${LLM_MODEL:-gemini-3.5-flash-lite}"
-            code=$(curl -s -o probe.json -w "%{http_code}" \
-              -H "x-goog-api-key: $GEMINI_API_KEY" -H "Content-Type: application/json" \
-              -d '{"contents":[{"parts":[{"text":"Reply with OK"}]}]}' \
-              "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent")
-            echo "Gemini $model -> HTTP $code"
-            if [ "$code" = 429 ]; then
-              # Today's free quota is spent: not a failure, the next run resumes.
+            # The free tier's limit is a rolling window: a 429 usually says how long
+            # until requests free up. Wait for short delays, up to 3 probes.
+            for attempt in 1 2 3; do
+              code=$(curl -s -o probe.json -w "%{http_code}" \
+                -H "x-goog-api-key: $GEMINI_API_KEY" -H "Content-Type: application/json" \
+                -d '{"contents":[{"parts":[{"text":"Reply with OK"}]}]}' \
+                "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent")
+              echo "Gemini $model -> HTTP $code (probe $attempt)"
+              [ "$code" = 429 ] || break
               grep -o '"message": *"[^"]*"' probe.json | head -1 || true
-              echo "::warning::Gemini free-tier quota is used up for today; skipping. The next run resumes."
+              delay=$(grep -o 'retry in [0-9hms.]*' probe.json | head -1 | sed 's/retry in //')
+              if [ -z "$delay" ]; then wait=-1; else
+                h=$(echo "$delay" | grep -o '[0-9]*h' | tr -d h)
+                m=$(echo "$delay" | grep -o '[0-9]*m' | tr -d m)
+                sec=$(echo "$delay" | grep -o '[0-9.]*s' | tr -d s | cut -d. -f1)
+                wait=$(( ${h:-0} * 3600 + ${m:-0} * 60 + ${sec:-0} ))
+              fi
+              if [ "$wait" -lt 0 ] || [ "$wait" -gt 1800 ]; then break; fi
+              echo "Waiting $((wait + 30))s for the quota window."
+              sleep $((wait + 30))
+            done
+            if [ "$code" = 429 ]; then
+              # Quota still spent after waiting: not a failure, the next run resumes.
+              echo "::warning::Gemini free-tier quota is used up; skipping. The next run resumes."
               echo "ok=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
@@ -133,7 +152,7 @@ jobs:
         id: ledger
         timeout-minutes: 150
         run: |
-          python eval/run_eval.py --split "$SPLIT" --judge --sleep 4 --resume --allow-hash $ALLOW_HASH \
+          python eval/run_eval.py --split "$SPLIT" --judge --sleep 4 --resume --allow-hash $ALLOW_HASH_LEDGER \
             --tag "ledger-$SPLIT" --summary ledger.md
           cat ledger.md >> "$GITHUB_STEP_SUMMARY"
       - name: Long-context baseline
@@ -141,7 +160,7 @@ jobs:
         timeout-minutes: 150
         run: |
           python eval/run_eval.py --system long-context --split "$SPLIT" --judge \
-            --sleep 15 --resume --allow-hash $ALLOW_HASH --tag "long-context-$SPLIT" --summary baseline.md
+            --sleep 15 --resume --allow-hash $ALLOW_HASH_BASELINE --tag "long-context-$SPLIT" --summary baseline.md
           cat baseline.md >> "$GITHUB_STEP_SUMMARY"
       - name: Commit results
         if: always()
