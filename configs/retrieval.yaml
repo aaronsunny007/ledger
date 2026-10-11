@@ -8,10 +8,10 @@ chunking:
 
 retrieval:
   embedder: bge-small  # hashing (tests only) | bge-small | bge-base
-  mode: hybrid         # vector | keyword | hybrid
+  mode: vector         # vector | keyword | hybrid (vector matched hybrid in the retrieval experiments)
   candidates: 30       # into the reranker (RET-3: 30-50)
   rrf_k: 60
-  rerank: true
+  rerank: false        # true adds ~12 s per question on a CPU for +0-7 points of recall; see README
   reranker: BAAI/bge-reranker-base  # v2-m3 is the measured alternative (ADR-004)
   top_k: 6             # passages given to the model (RET-3: 5-8)
   min_score: 0.0       # refuse below this rerank score; tune on the dev split

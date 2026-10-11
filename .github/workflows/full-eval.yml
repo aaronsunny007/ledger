@@ -66,6 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check the API key
+        id: key
         run: |
           if [ -z "$GEMINI_API_KEY$GROQ_API_KEY" ]; then
             echo "::error::Add a GEMINI_API_KEY secret (Settings > Secrets and variables > Actions)."
@@ -78,31 +79,44 @@ jobs:
               -d '{"contents":[{"parts":[{"text":"Reply with OK"}]}]}' \
               "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent")
             echo "Gemini $model -> HTTP $code"
+            if [ "$code" = 429 ]; then
+              # Today's free quota is spent: not a failure, the next run resumes.
+              grep -o '"message": *"[^"]*"' probe.json | head -1 || true
+              echo "::warning::Gemini free-tier quota is used up for today; skipping. The next run resumes."
+              echo "ok=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             if [ "$code" != 200 ]; then
               grep -o '"message": *"[^"]*"' probe.json || true
               echo "::error::Gemini key or model rejected (HTTP $code). Set the LLM_MODEL variable to a current model if this one was retired."
               exit 1
             fi
           fi
-      - uses: actions/setup-python@v5
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+      - if: steps.key.outputs.ok == 'true'
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
       - name: Install (CPU torch)
+        if: steps.key.outputs.ok == 'true'
         run: |
           pip install --index-url https://download.pytorch.org/whl/cpu torch
           pip install -e ".[models,tracing]"
-      - uses: actions/cache@v4
+      - if: steps.key.outputs.ok == 'true'
+        uses: actions/cache@v4
         with:
           path: data/raw
           key: raw-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/edgar.py') }}
-      - uses: actions/cache@v4
+      - if: steps.key.outputs.ok == 'true'
+        uses: actions/cache@v4
         with:
           path: |
             data/processed
             ~/.cache/huggingface
           key: index-table-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**/*.py') }}
       - name: Download and index (skipped when cached)
+        if: steps.key.outputs.ok == 'true'
         run: |
           python eval/run_eval.py --split all --sources financebench xbrl --print-needs > needs.txt
           awk '{y[$1]=y[$1]" "$2} END {for (t in y) print t y[t]}' needs.txt | while read -r t ys; do
@@ -111,6 +125,7 @@ jobs:
           ledger ingest | tail -5
       # Step timeouts leave time to commit; results are saved every 10 questions.
       - name: Ledger
+        if: steps.key.outputs.ok == 'true'
         id: ledger
         timeout-minutes: 150
         run: |

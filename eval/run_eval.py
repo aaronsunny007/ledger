@@ -292,7 +292,13 @@ def main() -> int:
 
     failures: list[str] = []
     baseline = json.loads(BASELINE.read_text()) if BASELINE.exists() else None
-    if args.gate and baseline:
+    if args.gate and baseline and partial:
+        # A few questions before the quota ran out prove nothing either way.
+        print(
+            f"::warning::Regression gate not evaluated: the daily LLM quota ran out with "
+            f"{remaining} of {len(items)} questions left."
+        )
+    elif args.gate and baseline:
         failures = check_regression(metrics, baseline)
     if args.summary:
         note = (

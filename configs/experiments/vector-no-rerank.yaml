@@ -1,0 +1,23 @@
+# Experiment: vector-no-rerank. Differs from configs/retrieval.yaml only in: retrieval.mode=vector, retrieval.rerank=False
+chunking:
+  strategy: table
+  size: 1024
+  overlap: 128
+retrieval:
+  embedder: bge-small
+  mode: vector
+  candidates: 30
+  rrf_k: 60
+  rerank: false
+  reranker: BAAI/bge-reranker-base
+  top_k: 6
+  min_score: 0.0
+  pin_statements: true
+  latest_year_only: true
+answer:
+  verify: true
+  regenerate_on_failure: true
+  max_context_chars: 18000
+cache:
+  enabled: true
+  threshold: 0.92

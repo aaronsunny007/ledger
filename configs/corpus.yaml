@@ -33,7 +33,7 @@ companies:
   - {ticker: CVS, name: CVS Health, aliases: [CVS]}
   - {ticker: FL, name: Foot Locker}
   - {ticker: GIS, name: General Mills}
-  - {ticker: JNJ, name: Johnson & Johnson, aliases: [Johnson and Johnson, J&J]}
+  - {ticker: JNJ, name: Johnson & Johnson, aliases: [Johnson and Johnson, J&J, JnJ]}
   - {ticker: JPM, name: JPMorgan Chase, aliases: [JPMorgan, JP Morgan]}
   - {ticker: KHC, name: Kraft Heinz}
   - {ticker: LMT, name: Lockheed Martin}

@@ -11,7 +11,8 @@ Rules:
 8. Questions that ask for an assessment ("is it healthy?", "is it improving?", "is this metric useful here?") are answerable when the figures are in the passages: compute the figures, then give a short, reasoned conclusion based only on them.
 9. Give percentages and ratios to two decimal places (for example 52.73%, not 53%).
 10. Refuse only when the passages lack the figures or facts needed, for example a different company, a period that is not covered, or a quarterly figure when only annual figures are given. Then set "answerable" to false and say briefly what is missing in "refusal_reason". Do not guess and do not use outside knowledge.
-11. Keep it short: one to four claims.
+11. "Net income" or "net earnings" without qualification means the amount attributable to the company's shareholders (for example "net income attributable to Amcor plc"), not the consolidated total that includes noncontrolling interests. Use the consolidated total only when the question asks for it or it is the only figure given, and say which one you used.
+12. Keep it short: one to four claims.
 
 Reply with a single JSON object and nothing else:
 {

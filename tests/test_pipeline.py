@@ -197,3 +197,27 @@ def test_regeneration_falls_back_when_the_large_model_is_out_of_quota(make_ledge
     assert a.regenerated and a.verified is True
     assert len(llm.calls) == 2  # type: ignore[attr-defined]
     assert ledger.large_llm is None  # not asked again this run
+
+
+def test_year_only_reported_as_a_comparative_is_found_in_the_next_filing(
+    make_ledger: Make,
+) -> None:
+    # The FY2023 filing is not indexed, but FY2024's 10-K reports FY2023 too.
+    seen: list[str] = []
+
+    def respond(system: str, user: str) -> str:
+        seen.append(user)
+        return claims_json(answerable=False)
+
+    ledger, _ = make_ledger(respond)
+    ledger.ask("What was Acme Widgets total revenue in FY2023?")
+    assert seen and 'fiscal_year="2024"' in seen[0]
+
+
+def test_company_aliases_match_in_any_case() -> None:
+    from pathlib import Path
+
+    from ledger.retrieve.filters import CompanyRegistry
+
+    reg = CompanyRegistry.from_yaml(Path(__file__).parent.parent / "configs" / "corpus.yaml")
+    assert reg.find("Roughly how many times has JnJ sold its inventory in FY2022?") == ["JNJ"]

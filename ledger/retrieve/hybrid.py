@@ -60,7 +60,17 @@ class Retriever:
             found = self._retrieve(question, latest)
             if found:
                 return found
-        return self._retrieve(question, filters)
+        found = self._retrieve(question, filters)
+        if found or not (filters.tickers and filters.years):
+            return found
+        # A 10-K reports two or three years, so a year whose own filing is not
+        # indexed is often a comparative in the next one or two.
+        for later in (1, 2):
+            year = max(filters.years) + later
+            found = self._retrieve(question, Filters(filters.tickers, [year], filters.sections))
+            if found:
+                return found
+        return found
 
     def _retrieve(self, question: str, filters: Filters) -> list[ScoredChunk]:
         cands = self.candidates(question, filters)

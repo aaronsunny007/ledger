@@ -45,11 +45,14 @@ jobs:
           # tag -> (index it needs, config file); one parallel job per run.
           RUNS = {
               "default": ("table", "configs/retrieval.yaml"),
+              "hybrid-rerank": ("table", "configs/experiments/hybrid-rerank.yaml"),
               "no-pin-statements": ("table", "configs/experiments/no-pin-statements.yaml"),
               "hybrid-no-rerank": ("table", "configs/experiments/hybrid-no-rerank.yaml"),
               "vector-only": ("table", "configs/experiments/vector-only.yaml"),
               "keyword-only": ("table", "configs/experiments/keyword-only.yaml"),
               "rerank-v2-m3": ("table", "configs/experiments/rerank-v2-m3.yaml"),
+              "rerank-top10": ("table", "configs/experiments/rerank-top10.yaml"),
+              "vector-no-rerank": ("table", "configs/experiments/vector-no-rerank.yaml"),
               "section": ("section", "configs/experiments/section.yaml"),
               "fixed-1024": ("fixed-1024", "configs/experiments/fixed-1024.yaml"),
               "fixed-512": ("fixed-512", "configs/experiments/fixed-512.yaml"),

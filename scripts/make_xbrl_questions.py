@@ -22,7 +22,12 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from ledger.config import Settings  # noqa: E402
-from ledger.evaluation.golden import GoldenItem, assign_split, write_golden  # noqa: E402
+from ledger.evaluation.golden import (  # noqa: E402
+    GoldenItem,
+    assign_split,
+    load_golden,
+    write_golden,
+)
 from ledger.ingest.edgar import EdgarClient  # noqa: E402
 
 # Concept fallbacks: companies tag revenue under different names.
@@ -47,27 +52,42 @@ def _days(start: str, end: str) -> int:
     return (date.fromisoformat(end) - date.fromisoformat(start)).days
 
 
-def annual_values(facts: dict[str, Any], metric: str) -> dict[int, float]:
+def _concept_values(units: list[dict[str, Any]], instant: bool) -> dict[int, float]:
     """fiscal year (year the period ends) -> value, from 10-K filings only."""
+    own: dict[int, float] = {}
+    first: dict[int, float] = {}
+    for f in units:
+        if f.get("form") != "10-K" or f.get("fp") != "FY":
+            continue
+        if not instant and ("start" not in f or not 350 <= _days(f["start"], f["end"]) <= 380):
+            continue
+        year = int(f["end"][:4])
+        # The year's own 10-K is the original figure; later ones may restate it.
+        if f.get("fy") == year:
+            own.setdefault(year, float(f["val"]))
+        first.setdefault(year, float(f["val"]))
+    return {**first, **own}
+
+
+def annual_values(facts: dict[str, Any], metric: str) -> dict[int, float]:
+    """fiscal year -> value. Concepts are tried in order, per year.
+
+    Revenue is tagged under several concepts, sometimes more than one in the
+    same filing for a part of the business (General Mills); the total is the
+    largest of them, never a smaller part.
+    """
     gaap = facts.get("facts", {}).get("us-gaap", {})
+    out: dict[int, float] = {}
     for concept in CONCEPTS[metric]:
         units = gaap.get(concept, {}).get("units", {}).get("USD")
         if not units:
             continue
-        out: dict[int, float] = {}
-        for f in units:
-            if f.get("form") != "10-K" or f.get("fp") != "FY":
-                continue
-            if metric not in INSTANT and (
-                "start" not in f or not 350 <= _days(f["start"], f["end"]) <= 380
-            ):
-                continue
-            year = int(f["end"][:4])
-            # The first filing to report a year is the original, not a restatement.
-            out.setdefault(year, float(f["val"]))
-        if out:
-            return out
-    return {}
+        for year, val in _concept_values(units, metric in INSTANT).items():
+            if metric == "revenue":
+                out[year] = max(out.get(year, val), val)
+            else:
+                out.setdefault(year, val)
+    return out
 
 
 def make_items(
@@ -133,7 +153,8 @@ def make_items(
             ("gross profit", "gross_margin"),
         ):
             v = vals[metric].get(y)
-            if v is not None and rev:
+            # A margin above 100% means a mismatched revenue fact, not a fact.
+            if v is not None and rev and abs(v / rev) <= 1:
                 name = kind.replace("_", " ")
                 add(
                     kind,
@@ -157,11 +178,41 @@ def make_items(
     return items
 
 
+def refresh(path: Path, pool: list[GoldenItem]) -> int:
+    """Recompute existing questions with the current rules; drop those now invalid.
+
+    Keeps the set comparable with earlier runs: same ids, same splits.
+    """
+    old = load_golden([path])
+    new = {i.id: i for i in pool}
+    kept, changed, dropped = [], 0, []
+    for item in old:
+        fresh = new.get(item.id)
+        if fresh is None:
+            dropped.append(item.id)
+            continue
+        if fresh.value != item.value:
+            changed += 1
+            print(f"{item.id}: {item.answer} -> {fresh.answer}")
+        kept.append(fresh.model_copy(update={"split": item.split}))
+    if not kept:
+        print("refresh produced no questions: every SEC request failed", file=sys.stderr)
+        return 1
+    write_golden(path, kept)
+    print(f"kept {len(kept)} ({changed} values changed), dropped {len(dropped)}: {dropped}")
+    return 0
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=150)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--out", type=Path, default=ROOT / "eval" / "golden" / "xbrl.jsonl")
+    ap.add_argument(
+        "--refresh",
+        action="store_true",
+        help="recompute the questions already in --out (same ids and splits) instead of sampling",
+    )
     args = ap.parse_args()
 
     corpus = yaml.safe_load((ROOT / "configs" / "corpus.yaml").read_text())
@@ -176,6 +227,9 @@ def main() -> None:
             print(f"skip {c['ticker']}: {e}", file=sys.stderr)
             continue
         pool += make_items(c["ticker"], c["name"], facts, years)
+
+    if args.refresh:
+        sys.exit(refresh(args.out, pool))
 
     # Half lookups, half arithmetic, spread across companies.
     rng = random.Random(args.seed)

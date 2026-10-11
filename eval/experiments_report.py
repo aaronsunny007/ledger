@@ -15,10 +15,13 @@ OUT = ROOT / "eval" / "results" / "experiments-retrieval.md"
 
 # Display order and what each run changes from the default.
 ORDER = {
-    "default": "Default: table chunks, hybrid + rerank, statements pinned",
+    "default": "Default: table chunks, vector search, no reranker, statements pinned",
+    "hybrid-rerank": "Previous default: hybrid search + bge-reranker-base",
     "no-pin-statements": "Statement pinning off",
     "hybrid-no-rerank": "Reranker off",
     "rerank-v2-m3": "Reranker bge-reranker-v2-m3 instead of -base",
+    "rerank-top10": "Rerank the top 10 candidates instead of 30",
+    "vector-no-rerank": "Vector search only, reranker off",
     "vector-only": "Vector search only",
     "keyword-only": "Keyword (BM25) search only",
     "section": "Section-aware chunks",
