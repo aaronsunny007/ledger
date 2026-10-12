@@ -29,38 +29,38 @@
       "threshold": 0.92
     }
   },
-  "timestamp": "2026-10-10T08:34:59+00:00",
-  "git_sha": "34f7dc1",
+  "timestamp": "2026-10-12T09:14:16+00:00",
+  "git_sha": "c22b7a8",
   "overall": {
     "n": 262,
-    "recall": 0.6718,
-    "mrr": 0.6009,
-    "filters_ok": 0.9809,
-    "passages_avg": 6.69,
-    "context_chars_avg": 5926,
-    "latency_p50_ms": 15702.0,
-    "latency_p95_ms": 17035.9
+    "recall": 0.6908,
+    "mrr": 0.6352,
+    "filters_ok": 0.9924,
+    "passages_avg": 6.77,
+    "context_chars_avg": 6043,
+    "latency_p50_ms": 9785.8,
+    "latency_p95_ms": 10551.4
   },
   "groups": {
     "dev": {
       "n": 55,
       "recall": 0.7091,
-      "mrr": 0.6364,
+      "mrr": 0.6424,
       "filters_ok": 1.0,
-      "passages_avg": 7.0,
-      "context_chars_avg": 6317,
-      "latency_p50_ms": 14688.4,
-      "latency_p95_ms": 17015.2
+      "passages_avg": 7.04,
+      "context_chars_avg": 6362,
+      "latency_p50_ms": 9118.4,
+      "latency_p95_ms": 10560.1
     },
     "financebench": {
       "n": 112,
-      "recall": 0.75,
-      "mrr": 0.7045,
-      "filters_ok": 0.9554,
-      "passages_avg": 6.84,
-      "context_chars_avg": 6499,
-      "latency_p50_ms": 15899.1,
-      "latency_p95_ms": 16958.8
+      "recall": 0.7679,
+      "mrr": 0.7223,
+      "filters_ok": 0.9821,
+      "passages_avg": 6.92,
+      "context_chars_avg": 6615,
+      "latency_p50_ms": 9912.3,
+      "latency_p95_ms": 10560.9
     },
     "financebench/dev": {
       "n": 27,
@@ -69,58 +69,58 @@
       "filters_ok": 1.0,
       "passages_avg": 7.3,
       "context_chars_avg": 7259,
-      "latency_p50_ms": 16586.6,
-      "latency_p95_ms": 16883.5
+      "latency_p50_ms": 10452.3,
+      "latency_p95_ms": 10589.5
     },
     "financebench/test": {
       "n": 85,
-      "recall": 0.7176,
-      "mrr": 0.6675,
-      "filters_ok": 0.9412,
-      "passages_avg": 6.69,
-      "context_chars_avg": 6257,
-      "latency_p50_ms": 14809.6,
-      "latency_p95_ms": 16958.9
+      "recall": 0.7412,
+      "mrr": 0.691,
+      "filters_ok": 0.9765,
+      "passages_avg": 6.8,
+      "context_chars_avg": 6410,
+      "latency_p50_ms": 9223.3,
+      "latency_p95_ms": 10551.4
     },
     "test": {
       "n": 207,
-      "recall": 0.6618,
-      "mrr": 0.5915,
-      "filters_ok": 0.9758,
-      "passages_avg": 6.61,
-      "context_chars_avg": 5823,
-      "latency_p50_ms": 16056.5,
-      "latency_p95_ms": 17051.6
+      "recall": 0.686,
+      "mrr": 0.6333,
+      "filters_ok": 0.9903,
+      "passages_avg": 6.71,
+      "context_chars_avg": 5958,
+      "latency_p50_ms": 10103.0,
+      "latency_p95_ms": 10551.0
     },
     "xbrl": {
       "n": 150,
-      "recall": 0.6133,
-      "mrr": 0.5236,
+      "recall": 0.6333,
+      "mrr": 0.5702,
       "filters_ok": 1.0,
-      "passages_avg": 6.58,
-      "context_chars_avg": 5499,
-      "latency_p50_ms": 15660.7,
-      "latency_p95_ms": 17076.1
+      "passages_avg": 6.67,
+      "context_chars_avg": 5616,
+      "latency_p50_ms": 9781.9,
+      "latency_p95_ms": 10547.7
     },
     "xbrl/dev": {
       "n": 28,
       "recall": 0.5714,
-      "mrr": 0.4583,
+      "mrr": 0.4702,
       "filters_ok": 1.0,
-      "passages_avg": 6.71,
-      "context_chars_avg": 5408,
-      "latency_p50_ms": 12965.2,
-      "latency_p95_ms": 17030.0
+      "passages_avg": 6.79,
+      "context_chars_avg": 5498,
+      "latency_p50_ms": 7968.6,
+      "latency_p95_ms": 10531.5
     },
     "xbrl/test": {
       "n": 122,
-      "recall": 0.623,
-      "mrr": 0.5385,
+      "recall": 0.6475,
+      "mrr": 0.5932,
       "filters_ok": 1.0,
-      "passages_avg": 6.55,
-      "context_chars_avg": 5520,
-      "latency_p50_ms": 16508.0,
-      "latency_p95_ms": 17078.5
+      "passages_avg": 6.64,
+      "context_chars_avg": 5643,
+      "latency_p50_ms": 10361.4,
+      "latency_p95_ms": 10549.6
     }
   },
   "items": [
@@ -135,7 +135,7 @@
       "passages": 7,
       "chars": 7768,
       "pinned": 1,
-      "ms": 9094.5
+      "ms": 5660.1
     },
     {
       "id": "financebench_id_04672",
@@ -148,7 +148,7 @@
       "passages": 7,
       "chars": 7289,
       "pinned": 1,
-      "ms": 12770.6
+      "ms": 7990.4
     },
     {
       "id": "financebench_id_00499",
@@ -161,7 +161,7 @@
       "passages": 6,
       "chars": 5322,
       "pinned": 0,
-      "ms": 7631.9
+      "ms": 4731.9
     },
     {
       "id": "financebench_id_01226",
@@ -174,7 +174,7 @@
       "passages": 7,
       "chars": 6550,
       "pinned": 1,
-      "ms": 8416.7
+      "ms": 5260.9
     },
     {
       "id": "financebench_id_01865",
@@ -187,7 +187,7 @@
       "passages": 6,
       "chars": 5273,
       "pinned": 0,
-      "ms": 8561.5
+      "ms": 5285.9
     },
     {
       "id": "financebench_id_02987",
@@ -200,7 +200,7 @@
       "passages": 8,
       "chars": 8028,
       "pinned": 2,
-      "ms": 16805.7
+      "ms": 10512.2
     },
     {
       "id": "financebench_id_07966",
@@ -213,7 +213,7 @@
       "passages": 8,
       "chars": 9613,
       "pinned": 2,
-      "ms": 16838.9
+      "ms": 10511.0
     },
     {
       "id": "financebench_id_04735",
@@ -226,7 +226,7 @@
       "passages": 7,
       "chars": 7578,
       "pinned": 2,
-      "ms": 16822.0
+      "ms": 10512.2
     },
     {
       "id": "financebench_id_07507",
@@ -239,7 +239,7 @@
       "passages": 7,
       "chars": 5870,
       "pinned": 1,
-      "ms": 13354.0
+      "ms": 8329.8
     },
     {
       "id": "financebench_id_03856",
@@ -252,7 +252,7 @@
       "passages": 7,
       "chars": 8526,
       "pinned": 2,
-      "ms": 16850.2
+      "ms": 10502.7
     },
     {
       "id": "financebench_id_00438",
@@ -265,7 +265,7 @@
       "passages": 7,
       "chars": 6897,
       "pinned": 1,
-      "ms": 8763.2
+      "ms": 5433.3
     },
     {
       "id": "financebench_id_00591",
@@ -278,7 +278,7 @@
       "passages": 7,
       "chars": 8195,
       "pinned": 1,
-      "ms": 8158.1
+      "ms": 4964.4
     },
     {
       "id": "financebench_id_01319",
@@ -291,7 +291,7 @@
       "passages": 7,
       "chars": 6960,
       "pinned": 1,
-      "ms": 15747.5
+      "ms": 9799.8
     },
     {
       "id": "financebench_id_00540",
@@ -304,7 +304,7 @@
       "passages": 8,
       "chars": 11120,
       "pinned": 2,
-      "ms": 16097.3
+      "ms": 10024.8
     },
     {
       "id": "financebench_id_10420",
@@ -317,7 +317,7 @@
       "passages": 8,
       "chars": 10957,
       "pinned": 2,
-      "ms": 16114.3
+      "ms": 10134.4
     },
     {
       "id": "financebench_id_06655",
@@ -330,7 +330,7 @@
       "passages": 8,
       "chars": 7387,
       "pinned": 2,
-      "ms": 14754.8
+      "ms": 9177.3
     },
     {
       "id": "financebench_id_08135",
@@ -343,7 +343,7 @@
       "passages": 7,
       "chars": 5472,
       "pinned": 1,
-      "ms": 14175.0
+      "ms": 8832.5
     },
     {
       "id": "financebench_id_08286",
@@ -356,7 +356,7 @@
       "passages": 6,
       "chars": 4848,
       "pinned": 1,
-      "ms": 16802.3
+      "ms": 10526.9
     },
     {
       "id": "financebench_id_03882",
@@ -369,7 +369,7 @@
       "passages": 7,
       "chars": 7524,
       "pinned": 1,
-      "ms": 14125.6
+      "ms": 8767.8
     },
     {
       "id": "financebench_id_00799",
@@ -382,7 +382,7 @@
       "passages": 7,
       "chars": 6524,
       "pinned": 1,
-      "ms": 12910.4
+      "ms": 8015.8
     },
     {
       "id": "financebench_id_01079",
@@ -395,7 +395,7 @@
       "passages": 6,
       "chars": 4649,
       "pinned": 0,
-      "ms": 16817.0
+      "ms": 10494.2
     },
     {
       "id": "financebench_id_01148",
@@ -408,7 +408,7 @@
       "passages": 6,
       "chars": 4442,
       "pinned": 0,
-      "ms": 8024.4
+      "ms": 4940.2
     },
     {
       "id": "financebench_id_00684",
@@ -421,7 +421,7 @@
       "passages": 7,
       "chars": 6541,
       "pinned": 1,
-      "ms": 16958.6
+      "ms": 10518.5
     },
     {
       "id": "financebench_id_03069",
@@ -434,7 +434,7 @@
       "passages": 9,
       "chars": 10127,
       "pinned": 3,
-      "ms": 14809.6
+      "ms": 9223.3
     },
     {
       "id": "financebench_id_00222",
@@ -447,7 +447,7 @@
       "passages": 7,
       "chars": 6603,
       "pinned": 1,
-      "ms": 10113.8
+      "ms": 6340.8
     },
     {
       "id": "financebench_id_00995",
@@ -460,7 +460,7 @@
       "passages": 6,
       "chars": 4362,
       "pinned": 0,
-      "ms": 10117.9
+      "ms": 6331.6
     },
     {
       "id": "financebench_id_01198",
@@ -473,7 +473,7 @@
       "passages": 7,
       "chars": 5883,
       "pinned": 1,
-      "ms": 10737.6
+      "ms": 6667.1
     },
     {
       "id": "financebench_id_00917",
@@ -486,7 +486,7 @@
       "passages": 7,
       "chars": 6093,
       "pinned": 1,
-      "ms": 11555.4
+      "ms": 7141.1
     },
     {
       "id": "financebench_id_01279",
@@ -499,7 +499,7 @@
       "passages": 6,
       "chars": 5275,
       "pinned": 2,
-      "ms": 16966.0
+      "ms": 10571.4
     },
     {
       "id": "financebench_id_00563",
@@ -512,7 +512,7 @@
       "passages": 7,
       "chars": 6031,
       "pinned": 1,
-      "ms": 10632.7
+      "ms": 6546.2
     },
     {
       "id": "financebench_id_00757",
@@ -525,7 +525,7 @@
       "passages": 6,
       "chars": 5030,
       "pinned": 0,
-      "ms": 9823.2
+      "ms": 6080.7
     },
     {
       "id": "financebench_id_00476",
@@ -538,7 +538,7 @@
       "passages": 6,
       "chars": 4664,
       "pinned": 0,
-      "ms": 12911.8
+      "ms": 8010.3
     },
     {
       "id": "financebench_id_01028",
@@ -551,7 +551,7 @@
       "passages": 6,
       "chars": 4636,
       "pinned": 0,
-      "ms": 11986.6
+      "ms": 7390.4
     },
     {
       "id": "financebench_id_00723",
@@ -564,7 +564,7 @@
       "passages": 7,
       "chars": 7183,
       "pinned": 1,
-      "ms": 14773.1
+      "ms": 9199.5
     },
     {
       "id": "financebench_id_00720",
@@ -577,7 +577,7 @@
       "passages": 7,
       "chars": 6615,
       "pinned": 1,
-      "ms": 12735.0
+      "ms": 7923.9
     },
     {
       "id": "financebench_id_01351",
@@ -590,7 +590,7 @@
       "passages": 7,
       "chars": 5723,
       "pinned": 1,
-      "ms": 12762.7
+      "ms": 7951.9
     },
     {
       "id": "financebench_id_01964",
@@ -603,7 +603,7 @@
       "passages": 7,
       "chars": 6340,
       "pinned": 1,
-      "ms": 12663.9
+      "ms": 7859.6
     },
     {
       "id": "financebench_id_01981",
@@ -616,7 +616,7 @@
       "passages": 6,
       "chars": 4085,
       "pinned": 0,
-      "ms": 11714.3
+      "ms": 7356.9
     },
     {
       "id": "financebench_id_05718",
@@ -629,7 +629,7 @@
       "passages": 7,
       "chars": 7277,
       "pinned": 1,
-      "ms": 10412.4
+      "ms": 6496.9
     },
     {
       "id": "financebench_id_04254",
@@ -642,7 +642,7 @@
       "passages": 7,
       "chars": 8846,
       "pinned": 2,
-      "ms": 16857.9
+      "ms": 10551.4
     },
     {
       "id": "financebench_id_00070",
@@ -655,7 +655,7 @@
       "passages": 8,
       "chars": 7587,
       "pinned": 2,
-      "ms": 10448.6
+      "ms": 6487.9
     },
     {
       "id": "financebench_id_02608",
@@ -668,7 +668,7 @@
       "passages": 6,
       "chars": 5847,
       "pinned": 1,
-      "ms": 16873.0
+      "ms": 10549.0
     },
     {
       "id": "financebench_id_04417",
@@ -681,7 +681,7 @@
       "passages": 7,
       "chars": 5018,
       "pinned": 1,
-      "ms": 12219.9
+      "ms": 7642.4
     },
     {
       "id": "financebench_id_00685",
@@ -694,7 +694,7 @@
       "passages": 10,
       "chars": 8649,
       "pinned": 4,
-      "ms": 16585.1
+      "ms": 10307.8
     },
     {
       "id": "financebench_id_01077",
@@ -707,7 +707,7 @@
       "passages": 6,
       "chars": 5382,
       "pinned": 0,
-      "ms": 12637.0
+      "ms": 7839.1
     },
     {
       "id": "financebench_id_01275",
@@ -720,7 +720,7 @@
       "passages": 7,
       "chars": 6948,
       "pinned": 1,
-      "ms": 17004.2
+      "ms": 10542.5
     },
     {
       "id": "financebench_id_04660",
@@ -733,7 +733,7 @@
       "passages": 6,
       "chars": 6228,
       "pinned": 1,
-      "ms": 16884.6
+      "ms": 10558.7
     },
     {
       "id": "financebench_id_03838",
@@ -746,7 +746,7 @@
       "passages": 7,
       "chars": 5711,
       "pinned": 1,
-      "ms": 9714.4
+      "ms": 6059.8
     },
     {
       "id": "financebench_id_07661",
@@ -759,7 +759,7 @@
       "passages": 7,
       "chars": 6713,
       "pinned": 1,
-      "ms": 8860.6
+      "ms": 5533.7
     },
     {
       "id": "financebench_id_10285",
@@ -772,7 +772,7 @@
       "passages": 6,
       "chars": 6435,
       "pinned": 1,
-      "ms": 16869.6
+      "ms": 10548.6
     },
     {
       "id": "financebench_id_00517",
@@ -785,7 +785,7 @@
       "passages": 7,
       "chars": 5768,
       "pinned": 1,
-      "ms": 16866.7
+      "ms": 10528.3
     },
     {
       "id": "financebench_id_01091",
@@ -798,7 +798,7 @@
       "passages": 6,
       "chars": 5820,
       "pinned": 0,
-      "ms": 16873.1
+      "ms": 10506.1
     },
     {
       "id": "financebench_id_00678",
@@ -811,7 +811,7 @@
       "passages": 7,
       "chars": 6216,
       "pinned": 1,
-      "ms": 16833.6
+      "ms": 10521.2
     },
     {
       "id": "financebench_id_01290",
@@ -824,7 +824,7 @@
       "passages": 6,
       "chars": 6479,
       "pinned": 0,
-      "ms": 16837.2
+      "ms": 10526.4
     },
     {
       "id": "financebench_id_00464",
@@ -837,7 +837,7 @@
       "passages": 6,
       "chars": 5792,
       "pinned": 0,
-      "ms": 16883.8
+      "ms": 10556.1
     },
     {
       "id": "financebench_id_00494",
@@ -850,7 +850,7 @@
       "passages": 6,
       "chars": 5331,
       "pinned": 0,
-      "ms": 16794.4
+      "ms": 10524.4
     },
     {
       "id": "financebench_id_00585",
@@ -863,7 +863,7 @@
       "passages": 6,
       "chars": 5207,
       "pinned": 1,
-      "ms": 16756.9
+      "ms": 10521.3
     },
     {
       "id": "financebench_id_03473",
@@ -876,7 +876,7 @@
       "passages": 8,
       "chars": 7269,
       "pinned": 2,
-      "ms": 16817.3
+      "ms": 10600.6
     },
     {
       "id": "financebench_id_09724",
@@ -889,7 +889,7 @@
       "passages": 6,
       "chars": 5444,
       "pinned": 1,
-      "ms": 16138.4
+      "ms": 10220.4
     },
     {
       "id": "financebench_id_06272",
@@ -902,7 +902,7 @@
       "passages": 7,
       "chars": 7297,
       "pinned": 2,
-      "ms": 16817.8
+      "ms": 10563.5
     },
     {
       "id": "financebench_id_10130",
@@ -915,7 +915,7 @@
       "passages": 8,
       "chars": 7773,
       "pinned": 2,
-      "ms": 12749.0
+      "ms": 7962.0
     },
     {
       "id": "financebench_id_02981",
@@ -928,7 +928,7 @@
       "passages": 7,
       "chars": 5750,
       "pinned": 1,
-      "ms": 11479.0
+      "ms": 7147.4
     },
     {
       "id": "financebench_id_01346",
@@ -941,7 +941,7 @@
       "passages": 7,
       "chars": 6252,
       "pinned": 1,
-      "ms": 10513.7
+      "ms": 6546.9
     },
     {
       "id": "financebench_id_00005",
@@ -954,7 +954,7 @@
       "passages": 7,
       "chars": 6463,
       "pinned": 1,
-      "ms": 8555.5
+      "ms": 5269.8
     },
     {
       "id": "financebench_id_04209",
@@ -967,7 +967,7 @@
       "passages": 7,
       "chars": 6760,
       "pinned": 1,
-      "ms": 16905.0
+      "ms": 10523.3
     },
     {
       "id": "financebench_id_05915",
@@ -980,7 +980,7 @@
       "passages": 8,
       "chars": 8764,
       "pinned": 2,
-      "ms": 16881.0
+      "ms": 10623.2
     },
     {
       "id": "financebench_id_00790",
@@ -993,7 +993,7 @@
       "passages": 6,
       "chars": 5893,
       "pinned": 0,
-      "ms": 13886.7
+      "ms": 8728.4
     },
     {
       "id": "financebench_id_01107",
@@ -1006,7 +1006,7 @@
       "passages": 6,
       "chars": 4846,
       "pinned": 0,
-      "ms": 8699.9
+      "ms": 5393.0
     },
     {
       "id": "financebench_id_01244",
@@ -1019,7 +1019,7 @@
       "passages": 6,
       "chars": 5166,
       "pinned": 0,
-      "ms": 14009.4
+      "ms": 8810.6
     },
     {
       "id": "financebench_id_04103",
@@ -1032,7 +1032,7 @@
       "passages": 8,
       "chars": 6599,
       "pinned": 2,
-      "ms": 16586.6
+      "ms": 10452.3
     },
     {
       "id": "financebench_id_03471",
@@ -1045,7 +1045,7 @@
       "passages": 6,
       "chars": 10188,
       "pinned": 2,
-      "ms": 16950.9
+      "ms": 10521.5
     },
     {
       "id": "financebench_id_04854",
@@ -1058,7 +1058,7 @@
       "passages": 6,
       "chars": 6328,
       "pinned": 1,
-      "ms": 16828.3
+      "ms": 10528.6
     },
     {
       "id": "financebench_id_10136",
@@ -1071,46 +1071,46 @@
       "passages": 7,
       "chars": 8120,
       "pinned": 2,
-      "ms": 16835.1
+      "ms": 10534.5
     },
     {
       "id": "financebench_id_00956",
       "source": "financebench",
       "split": "test",
-      "filters_ok": false,
+      "filters_ok": true,
       "hit": false,
       "rr": 0.0,
       "rank": null,
       "passages": 6,
-      "chars": 5347,
+      "chars": 4862,
       "pinned": 0,
-      "ms": 11227.1
+      "ms": 7474.6
     },
     {
       "id": "financebench_id_00669",
       "source": "financebench",
       "split": "test",
-      "filters_ok": false,
+      "filters_ok": true,
       "hit": false,
       "rr": 0.0,
       "rank": null,
-      "passages": 6,
-      "chars": 3181,
-      "pinned": 0,
-      "ms": 10161.4
+      "passages": 7,
+      "chars": 5232,
+      "pinned": 1,
+      "ms": 7388.4
     },
     {
       "id": "financebench_id_00711",
       "source": "financebench",
       "split": "test",
-      "filters_ok": false,
-      "hit": false,
-      "rr": 0.0,
-      "rank": null,
-      "passages": 6,
-      "chars": 4856,
-      "pinned": 0,
-      "ms": 16878.7
+      "filters_ok": true,
+      "hit": true,
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 8,
+      "chars": 7123,
+      "pinned": 2,
+      "ms": 7618.1
     },
     {
       "id": "financebench_id_00206",
@@ -1123,7 +1123,7 @@
       "passages": 11,
       "chars": 10353,
       "pinned": 5,
-      "ms": 15265.5
+      "ms": 9583.9
     },
     {
       "id": "financebench_id_10499",
@@ -1136,7 +1136,7 @@
       "passages": 8,
       "chars": 6470,
       "pinned": 2,
-      "ms": 14594.4
+      "ms": 9151.6
     },
     {
       "id": "financebench_id_04412",
@@ -1149,7 +1149,7 @@
       "passages": 7,
       "chars": 6080,
       "pinned": 2,
-      "ms": 16805.9
+      "ms": 10490.6
     },
     {
       "id": "financebench_id_03031",
@@ -1162,7 +1162,7 @@
       "passages": 7,
       "chars": 5993,
       "pinned": 1,
-      "ms": 16816.9
+      "ms": 10535.6
     },
     {
       "id": "financebench_id_03718",
@@ -1175,7 +1175,7 @@
       "passages": 7,
       "chars": 7184,
       "pinned": 1,
-      "ms": 12932.2
+      "ms": 8023.2
     },
     {
       "id": "financebench_id_04171",
@@ -1188,7 +1188,7 @@
       "passages": 7,
       "chars": 5810,
       "pinned": 1,
-      "ms": 16191.2
+      "ms": 10157.0
     },
     {
       "id": "financebench_id_03849",
@@ -1201,7 +1201,7 @@
       "passages": 8,
       "chars": 11135,
       "pinned": 2,
-      "ms": 16826.9
+      "ms": 10524.2
     },
     {
       "id": "financebench_id_01254",
@@ -1214,7 +1214,7 @@
       "passages": 6,
       "chars": 5474,
       "pinned": 0,
-      "ms": 14341.7
+      "ms": 8992.8
     },
     {
       "id": "financebench_id_04700",
@@ -1227,7 +1227,7 @@
       "passages": 6,
       "chars": 4472,
       "pinned": 1,
-      "ms": 16836.6
+      "ms": 10523.8
     },
     {
       "id": "financebench_id_00552",
@@ -1240,7 +1240,7 @@
       "passages": 7,
       "chars": 6832,
       "pinned": 1,
-      "ms": 16755.6
+      "ms": 10541.6
     },
     {
       "id": "financebench_id_04458",
@@ -1253,7 +1253,7 @@
       "passages": 7,
       "chars": 7598,
       "pinned": 2,
-      "ms": 16782.8
+      "ms": 10538.3
     },
     {
       "id": "financebench_id_03282",
@@ -1266,7 +1266,7 @@
       "passages": 7,
       "chars": 9182,
       "pinned": 1,
-      "ms": 16755.7
+      "ms": 10522.0
     },
     {
       "id": "financebench_id_04302",
@@ -1279,7 +1279,7 @@
       "passages": 6,
       "chars": 5448,
       "pinned": 1,
-      "ms": 16795.8
+      "ms": 10525.6
     },
     {
       "id": "financebench_id_03531",
@@ -1292,7 +1292,7 @@
       "passages": 7,
       "chars": 7304,
       "pinned": 1,
-      "ms": 16050.7
+      "ms": 10123.3
     },
     {
       "id": "financebench_id_04080",
@@ -1305,7 +1305,7 @@
       "passages": 8,
       "chars": 8203,
       "pinned": 2,
-      "ms": 16817.3
+      "ms": 10520.4
     },
     {
       "id": "financebench_id_01163",
@@ -1318,7 +1318,7 @@
       "passages": 7,
       "chars": 7107,
       "pinned": 1,
-      "ms": 16222.8
+      "ms": 10255.0
     },
     {
       "id": "financebench_id_00080",
@@ -1331,7 +1331,7 @@
       "passages": 7,
       "chars": 6617,
       "pinned": 1,
-      "ms": 8371.9
+      "ms": 5246.6
     },
     {
       "id": "financebench_id_04980",
@@ -1344,7 +1344,7 @@
       "passages": 8,
       "chars": 8301,
       "pinned": 2,
-      "ms": 16767.1
+      "ms": 10479.9
     },
     {
       "id": "financebench_id_01009",
@@ -1357,7 +1357,7 @@
       "passages": 6,
       "chars": 4256,
       "pinned": 0,
-      "ms": 10162.2
+      "ms": 6305.6
     },
     {
       "id": "financebench_id_00735",
@@ -1370,7 +1370,7 @@
       "passages": 6,
       "chars": 3337,
       "pinned": 0,
-      "ms": 13589.1
+      "ms": 8408.4
     },
     {
       "id": "financebench_id_01328",
@@ -1383,7 +1383,7 @@
       "passages": 7,
       "chars": 5365,
       "pinned": 1,
-      "ms": 16773.2
+      "ms": 10504.1
     },
     {
       "id": "financebench_id_03620",
@@ -1396,7 +1396,7 @@
       "passages": 9,
       "chars": 9407,
       "pinned": 3,
-      "ms": 16054.2
+      "ms": 10103.0
     },
     {
       "id": "financebench_id_04481",
@@ -1409,7 +1409,7 @@
       "passages": 9,
       "chars": 9271,
       "pinned": 3,
-      "ms": 15536.6
+      "ms": 9743.0
     },
     {
       "id": "financebench_id_00302",
@@ -1422,20 +1422,20 @@
       "passages": 8,
       "chars": 8014,
       "pinned": 2,
-      "ms": 13174.5
+      "ms": 8246.5
     },
     {
       "id": "financebench_id_00702",
       "source": "financebench",
       "split": "test",
       "filters_ok": false,
-      "hit": false,
-      "rr": 0.0,
-      "rank": null,
-      "passages": 0,
-      "chars": 0,
-      "pinned": 0,
-      "ms": 61.2
+      "hit": true,
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 6,
+      "chars": 9194,
+      "pinned": 1,
+      "ms": 10605.3
     },
     {
       "id": "financebench_id_02416",
@@ -1448,7 +1448,7 @@
       "passages": 6,
       "chars": 2650,
       "pinned": 0,
-      "ms": 16873.3
+      "ms": 10580.9
     },
     {
       "id": "financebench_id_00746",
@@ -1461,7 +1461,7 @@
       "passages": 6,
       "chars": 4765,
       "pinned": 0,
-      "ms": 12173.8
+      "ms": 7617.7
     },
     {
       "id": "financebench_id_00521",
@@ -1474,7 +1474,7 @@
       "passages": 6,
       "chars": 4803,
       "pinned": 0,
-      "ms": 12040.3
+      "ms": 7441.4
     },
     {
       "id": "financebench_id_00859",
@@ -1487,7 +1487,7 @@
       "passages": 6,
       "chars": 4475,
       "pinned": 0,
-      "ms": 14749.0
+      "ms": 9144.1
     },
     {
       "id": "financebench_id_02024",
@@ -1500,7 +1500,7 @@
       "passages": 6,
       "chars": 3278,
       "pinned": 0,
-      "ms": 16817.8
+      "ms": 10551.4
     },
     {
       "id": "financebench_id_00216",
@@ -1513,7 +1513,7 @@
       "passages": 7,
       "chars": 7402,
       "pinned": 1,
-      "ms": 16888.7
+      "ms": 10529.5
     },
     {
       "id": "financebench_id_00215",
@@ -1526,7 +1526,7 @@
       "passages": 6,
       "chars": 7096,
       "pinned": 0,
-      "ms": 16959.0
+      "ms": 10506.7
     },
     {
       "id": "financebench_id_00566",
@@ -1539,7 +1539,7 @@
       "passages": 6,
       "chars": 6351,
       "pinned": 1,
-      "ms": 17026.3
+      "ms": 10533.8
     },
     {
       "id": "financebench_id_06247",
@@ -1552,7 +1552,7 @@
       "passages": 8,
       "chars": 7743,
       "pinned": 2,
-      "ms": 17013.6
+      "ms": 10540.6
     },
     {
       "id": "financebench_id_04784",
@@ -1565,7 +1565,7 @@
       "passages": 7,
       "chars": 5780,
       "pinned": 1,
-      "ms": 16581.8
+      "ms": 10263.0
     },
     {
       "id": "financebench_id_06741",
@@ -1578,7 +1578,7 @@
       "passages": 8,
       "chars": 8758,
       "pinned": 2,
-      "ms": 17083.7
+      "ms": 10522.0
     },
     {
       "id": "xbrl-AAPL-2021-research_and_development_expense",
@@ -1586,12 +1586,12 @@
       "split": "test",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.5,
-      "rank": 2,
-      "passages": 6,
-      "chars": 4154,
-      "pinned": 0,
-      "ms": 11294.3
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 5352,
+      "pinned": 1,
+      "ms": 6984.8
     },
     {
       "id": "xbrl-AAPL-2021-total_assets",
@@ -1604,7 +1604,7 @@
       "passages": 7,
       "chars": 4822,
       "pinned": 1,
-      "ms": 11311.8
+      "ms": 6996.4
     },
     {
       "id": "xbrl-AAPL-2022-net_income",
@@ -1617,7 +1617,7 @@
       "passages": 7,
       "chars": 5153,
       "pinned": 1,
-      "ms": 15655.0
+      "ms": 9676.8
     },
     {
       "id": "xbrl-AAPL-2022-research_and_development_expense",
@@ -1625,12 +1625,12 @@
       "split": "test",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.5,
-      "rank": 2,
-      "passages": 6,
-      "chars": 4016,
-      "pinned": 0,
-      "ms": 9810.5
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 5219,
+      "pinned": 1,
+      "ms": 6030.9
     },
     {
       "id": "xbrl-ADBE-2021-gross_margin",
@@ -1643,7 +1643,7 @@
       "passages": 7,
       "chars": 5869,
       "pinned": 1,
-      "ms": 10935.2
+      "ms": 6652.0
     },
     {
       "id": "xbrl-ADBE-2021-operating_margin",
@@ -1656,7 +1656,7 @@
       "passages": 7,
       "chars": 5850,
       "pinned": 1,
-      "ms": 10908.7
+      "ms": 6666.9
     },
     {
       "id": "xbrl-ADBE-2021-revenue",
@@ -1669,7 +1669,7 @@
       "passages": 7,
       "chars": 4516,
       "pinned": 1,
-      "ms": 10661.7
+      "ms": 6542.2
     },
     {
       "id": "xbrl-ADBE-2022-net_income_change",
@@ -1682,7 +1682,7 @@
       "passages": 7,
       "chars": 6515,
       "pinned": 1,
-      "ms": 11071.9
+      "ms": 6817.8
     },
     {
       "id": "xbrl-ADBE-2022-revenue",
@@ -1695,7 +1695,7 @@
       "passages": 7,
       "chars": 5277,
       "pinned": 1,
-      "ms": 10710.9
+      "ms": 6536.0
     },
     {
       "id": "xbrl-ADBE-2023-operating_income",
@@ -1708,7 +1708,7 @@
       "passages": 7,
       "chars": 5889,
       "pinned": 1,
-      "ms": 10806.0
+      "ms": 6653.3
     },
     {
       "id": "xbrl-AES-2023-revenue_growth",
@@ -1721,7 +1721,7 @@
       "passages": 7,
       "chars": 7916,
       "pinned": 1,
-      "ms": 14644.7
+      "ms": 9089.2
     },
     {
       "id": "xbrl-AMCR-2021-research_and_development_expense",
@@ -1733,8 +1733,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 6202,
-      "pinned": 0,
-      "ms": 17020.0
+      "pinned": 1,
+      "ms": 10532.6
     },
     {
       "id": "xbrl-AMCR-2022-net_income_change",
@@ -1747,7 +1747,7 @@
       "passages": 7,
       "chars": 5865,
       "pinned": 1,
-      "ms": 17017.5
+      "ms": 10520.6
     },
     {
       "id": "xbrl-AMD-2021-operating_margin",
@@ -1760,7 +1760,7 @@
       "passages": 7,
       "chars": 5204,
       "pinned": 1,
-      "ms": 12466.0
+      "ms": 7719.1
     },
     {
       "id": "xbrl-AMD-2023-net_income_change",
@@ -1773,7 +1773,7 @@
       "passages": 7,
       "chars": 6043,
       "pinned": 1,
-      "ms": 10999.7
+      "ms": 6772.0
     },
     {
       "id": "xbrl-AMZN-2021-operating_margin",
@@ -1786,7 +1786,7 @@
       "passages": 7,
       "chars": 5792,
       "pinned": 1,
-      "ms": 16983.3
+      "ms": 10512.4
     },
     {
       "id": "xbrl-AMZN-2021-revenue_growth",
@@ -1799,7 +1799,7 @@
       "passages": 7,
       "chars": 4608,
       "pinned": 1,
-      "ms": 17004.8
+      "ms": 10511.3
     },
     {
       "id": "xbrl-AMZN-2021-total_assets",
@@ -1812,7 +1812,7 @@
       "passages": 6,
       "chars": 4387,
       "pinned": 1,
-      "ms": 17006.2
+      "ms": 10513.5
     },
     {
       "id": "xbrl-AMZN-2022-net_income",
@@ -1825,7 +1825,7 @@
       "passages": 6,
       "chars": 4317,
       "pinned": 1,
-      "ms": 17177.9
+      "ms": 10520.6
     },
     {
       "id": "xbrl-AMZN-2022-revenue_growth",
@@ -1838,7 +1838,7 @@
       "passages": 7,
       "chars": 5525,
       "pinned": 1,
-      "ms": 13121.1
+      "ms": 8095.3
     },
     {
       "id": "xbrl-AMZN-2023-net_income",
@@ -1851,7 +1851,7 @@
       "passages": 6,
       "chars": 5514,
       "pinned": 1,
-      "ms": 17012.7
+      "ms": 10515.6
     },
     {
       "id": "xbrl-AMZN-2023-operating_income",
@@ -1864,7 +1864,7 @@
       "passages": 6,
       "chars": 4633,
       "pinned": 1,
-      "ms": 17080.4
+      "ms": 10521.7
     },
     {
       "id": "xbrl-AXP-2021-net_income_change",
@@ -1877,7 +1877,7 @@
       "passages": 7,
       "chars": 5923,
       "pinned": 1,
-      "ms": 13196.1
+      "ms": 8097.1
     },
     {
       "id": "xbrl-BA-2021-operating_income",
@@ -1890,7 +1890,7 @@
       "passages": 6,
       "chars": 4774,
       "pinned": 1,
-      "ms": 17072.7
+      "ms": 10486.4
     },
     {
       "id": "xbrl-BA-2021-operating_margin",
@@ -1903,7 +1903,7 @@
       "passages": 7,
       "chars": 3754,
       "pinned": 1,
-      "ms": 17058.3
+      "ms": 10484.6
     },
     {
       "id": "xbrl-BA-2022-net_income_change",
@@ -1916,7 +1916,7 @@
       "passages": 7,
       "chars": 5425,
       "pinned": 1,
-      "ms": 17108.6
+      "ms": 10483.2
     },
     {
       "id": "xbrl-BA-2023-net_income_change",
@@ -1929,7 +1929,7 @@
       "passages": 6,
       "chars": 4634,
       "pinned": 1,
-      "ms": 17104.4
+      "ms": 10492.2
     },
     {
       "id": "xbrl-BA-2023-operating_margin",
@@ -1942,7 +1942,7 @@
       "passages": 6,
       "chars": 3334,
       "pinned": 1,
-      "ms": 17011.2
+      "ms": 10519.9
     },
     {
       "id": "xbrl-BBY-2022-cash_and_cash_equivalents",
@@ -1954,8 +1954,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 3933,
-      "pinned": 0,
-      "ms": 16942.4
+      "pinned": 1,
+      "ms": 10527.7
     },
     {
       "id": "xbrl-BBY-2022-net_income",
@@ -1968,7 +1968,7 @@
       "passages": 7,
       "chars": 7975,
       "pinned": 1,
-      "ms": 16938.2
+      "ms": 10502.6
     },
     {
       "id": "xbrl-BBY-2023-gross_margin",
@@ -1981,7 +1981,7 @@
       "passages": 7,
       "chars": 5950,
       "pinned": 1,
-      "ms": 10859.8
+      "ms": 6657.3
     },
     {
       "id": "xbrl-BBY-2023-net_income_change",
@@ -1994,7 +1994,7 @@
       "passages": 7,
       "chars": 5191,
       "pinned": 1,
-      "ms": 17015.2
+      "ms": 10526.4
     },
     {
       "id": "xbrl-BBY-2023-operating_income",
@@ -2007,7 +2007,7 @@
       "passages": 7,
       "chars": 7883,
       "pinned": 1,
-      "ms": 17036.1
+      "ms": 10551.5
     },
     {
       "id": "xbrl-BBY-2023-total_assets",
@@ -2020,7 +2020,7 @@
       "passages": 6,
       "chars": 4245,
       "pinned": 1,
-      "ms": 17014.6
+      "ms": 10546.4
     },
     {
       "id": "xbrl-COST-2022-net_income",
@@ -2033,7 +2033,7 @@
       "passages": 6,
       "chars": 5133,
       "pinned": 1,
-      "ms": 17027.4
+      "ms": 10541.0
     },
     {
       "id": "xbrl-COST-2022-net_income_change",
@@ -2046,7 +2046,7 @@
       "passages": 6,
       "chars": 4321,
       "pinned": 1,
-      "ms": 17006.7
+      "ms": 10539.5
     },
     {
       "id": "xbrl-COST-2022-revenue_growth",
@@ -2059,7 +2059,7 @@
       "passages": 7,
       "chars": 5840,
       "pinned": 1,
-      "ms": 15320.1
+      "ms": 9520.9
     },
     {
       "id": "xbrl-COST-2023-operating_income",
@@ -2072,7 +2072,7 @@
       "passages": 6,
       "chars": 4875,
       "pinned": 1,
-      "ms": 17014.4
+      "ms": 10538.8
     },
     {
       "id": "xbrl-COST-2023-operating_margin",
@@ -2085,20 +2085,20 @@
       "passages": 6,
       "chars": 4658,
       "pinned": 1,
-      "ms": 15775.4
+      "ms": 9805.3
     },
     {
       "id": "xbrl-CVS-2021-cash_and_cash_equivalents",
       "source": "xbrl",
       "split": "test",
       "filters_ok": true,
-      "hit": false,
-      "rr": 0.0,
-      "rank": null,
-      "passages": 6,
-      "chars": 5044,
-      "pinned": 0,
-      "ms": 14214.6
+      "hit": true,
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 7230,
+      "pinned": 1,
+      "ms": 8838.9
     },
     {
       "id": "xbrl-CVS-2021-revenue",
@@ -2111,7 +2111,7 @@
       "passages": 7,
       "chars": 5541,
       "pinned": 1,
-      "ms": 14019.4
+      "ms": 8598.9
     },
     {
       "id": "xbrl-CVS-2021-revenue_growth",
@@ -2124,20 +2124,20 @@
       "passages": 7,
       "chars": 6008,
       "pinned": 1,
-      "ms": 14279.7
+      "ms": 8816.1
     },
     {
       "id": "xbrl-CVS-2022-cash_and_cash_equivalents",
       "source": "xbrl",
       "split": "test",
       "filters_ok": true,
-      "hit": false,
-      "rr": 0.0,
-      "rank": null,
-      "passages": 6,
-      "chars": 4845,
-      "pinned": 0,
-      "ms": 17005.6
+      "hit": true,
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 7111,
+      "pinned": 1,
+      "ms": 10582.1
     },
     {
       "id": "xbrl-CVS-2022-revenue",
@@ -2150,7 +2150,7 @@
       "passages": 6,
       "chars": 6418,
       "pinned": 1,
-      "ms": 16987.1
+      "ms": 10550.0
     },
     {
       "id": "xbrl-CVS-2023-net_income_change",
@@ -2163,7 +2163,7 @@
       "passages": 7,
       "chars": 5825,
       "pinned": 1,
-      "ms": 16224.7
+      "ms": 10176.7
     },
     {
       "id": "xbrl-CVS-2023-total_assets",
@@ -2176,33 +2176,33 @@
       "passages": 7,
       "chars": 8104,
       "pinned": 1,
-      "ms": 14688.4
+      "ms": 9118.4
     },
     {
       "id": "xbrl-GIS-2021-revenue_growth",
       "source": "xbrl",
       "split": "test",
       "filters_ok": true,
-      "hit": true,
-      "rr": 0.3333333333333333,
-      "rank": 3,
+      "hit": false,
+      "rr": 0.0,
+      "rank": null,
       "passages": 7,
       "chars": 7233,
       "pinned": 2,
-      "ms": 16945.2
+      "ms": 10499.5
     },
     {
       "id": "xbrl-GIS-2022-operating_margin",
       "source": "xbrl",
       "split": "test",
       "filters_ok": true,
-      "hit": false,
-      "rr": 0.0,
-      "rank": null,
+      "hit": true,
+      "rr": 0.5,
+      "rank": 2,
       "passages": 6,
       "chars": 3030,
       "pinned": 1,
-      "ms": 14804.1
+      "ms": 9129.7
     },
     {
       "id": "xbrl-GIS-2023-net_income",
@@ -2215,7 +2215,7 @@
       "passages": 6,
       "chars": 4387,
       "pinned": 1,
-      "ms": 16837.9
+      "ms": 10529.0
     },
     {
       "id": "xbrl-GIS-2023-operating_margin",
@@ -2223,12 +2223,12 @@
       "split": "test",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.3333333333333333,
-      "rank": 3,
+      "rr": 0.5,
+      "rank": 2,
       "passages": 6,
       "chars": 3071,
       "pinned": 1,
-      "ms": 14842.0
+      "ms": 9205.7
     },
     {
       "id": "xbrl-GLW-2021-research_and_development_expense",
@@ -2236,12 +2236,12 @@
       "split": "test",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.5,
-      "rank": 2,
-      "passages": 6,
-      "chars": 4401,
-      "pinned": 0,
-      "ms": 7908.2
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 5976,
+      "pinned": 1,
+      "ms": 4909.8
     },
     {
       "id": "xbrl-GLW-2021-revenue",
@@ -2254,7 +2254,7 @@
       "passages": 7,
       "chars": 6647,
       "pinned": 1,
-      "ms": 7787.1
+      "ms": 4788.2
     },
     {
       "id": "xbrl-GLW-2022-gross_margin",
@@ -2267,7 +2267,7 @@
       "passages": 7,
       "chars": 6134,
       "pinned": 1,
-      "ms": 16971.8
+      "ms": 10524.3
     },
     {
       "id": "xbrl-GLW-2022-revenue_growth",
@@ -2280,7 +2280,7 @@
       "passages": 7,
       "chars": 6002,
       "pinned": 1,
-      "ms": 11479.8
+      "ms": 7118.5
     },
     {
       "id": "xbrl-GLW-2023-gross_margin",
@@ -2293,7 +2293,7 @@
       "passages": 6,
       "chars": 5589,
       "pinned": 1,
-      "ms": 16898.2
+      "ms": 10536.4
     },
     {
       "id": "xbrl-GLW-2023-revenue",
@@ -2306,7 +2306,7 @@
       "passages": 6,
       "chars": 5736,
       "pinned": 1,
-      "ms": 16888.8
+      "ms": 10539.4
     },
     {
       "id": "xbrl-GOOGL-2021-net_income_change",
@@ -2319,7 +2319,7 @@
       "passages": 7,
       "chars": 5895,
       "pinned": 1,
-      "ms": 11750.1
+      "ms": 7269.1
     },
     {
       "id": "xbrl-GOOGL-2021-research_and_development_expense",
@@ -2329,10 +2329,10 @@
       "hit": true,
       "rr": 1.0,
       "rank": 1,
-      "passages": 6,
-      "chars": 4264,
-      "pinned": 0,
-      "ms": 9776.6
+      "passages": 7,
+      "chars": 5229,
+      "pinned": 1,
+      "ms": 6077.1
     },
     {
       "id": "xbrl-GOOGL-2021-revenue_growth",
@@ -2345,7 +2345,7 @@
       "passages": 7,
       "chars": 3913,
       "pinned": 1,
-      "ms": 9603.4
+      "ms": 5960.4
     },
     {
       "id": "xbrl-GOOGL-2022-cash_and_cash_equivalents",
@@ -2357,8 +2357,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 5948,
-      "pinned": 0,
-      "ms": 16791.4
+      "pinned": 1,
+      "ms": 10532.5
     },
     {
       "id": "xbrl-GOOGL-2022-research_and_development_expense",
@@ -2370,8 +2370,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 4444,
-      "pinned": 0,
-      "ms": 10996.2
+      "pinned": 1,
+      "ms": 6873.4
     },
     {
       "id": "xbrl-GOOGL-2022-total_assets",
@@ -2384,7 +2384,7 @@
       "passages": 6,
       "chars": 5619,
       "pinned": 1,
-      "ms": 16811.6
+      "ms": 10541.9
     },
     {
       "id": "xbrl-GOOGL-2023-cash_and_cash_equivalents",
@@ -2396,8 +2396,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 5931,
-      "pinned": 0,
-      "ms": 16793.6
+      "pinned": 1,
+      "ms": 10523.5
     },
     {
       "id": "xbrl-GOOGL-2023-operating_income",
@@ -2410,7 +2410,7 @@
       "passages": 7,
       "chars": 4308,
       "pinned": 1,
-      "ms": 10850.3
+      "ms": 6769.6
     },
     {
       "id": "xbrl-GOOGL-2023-revenue",
@@ -2423,7 +2423,7 @@
       "passages": 7,
       "chars": 4213,
       "pinned": 1,
-      "ms": 10830.6
+      "ms": 6739.7
     },
     {
       "id": "xbrl-HD-2023-net_income",
@@ -2436,7 +2436,7 @@
       "passages": 8,
       "chars": 6236,
       "pinned": 2,
-      "ms": 15407.8
+      "ms": 9675.3
     },
     {
       "id": "xbrl-INTC-2021-gross_margin",
@@ -2449,7 +2449,7 @@
       "passages": 7,
       "chars": 6312,
       "pinned": 1,
-      "ms": 14512.1
+      "ms": 9044.1
     },
     {
       "id": "xbrl-INTC-2021-revenue_growth",
@@ -2462,7 +2462,7 @@
       "passages": 7,
       "chars": 5812,
       "pinned": 1,
-      "ms": 13332.1
+      "ms": 8342.6
     },
     {
       "id": "xbrl-INTC-2022-revenue",
@@ -2475,7 +2475,7 @@
       "passages": 6,
       "chars": 6333,
       "pinned": 1,
-      "ms": 15223.2
+      "ms": 9511.5
     },
     {
       "id": "xbrl-INTC-2023-net_income_change",
@@ -2488,7 +2488,7 @@
       "passages": 6,
       "chars": 5228,
       "pinned": 1,
-      "ms": 15666.4
+      "ms": 9782.3
     },
     {
       "id": "xbrl-INTC-2023-revenue_growth",
@@ -2501,7 +2501,7 @@
       "passages": 7,
       "chars": 5658,
       "pinned": 1,
-      "ms": 9897.7
+      "ms": 6199.0
     },
     {
       "id": "xbrl-JPM-2021-revenue",
@@ -2514,7 +2514,7 @@
       "passages": 7,
       "chars": 6397,
       "pinned": 1,
-      "ms": 14038.2
+      "ms": 8751.6
     },
     {
       "id": "xbrl-JPM-2021-revenue_growth",
@@ -2527,7 +2527,7 @@
       "passages": 7,
       "chars": 6336,
       "pinned": 1,
-      "ms": 14389.8
+      "ms": 9031.6
     },
     {
       "id": "xbrl-JPM-2023-net_income",
@@ -2540,7 +2540,7 @@
       "passages": 8,
       "chars": 6488,
       "pinned": 2,
-      "ms": 12607.1
+      "ms": 7948.1
     },
     {
       "id": "xbrl-JPM-2023-net_income_change",
@@ -2553,7 +2553,7 @@
       "passages": 8,
       "chars": 6605,
       "pinned": 2,
-      "ms": 13825.9
+      "ms": 8644.1
     },
     {
       "id": "xbrl-JPM-2023-total_assets",
@@ -2566,7 +2566,7 @@
       "passages": 7,
       "chars": 6267,
       "pinned": 1,
-      "ms": 13560.3
+      "ms": 8496.8
     },
     {
       "id": "xbrl-KHC-2021-operating_margin",
@@ -2579,7 +2579,7 @@
       "passages": 7,
       "chars": 4908,
       "pinned": 1,
-      "ms": 9662.7
+      "ms": 6044.5
     },
     {
       "id": "xbrl-KHC-2022-gross_margin",
@@ -2592,7 +2592,7 @@
       "passages": 7,
       "chars": 4733,
       "pinned": 1,
-      "ms": 9345.4
+      "ms": 5874.9
     },
     {
       "id": "xbrl-KHC-2023-total_assets",
@@ -2605,7 +2605,7 @@
       "passages": 7,
       "chars": 6636,
       "pinned": 1,
-      "ms": 9818.3
+      "ms": 6160.5
     },
     {
       "id": "xbrl-KO-2021-operating_income",
@@ -2618,7 +2618,7 @@
       "passages": 6,
       "chars": 5443,
       "pinned": 1,
-      "ms": 15502.0
+      "ms": 9781.5
     },
     {
       "id": "xbrl-KO-2022-gross_margin",
@@ -2631,7 +2631,7 @@
       "passages": 6,
       "chars": 5044,
       "pinned": 1,
-      "ms": 15737.5
+      "ms": 9876.5
     },
     {
       "id": "xbrl-KO-2022-net_income_change",
@@ -2644,7 +2644,7 @@
       "passages": 6,
       "chars": 4963,
       "pinned": 1,
-      "ms": 16794.0
+      "ms": 10548.7
     },
     {
       "id": "xbrl-KO-2022-operating_margin",
@@ -2657,7 +2657,7 @@
       "passages": 6,
       "chars": 4664,
       "pinned": 1,
-      "ms": 15779.1
+      "ms": 9878.4
     },
     {
       "id": "xbrl-KO-2023-cash_and_cash_equivalents",
@@ -2669,8 +2669,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 6640,
-      "pinned": 0,
-      "ms": 16829.9
+      "pinned": 1,
+      "ms": 10528.1
     },
     {
       "id": "xbrl-KO-2023-net_income_change",
@@ -2683,7 +2683,7 @@
       "passages": 6,
       "chars": 4999,
       "pinned": 1,
-      "ms": 16058.8
+      "ms": 10095.3
     },
     {
       "id": "xbrl-KO-2023-revenue_growth",
@@ -2696,7 +2696,7 @@
       "passages": 6,
       "chars": 4808,
       "pinned": 1,
-      "ms": 16056.5
+      "ms": 10239.5
     },
     {
       "id": "xbrl-LMT-2021-research_and_development_expense",
@@ -2704,12 +2704,12 @@
       "split": "dev",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.5,
-      "rank": 2,
-      "passages": 6,
-      "chars": 4581,
-      "pinned": 0,
-      "ms": 11755.1
+      "rr": 0.3333333333333333,
+      "rank": 3,
+      "passages": 7,
+      "chars": 6065,
+      "pinned": 1,
+      "ms": 7304.9
     },
     {
       "id": "xbrl-LMT-2021-revenue",
@@ -2722,20 +2722,20 @@
       "passages": 7,
       "chars": 6853,
       "pinned": 1,
-      "ms": 11993.7
+      "ms": 7441.5
     },
     {
       "id": "xbrl-LMT-2022-cash_and_cash_equivalents",
       "source": "xbrl",
       "split": "test",
       "filters_ok": true,
-      "hit": false,
-      "rr": 0.0,
-      "rank": null,
-      "passages": 6,
-      "chars": 4538,
-      "pinned": 0,
-      "ms": 11812.9
+      "hit": true,
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 5822,
+      "pinned": 1,
+      "ms": 7373.3
     },
     {
       "id": "xbrl-LMT-2022-gross_margin",
@@ -2748,7 +2748,7 @@
       "passages": 7,
       "chars": 6487,
       "pinned": 1,
-      "ms": 11786.1
+      "ms": 7290.8
     },
     {
       "id": "xbrl-LMT-2022-net_income",
@@ -2761,7 +2761,7 @@
       "passages": 7,
       "chars": 5932,
       "pinned": 1,
-      "ms": 11547.1
+      "ms": 7238.8
     },
     {
       "id": "xbrl-LMT-2022-operating_margin",
@@ -2774,7 +2774,7 @@
       "passages": 7,
       "chars": 5654,
       "pinned": 1,
-      "ms": 11879.5
+      "ms": 7322.0
     },
     {
       "id": "xbrl-LMT-2023-cash_and_cash_equivalents",
@@ -2782,12 +2782,12 @@
       "split": "test",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.5,
-      "rank": 2,
-      "passages": 6,
-      "chars": 4232,
-      "pinned": 0,
-      "ms": 11751.8
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 5564,
+      "pinned": 1,
+      "ms": 7281.3
     },
     {
       "id": "xbrl-LMT-2023-gross_margin",
@@ -2800,7 +2800,7 @@
       "passages": 7,
       "chars": 4496,
       "pinned": 1,
-      "ms": 12111.4
+      "ms": 7547.5
     },
     {
       "id": "xbrl-LMT-2023-net_income",
@@ -2813,7 +2813,7 @@
       "passages": 7,
       "chars": 5468,
       "pinned": 1,
-      "ms": 11879.0
+      "ms": 7371.5
     },
     {
       "id": "xbrl-LMT-2023-revenue_growth",
@@ -2826,7 +2826,7 @@
       "passages": 7,
       "chars": 5037,
       "pinned": 1,
-      "ms": 11751.3
+      "ms": 7263.7
     },
     {
       "id": "xbrl-META-2021-net_income_change",
@@ -2839,7 +2839,7 @@
       "passages": 7,
       "chars": 5801,
       "pinned": 1,
-      "ms": 16796.5
+      "ms": 10529.8
     },
     {
       "id": "xbrl-META-2022-net_income_change",
@@ -2852,7 +2852,7 @@
       "passages": 7,
       "chars": 5522,
       "pinned": 1,
-      "ms": 17034.7
+      "ms": 10527.9
     },
     {
       "id": "xbrl-MGM-2021-cash_and_cash_equivalents",
@@ -2860,12 +2860,12 @@
       "split": "test",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.5,
-      "rank": 2,
-      "passages": 6,
-      "chars": 5001,
-      "pinned": 0,
-      "ms": 16926.8
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 7001,
+      "pinned": 1,
+      "ms": 10570.6
     },
     {
       "id": "xbrl-MGM-2021-net_income_change",
@@ -2878,7 +2878,7 @@
       "passages": 7,
       "chars": 6623,
       "pinned": 1,
-      "ms": 16891.6
+      "ms": 10524.0
     },
     {
       "id": "xbrl-MMM-2021-operating_margin",
@@ -2891,7 +2891,7 @@
       "passages": 7,
       "chars": 6512,
       "pinned": 1,
-      "ms": 7775.4
+      "ms": 4812.5
     },
     {
       "id": "xbrl-MMM-2022-net_income_change",
@@ -2904,7 +2904,7 @@
       "passages": 7,
       "chars": 6551,
       "pinned": 1,
-      "ms": 8482.6
+      "ms": 5176.8
     },
     {
       "id": "xbrl-MMM-2022-revenue_growth",
@@ -2917,7 +2917,7 @@
       "passages": 7,
       "chars": 6945,
       "pinned": 1,
-      "ms": 11609.5
+      "ms": 7199.8
     },
     {
       "id": "xbrl-MSFT-2023-cash_and_cash_equivalents",
@@ -2929,8 +2929,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 6260,
-      "pinned": 0,
-      "ms": 16791.3
+      "pinned": 1,
+      "ms": 10520.9
     },
     {
       "id": "xbrl-MSFT-2023-research_and_development_expense",
@@ -2938,12 +2938,12 @@
       "split": "dev",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.5,
-      "rank": 2,
-      "passages": 6,
-      "chars": 4053,
-      "pinned": 0,
-      "ms": 10248.9
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 5093,
+      "pinned": 1,
+      "ms": 6279.8
     },
     {
       "id": "xbrl-NFLX-2021-net_income_change",
@@ -2956,7 +2956,7 @@
       "passages": 6,
       "chars": 4180,
       "pinned": 1,
-      "ms": 17008.7
+      "ms": 10521.3
     },
     {
       "id": "xbrl-NFLX-2021-operating_income",
@@ -2969,7 +2969,7 @@
       "passages": 7,
       "chars": 5260,
       "pinned": 1,
-      "ms": 17020.2
+      "ms": 10503.9
     },
     {
       "id": "xbrl-NFLX-2022-cash_and_cash_equivalents",
@@ -2981,8 +2981,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 5883,
-      "pinned": 0,
-      "ms": 16983.7
+      "pinned": 1,
+      "ms": 10531.3
     },
     {
       "id": "xbrl-NFLX-2023-net_income_change",
@@ -2995,7 +2995,7 @@
       "passages": 7,
       "chars": 3451,
       "pinned": 1,
-      "ms": 14053.0
+      "ms": 8703.9
     },
     {
       "id": "xbrl-NKE-2021-gross_margin",
@@ -3008,7 +3008,7 @@
       "passages": 7,
       "chars": 6081,
       "pinned": 1,
-      "ms": 16076.3
+      "ms": 9907.5
     },
     {
       "id": "xbrl-NKE-2022-gross_margin",
@@ -3021,7 +3021,7 @@
       "passages": 7,
       "chars": 6106,
       "pinned": 1,
-      "ms": 15818.9
+      "ms": 9789.3
     },
     {
       "id": "xbrl-NKE-2022-revenue",
@@ -3034,7 +3034,7 @@
       "passages": 7,
       "chars": 6077,
       "pinned": 1,
-      "ms": 15442.4
+      "ms": 9530.1
     },
     {
       "id": "xbrl-NVDA-2021-operating_margin",
@@ -3047,7 +3047,7 @@
       "passages": 7,
       "chars": 5216,
       "pinned": 1,
-      "ms": 11124.7
+      "ms": 6885.6
     },
     {
       "id": "xbrl-NVDA-2021-revenue_growth",
@@ -3060,7 +3060,7 @@
       "passages": 7,
       "chars": 4829,
       "pinned": 1,
-      "ms": 11128.6
+      "ms": 6891.5
     },
     {
       "id": "xbrl-NVDA-2022-net_income",
@@ -3073,7 +3073,7 @@
       "passages": 7,
       "chars": 5441,
       "pinned": 1,
-      "ms": 10554.5
+      "ms": 6500.5
     },
     {
       "id": "xbrl-NVDA-2022-research_and_development_expense",
@@ -3081,12 +3081,12 @@
       "split": "test",
       "filters_ok": true,
       "hit": true,
-      "rr": 0.16666666666666666,
-      "rank": 6,
-      "passages": 6,
-      "chars": 4379,
-      "pinned": 0,
-      "ms": 10866.5
+      "rr": 1.0,
+      "rank": 1,
+      "passages": 7,
+      "chars": 5348,
+      "pinned": 1,
+      "ms": 6664.2
     },
     {
       "id": "xbrl-NVDA-2022-total_assets",
@@ -3099,7 +3099,7 @@
       "passages": 7,
       "chars": 6405,
       "pinned": 1,
-      "ms": 10612.3
+      "ms": 6537.0
     },
     {
       "id": "xbrl-NVDA-2023-gross_margin",
@@ -3112,7 +3112,7 @@
       "passages": 7,
       "chars": 5372,
       "pinned": 1,
-      "ms": 9621.6
+      "ms": 5909.8
     },
     {
       "id": "xbrl-NVDA-2023-total_assets",
@@ -3125,7 +3125,7 @@
       "passages": 7,
       "chars": 5576,
       "pinned": 1,
-      "ms": 8330.9
+      "ms": 5104.5
     },
     {
       "id": "xbrl-PEP-2021-cash_and_cash_equivalents",
@@ -3137,8 +3137,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 4849,
-      "pinned": 0,
-      "ms": 16985.6
+      "pinned": 1,
+      "ms": 10491.1
     },
     {
       "id": "xbrl-PEP-2021-net_income_change",
@@ -3151,7 +3151,7 @@
       "passages": 6,
       "chars": 4006,
       "pinned": 1,
-      "ms": 17008.0
+      "ms": 10518.2
     },
     {
       "id": "xbrl-PEP-2023-operating_income",
@@ -3164,7 +3164,7 @@
       "passages": 6,
       "chars": 5513,
       "pinned": 1,
-      "ms": 17014.9
+      "ms": 10502.6
     },
     {
       "id": "xbrl-PEP-2023-operating_margin",
@@ -3177,7 +3177,7 @@
       "passages": 6,
       "chars": 6142,
       "pinned": 1,
-      "ms": 17003.9
+      "ms": 10504.9
     },
     {
       "id": "xbrl-PFE-2022-revenue",
@@ -3190,7 +3190,7 @@
       "passages": 6,
       "chars": 5631,
       "pinned": 1,
-      "ms": 17004.9
+      "ms": 10487.0
     },
     {
       "id": "xbrl-PFE-2023-cash_and_cash_equivalents",
@@ -3200,10 +3200,10 @@
       "hit": true,
       "rr": 1.0,
       "rank": 1,
-      "passages": 6,
-      "chars": 10120,
-      "pinned": 0,
-      "ms": 17187.7
+      "passages": 7,
+      "chars": 10185,
+      "pinned": 2,
+      "ms": 10560.9
     },
     {
       "id": "xbrl-PFE-2023-revenue",
@@ -3216,7 +3216,7 @@
       "passages": 6,
       "chars": 6139,
       "pinned": 1,
-      "ms": 17120.2
+      "ms": 10579.3
     },
     {
       "id": "xbrl-PG-2021-operating_income",
@@ -3229,7 +3229,7 @@
       "passages": 7,
       "chars": 4713,
       "pinned": 1,
-      "ms": 9859.1
+      "ms": 6046.6
     },
     {
       "id": "xbrl-PG-2023-net_income_change",
@@ -3242,7 +3242,7 @@
       "passages": 7,
       "chars": 4499,
       "pinned": 1,
-      "ms": 17070.1
+      "ms": 10496.0
     },
     {
       "id": "xbrl-PG-2023-revenue_growth",
@@ -3255,7 +3255,7 @@
       "passages": 7,
       "chars": 4888,
       "pinned": 1,
-      "ms": 17018.8
+      "ms": 10513.7
     },
     {
       "id": "xbrl-PYPL-2023-net_income_change",
@@ -3268,7 +3268,7 @@
       "passages": 7,
       "chars": 5622,
       "pinned": 1,
-      "ms": 7945.5
+      "ms": 4882.0
     },
     {
       "id": "xbrl-TSLA-2021-cash_and_cash_equivalents",
@@ -3280,8 +3280,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 7173,
-      "pinned": 0,
-      "ms": 16995.5
+      "pinned": 1,
+      "ms": 10505.0
     },
     {
       "id": "xbrl-TSLA-2021-gross_margin",
@@ -3294,7 +3294,7 @@
       "passages": 6,
       "chars": 6061,
       "pinned": 1,
-      "ms": 17078.8
+      "ms": 10507.2
     },
     {
       "id": "xbrl-TSLA-2021-operating_margin",
@@ -3307,7 +3307,7 @@
       "passages": 6,
       "chars": 5774,
       "pinned": 1,
-      "ms": 17020.5
+      "ms": 10510.2
     },
     {
       "id": "xbrl-TSLA-2021-revenue_growth",
@@ -3320,7 +3320,7 @@
       "passages": 7,
       "chars": 5226,
       "pinned": 1,
-      "ms": 17002.0
+      "ms": 10506.0
     },
     {
       "id": "xbrl-TSLA-2022-net_income_change",
@@ -3333,7 +3333,7 @@
       "passages": 7,
       "chars": 6459,
       "pinned": 1,
-      "ms": 17081.5
+      "ms": 10509.8
     },
     {
       "id": "xbrl-TSLA-2022-operating_income",
@@ -3346,7 +3346,7 @@
       "passages": 6,
       "chars": 5707,
       "pinned": 1,
-      "ms": 17036.0
+      "ms": 10537.7
     },
     {
       "id": "xbrl-TSLA-2023-net_income_change",
@@ -3359,7 +3359,7 @@
       "passages": 7,
       "chars": 5122,
       "pinned": 1,
-      "ms": 17007.3
+      "ms": 10502.2
     },
     {
       "id": "xbrl-TSLA-2023-operating_income",
@@ -3372,7 +3372,7 @@
       "passages": 6,
       "chars": 6165,
       "pinned": 1,
-      "ms": 16942.2
+      "ms": 10524.1
     },
     {
       "id": "xbrl-ULTA-2021-net_income",
@@ -3385,7 +3385,7 @@
       "passages": 7,
       "chars": 6282,
       "pinned": 1,
-      "ms": 14246.4
+      "ms": 8829.5
     },
     {
       "id": "xbrl-ULTA-2021-operating_income",
@@ -3398,7 +3398,7 @@
       "passages": 7,
       "chars": 5817,
       "pinned": 1,
-      "ms": 14224.6
+      "ms": 8833.4
     },
     {
       "id": "xbrl-ULTA-2022-net_income_change",
@@ -3411,7 +3411,7 @@
       "passages": 7,
       "chars": 5319,
       "pinned": 1,
-      "ms": 12734.3
+      "ms": 7840.2
     },
     {
       "id": "xbrl-ULTA-2022-operating_margin",
@@ -3424,7 +3424,7 @@
       "passages": 7,
       "chars": 5319,
       "pinned": 1,
-      "ms": 11463.3
+      "ms": 7047.3
     },
     {
       "id": "xbrl-VZ-2021-cash_and_cash_equivalents",
@@ -3436,8 +3436,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 7215,
-      "pinned": 0,
-      "ms": 16975.7
+      "pinned": 1,
+      "ms": 10527.0
     },
     {
       "id": "xbrl-VZ-2021-net_income_change",
@@ -3450,7 +3450,7 @@
       "passages": 7,
       "chars": 6466,
       "pinned": 1,
-      "ms": 16983.9
+      "ms": 10549.6
     },
     {
       "id": "xbrl-VZ-2021-operating_margin",
@@ -3463,7 +3463,7 @@
       "passages": 6,
       "chars": 5755,
       "pinned": 1,
-      "ms": 17019.5
+      "ms": 10522.1
     },
     {
       "id": "xbrl-VZ-2021-revenue",
@@ -3476,7 +3476,7 @@
       "passages": 6,
       "chars": 4918,
       "pinned": 1,
-      "ms": 17025.5
+      "ms": 10517.1
     },
     {
       "id": "xbrl-VZ-2022-cash_and_cash_equivalents",
@@ -3488,8 +3488,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 7795,
-      "pinned": 0,
-      "ms": 17016.3
+      "pinned": 1,
+      "ms": 10525.6
     },
     {
       "id": "xbrl-VZ-2022-net_income_change",
@@ -3502,7 +3502,7 @@
       "passages": 6,
       "chars": 5624,
       "pinned": 1,
-      "ms": 17030.6
+      "ms": 10520.2
     },
     {
       "id": "xbrl-WMT-2023-cash_and_cash_equivalents",
@@ -3514,8 +3514,8 @@
       "rank": 1,
       "passages": 6,
       "chars": 4307,
-      "pinned": 0,
-      "ms": 17015.8
+      "pinned": 1,
+      "ms": 10492.5
     },
     {
       "id": "xbrl-WMT-2023-net_income",
@@ -3528,7 +3528,7 @@
       "passages": 7,
       "chars": 4457,
       "pinned": 1,
-      "ms": 17007.3
+      "ms": 10504.6
     }
   ]
 }
