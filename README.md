@@ -28,39 +28,63 @@ Ledger is not a chatbot. It is the part around the chatbot that companies pay fo
 ## Results
 
 Test split (217 questions: 85 FinanceBench 10-K, 122 XBRL, 10 hand-written refusals), Gemini
-`gemini-3.5-flash-lite` on the free tier, run on 2026-10-10. Every number links to a committed JSON
+`gemini-3.5-flash-lite` on the free tier, run on 2026-10-12. Every number links to a committed JSON
 in `eval/results/`.
 
 | System | FinanceBench (10-K subset) | XBRL numeric | Refusals | Groundedness | p50 / p95 latency | Cost / question |
 |---|---|---|---|---|---|---|
-| [Ledger](eval/results/20261010T071950-ledger-test.json) (hybrid + rerank + pinning + verifier) | **57.6%** (49/85) | **78.7%** (96/122) | **100%** (10/10) | 96.2% | 16.0 s / 36.1 s | $0 (free tier) |
-| [Long-context baseline](eval/results/20261010T084724-long-context-test.json) (whole filing, no retrieval) | 61.2% (52/85) | 78.9% (86/109)\* | 100% (10/10) | – (no citations) | 3.5 s / 102 s | $0 (free tier) |
+| [Ledger](eval/results/20261012T071411-ledger-test.json) (vector search + pinning + verifier) | **56.5%** (48/85) | **90.2%** (110/122) | **90%** (9/10) | 97.3% | **0.9 s** / 14.6 s | $0 (free tier) |
+| [Long-context baseline](eval/results/20261011T160510-long-context-test.json) (whole filing, no retrieval) | 63.5% (54/85) | 82.6% (100/121)\* | 100% (10/10) | – (no citations) | 5.1 s / 48.5 s | $0 (free tier) |
 | Target (PRF) | ≥ 70% | ≥ 90% | ≥ 85% | ≥ 90% | ≤ 4 s / ≤ 10 s | ≤ $0.02 |
 
-\* The baseline stopped at the daily free-tier quota with 13 XBRL questions left; it resumes with
-`--resume`. Groundedness is the share of claims whose cited passage contains their figures.
+\* One baseline question failed on a temporary Gemini overload (HTTP 503) and is not scored.
+Groundedness is the share of claims whose cited passage contains their figures.
 
-**Where this stands.** Overall, Ledger answers 70.0% of the 207 scored questions correctly against the baseline's
-71.1%: no better on accuracy yet, and both miss the FinanceBench and XBRL targets. What Ledger adds is that
-96% of its claims are grounded in a cited passage, 94% are arithmetic-verified, and it reads about 6k
-characters per question instead of a whole filing (up to 600k), which is what the cost target is
-about once a paid tier is used. Head to head, each system gets 21–23 questions the other misses.
+**Where this stands.** Overall Ledger answers 76.3% of the 207 scored questions (158) against the
+baseline's 74.8% (154 of 206). It meets four of the six targets: XBRL (narrowly, 110 of 122),
+refusals, groundedness and median latency, with cost at zero. It misses FinanceBench (56.5% against
+70%) and the slowest-5% latency (14.6 s against 10 s). The long-context baseline is better than Ledger
+on FinanceBench by 7 points; Ledger is better on XBRL by 8, and it cites its sources, checks its
+arithmetic and answers in under a second. Where the two disagree, each is right on about the same number
+of questions (Ledger 20, baseline 18). I have not measured run-to-run noise on the free tier, so treat
+gaps under about 3 points as inconclusive.
+
+**How Ledger got here** (same 217 questions; the first run predates a corrected General Mills answer
+key, which moves three questions):
+
+| Run | Change | Overall | FinanceBench | XBRL | p50 latency |
+|---|---|---|---|---|---|
+| [10 Oct](eval/results/20261010T071950-ledger-test.json) | first full run: hybrid search + reranker | 70.0% | 57.6% | 78.7% | 16.0 s |
+| [11 Oct](eval/results/20261011T154339-ledger-test.json) | + net-income prompt, answer-key fix, JnJ alias, year fallback; vector search, no reranker | 68.1% | 52.9% | 78.7% | 0.9 s |
+| [12 Oct](eval/results/20261012T071411-ledger-test.json) | + statement pinning for named line items (cash, R&D, debt...) | 76.3% | 56.5% | 90.2% | 0.9 s |
+
+Dropping the reranker made retrieval 250 times faster but lost ten questions that never say "balance
+sheet" or "income statement", because nothing told Ledger which statement to include. Pinning by line
+item recovered them and more, and XBRL recall rose from 53% to 65%.
 
 **What failed** (from the per-question JSON):
 
-- **False refusals on FinanceBench: 20 of 85.** Most are narrative questions (acquisitions, customers,
-  litigation, segment growth) where retrieval brings statement tables, not the right prose. One is a
-  filter bug: "JnJ" is not recognised as Johnson & Johnson, so no filing is searched.
-- **Wrong numbers on XBRL: 17 of 122 (plus 9 refusals).** 9 are "net income change" questions; in the
-  ones checked, the model uses consolidated net income while XBRL's `NetIncomeLoss` is the amount
-  attributable to the parent (Amcor: a $136M fall vs the gold $134M; P&G: $55M vs $89M). 2 are bad gold labels: General Mills'
-  operating margin comes out as 163% and 175%, so the XBRL golden builder mismatches a fact there.
-- **Wrong answers on FinanceBench: 16 of 85.** Half are judged text answers (an assessment rather
-  than the expected yes/no or list); the rest are multi-step ratios and per-share figures.
-- **Latency.** Retrieval alone is about 12 s on a 2-core CPU runner, almost all of it the
-  cross-encoder over long statement chunks; generation adds about 4 s. The target is 4 s.
-- **The larger model's quota.** `gemini-3.8-flash` allows 20 requests a day on the free tier, so
-  regenerations fall back to the default model once it is spent.
+- **False refusals on FinanceBench: 22 of 85.** Thirteen are narrative questions (acquisitions, customers,
+  litigation, segments, registered securities) where retrieval brings statement tables, not the right
+  prose. Four are ratio or assessment questions where the needed figures did not reach the model (3M and
+  CVS capital intensity, Adobe free cash flow conversion, Corning's tax rate). Three are Johnson & Johnson,
+  and are a bug: Ledger labels a filing by the calendar year its period ends in, J&J's fiscal 2022 ended on
+  1 January 2023, so "FY2022" lands on the previous year's filing ("they only cover years up to 2021").
+  Two are "no claim could be supported with a citation": the model answered, but its citations did not parse.
+- **Wrong answers on FinanceBench: 15 of 85.** Multi-step ratios, per-share figures and assessments that
+  the judge marked wrong.
+- **Wrong numbers on XBRL: 10 of 122, plus 2 refusals.** Six are "net income change" questions: the prompt now says
+  plain "net income" means the amount attributable to the company, but several still use another line (Boeing,
+  Tesla, CVS, Verizon, MGM, Amcor). The two refusals are Home Depot and Ulta, whose years end in January: the question says fiscal 2023, the filing
+  calls the same year fiscal 2022, and the model declines.
+- **One refusal case failed.** "Should I buy NVIDIA stock?" was answered with risk-factor text instead of
+  declined; the prompt has no rule against investment advice yet.
+- **Latency tail.** All 15 questions slower than 10 s were regenerated after the first answer failed
+  verification (35 of 217 regenerate). The slowest took 146 s, which looks like waiting out free-tier
+  rate limits, not computation.
+- **Free-tier quota.** Gemini's free tier allows 500 requests a day, resetting at midnight Pacific
+  (07:00 GMT), and the larger `gemini-3.8-flash` only 20. A full Ledger run plus the baseline needs about
+  370, and a rate-limited eval waits or stops and resumes (`eval/run_eval.py --resume`).
 
 ### Retrieval experiments
 
