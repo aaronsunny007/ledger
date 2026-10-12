@@ -17,6 +17,8 @@ from typing import Any
 import httpx
 from bs4 import BeautifulSoup
 
+from ledger.ingest.fiscal import fiscal_year_of
+
 log = logging.getLogger(__name__)
 
 SEC_WWW = "https://www.sec.gov"
@@ -36,9 +38,8 @@ class Filing:
 
     @property
     def fiscal_year(self) -> int:
-        # Fiscal year = calendar year the period ends in (Walmart's FY2024
-        # ends January 2024), matching how FinanceBench names documents.
-        return int(self.report_date[:4])
+        # Matches how FinanceBench names documents; see fiscal_year_of.
+        return fiscal_year_of(self.report_date)
 
     @property
     def url(self) -> str:

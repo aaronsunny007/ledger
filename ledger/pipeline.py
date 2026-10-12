@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from ledger.answer.citations import to_citation
 from ledger.answer.generate import Draft, DraftClaim, Generator
+from ledger.answer.guards import ADVICE_REFUSAL, is_investment_advice
 from ledger.answer.llm import LLM, LLMError, LLMResult, QuotaExhausted
 from ledger.cache.semantic_cache import SemanticCache
 from ledger.config import LedgerConfig
@@ -60,7 +61,11 @@ class Ledger:
             problems = []
             valid = [n for n in claim.citations if 1 <= n <= len(passages)]
             if not valid:
-                problems.append(f'The claim "{claim.text}" has no valid citation (ANS-1).')
+                problems.append(
+                    f'The claim "{claim.text}" has no valid citation (ANS-1). Put the number of '
+                    f"each passage that supports it, from 1 to {len(passages)}, in its "
+                    '"citations" list, for example [1, 3].'
+                )
                 out.append(_Checked(claim, None, problems))
                 continue
             check = None
@@ -143,6 +148,16 @@ class Ledger:
         with trace.span("parse") as s:
             f = filters_from_question(question, self.registry, filters)
             s.attrs.update(tickers=f.tickers, years=f.years)
+
+        if is_investment_advice(question):
+            # No retrieval and no model call: Ledger reports filings, it does not advise.
+            answer = Answer(
+                question=question,
+                answer=ADVICE_REFUSAL,
+                refused=True,
+                refusal_reason=ADVICE_REFUSAL,
+            )
+            return self._finish(trace, answer, llm_calls)
 
         cached = None
         if self.cache is not None and self.config.cache.enabled:

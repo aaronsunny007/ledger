@@ -221,3 +221,43 @@ def test_company_aliases_match_in_any_case() -> None:
 
     reg = CompanyRegistry.from_yaml(Path(__file__).parent.parent / "configs" / "corpus.yaml")
     assert reg.find("Roughly how many times has JnJ sold its inventory in FY2022?") == ["JNJ"]
+
+
+def test_investment_advice_is_declined_without_a_model_call(make_ledger: Make) -> None:
+    ledger, llm = make_ledger(lambda s, u: growth(u, 12.5))
+    a = ledger.ask("Should I buy Acme Widgets stock based on its FY2024 10-K?")
+    assert a.refused and "investment advice" in (a.refusal_reason or "")
+    assert len(llm.calls) == 0  # type: ignore[attr-defined]
+    # Ordinary questions that share words with advice are not caught.
+    assert not ledger.ask(Q).refused
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        {"text": "Revenue grew to $4,500 million.", "sources": ["passage 1"]},
+        {"text": "Revenue grew to $4,500 million.", "citation": 1},
+        {"text": "Revenue grew to $4,500 million [1].", "citations": []},
+        {"text": "Revenue grew to $4,500 million [1, 2].", "citations": None},
+    ],
+)
+def test_citations_are_read_from_other_keys_and_from_the_sentence(claim: dict) -> None:  # type: ignore[type-arg]
+    import json
+
+    from ledger.answer.generate import parse_draft
+
+    d = parse_draft(json.dumps({"answerable": True, "claims": [claim]}))
+    assert d.claims and d.claims[0].citations[:1] == [1]
+    assert "[" not in d.claims[0].text  # the marker moves into the citation list
+
+
+def test_retry_feedback_names_the_valid_passage_numbers(make_ledger: Make) -> None:
+    prompts: list[str] = []
+
+    def respond(system: str, user: str) -> str:
+        prompts.append(user)
+        return claims_json({"text": "Revenue was big.", "citations": [99]})
+
+    ledger, _ = make_ledger(respond)
+    ledger.ask(Q)
+    assert len(prompts) == 2 and "from 1 to" in prompts[1] and '"citations"' in prompts[1]

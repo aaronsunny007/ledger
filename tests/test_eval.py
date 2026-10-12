@@ -296,3 +296,31 @@ def test_noise_bar_shrinks_with_sample_size_and_survives_perfect_scores() -> Non
 
     assert noise_bar(0.9, 0.9, 400, 400) < noise_bar(0.9, 0.9, 50, 50)
     assert noise_bar(1.0, 1.0, 10, 10) > 0
+
+
+@pytest.mark.parametrize(
+    ("report_date", "year"),
+    [
+        ("2023-01-01", 2022),  # Johnson & Johnson's fiscal 2022
+        ("2022-01-02", 2021),
+        ("2021-01-03", 2020),
+        ("2023-12-31", 2023),  # and its fiscal 2023, which used to share the label 2023
+        ("2024-01-31", 2024),  # Walmart's FY2024 stays with the year it ends in
+        ("2023-01-29", 2023),  # Home Depot, Ulta and other late-January years
+        ("2022-09-24", 2022),
+    ],
+)
+def test_fiscal_year_of_a_52_53_week_year(report_date: str, year: int) -> None:
+    from ledger.ingest.fiscal import fiscal_year_of
+
+    assert fiscal_year_of(report_date) == year
+
+
+def test_two_johnson_and_johnson_filings_no_longer_share_a_year() -> None:
+    from ledger.ingest.edgar import Filing
+
+    def filing(report_date: str) -> Filing:
+        return Filing("JNJ", "Johnson & Johnson", 200406, "10-K", "a", report_date, "x", "d.htm")
+
+    assert filing("2023-01-01").fiscal_year != filing("2023-12-31").fiscal_year
+    assert filing("2023-01-01").doc_id == "JNJ_2022_10K"
