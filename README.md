@@ -21,7 +21,7 @@ Ledger is not a chatbot. It is the part around the chatbot that companies pay fo
 | | What | Where |
 |---|---|---|
 | **Measuring it** | A 350-question golden set: the public FinanceBench open set, 150 questions with answers taken from the SEC's own XBRL data, and 50 hand-written traps | [`eval/`](eval/) |
-| **Guarding it** | GitHub refuses to merge a change that drops accuracy by more than 2 points | [`ci.yml`](.github/workflows/ci.yml) |
+| **Guarding it** | GitHub refuses to merge a change that clearly drops accuracy, groundedness or refusals (more than 2 points and beyond sampling noise) | [`ci.yml`](.github/workflows/ci.yml) |
 | **Watching it** | Every request traced: latency per stage, tokens, cost, cache, verifier result | [`ledger/obs/`](ledger/obs/) |
 | **Shipping it** | API, UI, Docker; a free public demo | [`ledger/api/`](ledger/api/), [`ui/`](ui/) |
 

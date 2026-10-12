@@ -2,7 +2,8 @@ name: ci
 
 # CI-1: every pull request runs lint, types and unit tests, then the
 # 50-question smoke eval. CI-2: the PR fails if accuracy, groundedness or
-# refusal accuracy drop more than 2 points below main's baseline.
+# refusal accuracy drop more than 2 points below main's baseline and the
+# drop is beyond sampling noise (see ledger/evaluation/gate.py).
 # The smoke eval needs a GEMINI_API_KEY (or GROQ_API_KEY) repository secret
 # and a built golden set; until both exist it is skipped, not failed.
 

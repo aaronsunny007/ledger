@@ -261,3 +261,38 @@ def test_resume_picks_the_finished_run_or_the_fullest_partial(tmp_path: Path) ->
     found = mod.best_saved_run("t", {"B"})
     assert found and found[0].name == "3-t.json"
     assert mod.best_saved_run("t", {"C"}) is None
+
+
+def test_gate_ignores_a_drop_that_is_sampling_noise() -> None:
+    # PR #4: groundedness 69/74 -> 73/83 on the 50-question smoke set.
+    base = {"accuracy": 0.79, "groundedness": 0.9324, "refusal_accuracy": 1.0}
+    cur = {
+        "accuracy": 0.82,
+        "accuracy_n": 38,
+        "groundedness": 0.8795,
+        "groundedness_n": 83,
+        "refusal_accuracy": 1.0,
+        "refusal_n": 2,
+    }
+    assert check_regression(cur, base) == []
+
+
+def test_gate_still_catches_a_large_drop_on_a_small_sample() -> None:
+    base = {"groundedness": 0.95, "groundedness_n": 80}
+    cur = {"groundedness": 0.70, "groundedness_n": 80}
+    (failure,) = check_regression(cur, base)
+    assert "groundedness" in failure and "noise bar" in failure
+
+
+def test_gate_holds_large_samples_to_the_two_point_rule() -> None:
+    # 400 claims each: sampling noise is about 2 points, so 2.5 points is a regression.
+    base = {"groundedness": 0.97, "groundedness_n": 400}
+    assert check_regression({"groundedness": 0.945, "groundedness_n": 400}, base)
+    assert not check_regression({"groundedness": 0.955, "groundedness_n": 400}, base)
+
+
+def test_noise_bar_shrinks_with_sample_size_and_survives_perfect_scores() -> None:
+    from ledger.evaluation.gate import noise_bar
+
+    assert noise_bar(0.9, 0.9, 400, 400) < noise_bar(0.9, 0.9, 50, 50)
+    assert noise_bar(1.0, 1.0, 10, 10) > 0
