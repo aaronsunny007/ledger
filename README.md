@@ -89,29 +89,36 @@ item recovered them and more, and XBRL recall rose from 53% to 65%.
 ### Retrieval experiments
 
 No LLM; [table](eval/results/experiments-retrieval.md), test split, filters read from the question.
-Recall is the share of questions whose passages contain the gold evidence.
+Recall is the share of questions whose passages contain the gold evidence. The table-index rows ran on
+the final code; the three chunking rows (no statement tags, so unaffected by pinning) ran earlier.
 
 | Run | What changes | FinanceBench recall | XBRL recall | p50 retrieval |
 |---|---|---|---|---|
-| **default** | table chunks, hybrid + rerank, statements pinned | **71.8%** | 60.7% | 12.0 s |
-| no-pin-statements | statement pinning off | 28.2% | 47.5% | 15.1 s |
-| hybrid-no-rerank | reranker off | 68.2% | 51.6% | **0.06 s** |
-| rerank-v2-m3 | bge-reranker-v2-m3 instead of -base | **76.5%** | **62.3%** | 52.1 s |
-| vector-only | embeddings only | 71.8% | 62.3% | 16.1 s |
-| keyword-only | BM25 only | 69.4% | 54.1% | 7.9 s |
+| **default** | table chunks, vector search, no reranker, statements pinned | 74.1% | 64.8% | **0.06 s** |
+| hybrid-rerank | hybrid search + bge-reranker-base (the earlier default) | 74.1% | 65.6% | 9.1 s |
+| rerank-top10 | rerank only the top 10 candidates | 72.9% | 64.8% | 3.9 s |
+| rerank-v2-m3 | bge-reranker-v2-m3 instead of -base | **78.8%** | **67.2%** | 42.9 s |
+| hybrid-no-rerank | hybrid search, reranker off | 70.6% | 63.9% | 0.08 s |
+| vector-only | embeddings only, with the reranker | 74.1% | 64.8% | 10.1 s |
+| keyword-only | BM25 only, with the reranker | 71.8% | 63.1% | 14.4 s |
+| no-pin-statements | statement pinning off | 29.4% | 47.5% | 14.9 s |
 | section | section-aware chunks | 27.1% | 54.1% | 11.1 s |
 | fixed-1024 | fixed 1,024-character chunks | 25.9% | 56.6% | 12.7 s |
 | fixed-512 | fixed 512-character chunks | 10.6% | 45.9% | 7.1 s |
 
-- **Statement pinning is the biggest single factor**: FinanceBench recall falls from 71.8% to 28.2%
+- **Statement pinning is the biggest single factor**: FinanceBench recall falls from 74.1% to 29.4%
   without it. It depends on finding the statements, which ingest now does in
-  [all 124 golden filings](eval/results/statements-coverage.md) (it was 107–114 of 124 before:
-  statements split across tables, titles in their own table, PDF-style layouts).
-- **Table-aware chunking beats section and fixed-size chunking** by 45 points on FinanceBench,
+  [all 124 golden filings](eval/results/statements-coverage.md) (it was 107-114 of 124 before:
+  statements split across tables, titles in their own table, PDF-style layouts), and on knowing which
+  statement a question needs, which now includes named line items such as cash or R&D.
+- **Table-aware chunking beats section and fixed-size chunking** by about 47 points on FinanceBench,
   because a statement stays in one chunk.
-- **The reranker costs 12 s for 4 points of FinanceBench recall** (9 on XBRL). The larger v2-m3
-  reranker adds 5 more points at four times the latency. Hybrid search does not beat vector-only
-  here: BM25 adds nothing over embeddings once the statements are pinned.
+- **Once the right statements are pinned, the base reranker adds under one point** (74.1% / 65.6% against
+  74.1% / 64.8%) for 9 seconds, so Ledger dropped it. Only the larger v2-m3 reranker improves recall
+  (+4.7 and +2.4 points), at 43 seconds a question: too slow on a free CPU runner, a reasonable
+  choice with a GPU or a paid reranking API.
+- **Hybrid search does not beat vector search**: BM25 on top of embeddings is 3.5 points worse on
+  FinanceBench recall than embeddings alone once the statements are pinned.
 
 ### Baseline log
 
