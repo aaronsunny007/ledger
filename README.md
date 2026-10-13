@@ -63,7 +63,7 @@ key, which moves three questions):
 above was run on the earlier prompt and has not been re-run on this one yet, so the table above is
 unchanged). Overall 78.7% (163 of 207), XBRL 94.3% (115/122), refusals 10/10, groundedness 96.3%, p50 0.9 s,
 p95 4.9 s. Fixed: five of the six net-income-change questions, the investment-advice refusal, J&J inventory turnover
-and Walmart's EBITDA margin (recall was already full for that one), plus three FinanceBench questions that
+and Walmart's EBITDA margin (one of the two citation-parsing failures), plus three FinanceBench questions that
 flipped without a targeted change. Not fixed: two of the three J&J questions (retrieval still misses the evidence
 for 00956 and 00669), 03718 (still refuses although the evidence is retrieved), CVS net income change. Five
 questions got worse (Adobe, Best Buy and Corning now answer for the wrong years or with another line item; American
