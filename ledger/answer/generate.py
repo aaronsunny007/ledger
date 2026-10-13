@@ -122,7 +122,7 @@ def parse_draft(text: str) -> Draft:
         if not text.strip():
             continue
         c = {**c, "text": text}
-        raw_cites = next((c[k] for k in _CITATION_KEYS if c.get(k)), [])
+        raw_cites: Any = next((c[k] for k in _CITATION_KEYS if c.get(k)), [])
         if not isinstance(raw_cites, list):
             raw_cites = [raw_cites]
         # Models write citations as 1, "1", "[1]" or "passage 1"; keep the numbers.
