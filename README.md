@@ -57,6 +57,20 @@ key, which moves three questions):
 | [10 Oct](eval/results/20261010T071950-ledger-test.json) | first full run: hybrid search + reranker | 70.0% | 57.6% | 78.7% | 16.0 s |
 | [11 Oct](eval/results/20261011T154339-ledger-test.json) | + net-income prompt, answer-key fix, JnJ alias, year fallback; vector search, no reranker | 68.1% | 52.9% | 78.7% | 0.9 s |
 | [12 Oct](eval/results/20261012T071411-ledger-test.json) | + statement pinning for named line items (cash, R&D, debt...) | 76.3% | 56.5% | 90.2% | 0.9 s |
+| [13 Oct](eval/results/20261013T073749-ledger-test.json) | + J&J fiscal-year label, investment-advice refusal, citation parsing, net-income line | 78.7% | 56.5% | 94.3% | 0.9 s |
+
+**13 Oct follow-up** (the four fixes for the failures below, same 217 questions, Ledger only; the baseline
+above was run on the earlier prompt and has not been re-run on this one yet, so the table above is
+unchanged). Overall 78.7% (163 of 207), XBRL 94.3% (115/122), refusals 10/10, groundedness 96.3%, p50 0.9 s,
+p95 4.9 s. Fixed: five of the six net-income-change questions, the investment-advice refusal, J&J inventory turnover
+and Walmart's EBITDA margin (recall was already full for that one), plus three FinanceBench questions that
+flipped without a targeted change. Not fixed: two of the three J&J questions (retrieval still misses the evidence
+for 00956 and 00669), 03718 (still refuses although the evidence is retrieved), CVS net income change. Five
+questions got worse (Adobe, Best Buy and Corning now answer for the wrong years or with another line item; American
+Express is refused instead of explained), which looks like the free model's run-to-run variation: FinanceBench overall is
+unchanged at 56.5%, so the FinanceBench gains and losses cancel. The p95 drop (14.6 s to 4.9 s) is mostly
+fewer regenerations (11.5% against 16.1%) and no rate-limit waits on this run, not a latency fix.
+Ledger now meets five of the six targets; FinanceBench accuracy is the one still missing.
 
 Dropping the reranker made retrieval 250 times faster but lost ten questions that never say "balance
 sheet" or "income statement", because nothing told Ledger which statement to include. Pinning by line
