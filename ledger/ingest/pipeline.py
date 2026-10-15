@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from ledger.ingest.chunk import Chunker, DocMeta
+from ledger.ingest.fiscal import fiscal_year_of
 from ledger.ingest.parse import ParsedDoc, parse_html
 from ledger.retrieve.embed import Embedder
 from ledger.retrieve.store import Index
@@ -42,7 +43,7 @@ def sec_raw_docs(raw_dir: Path) -> Iterable[SourceDoc]:
                 doc_id=m["doc_id"],
                 company=m["company"],
                 ticker=m["ticker"],
-                fiscal_year=int(m["report_date"][:4]),
+                fiscal_year=fiscal_year_of(m["report_date"]),
                 form_type=m["form"],
                 source_url=m["url"],
             ),
