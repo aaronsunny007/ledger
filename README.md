@@ -21,33 +21,34 @@ Ledger is not a chatbot. It is the part around the chatbot that companies pay fo
 | | What | Where |
 |---|---|---|
 | **Measuring it** | A 350-question golden set: the public FinanceBench open set, 150 questions with answers taken from the SEC's own XBRL data, and 50 hand-written traps | [`eval/`](eval/) |
-| **Guarding it** | GitHub refuses to merge a change that drops accuracy by more than 2 points | [`ci.yml`](.github/workflows/ci.yml) |
+| **Guarding it** | GitHub refuses to merge a change that clearly drops accuracy, groundedness or refusals (more than 2 points and beyond sampling noise) | [`ci.yml`](.github/workflows/ci.yml) |
 | **Watching it** | Every request traced: latency per stage, tokens, cost, cache, verifier result | [`ledger/obs/`](ledger/obs/) |
 | **Shipping it** | API, UI, Docker; a free public demo | [`ledger/api/`](ledger/api/), [`ui/`](ui/) |
 
 ## Results
 
 Test split (217 questions: 85 FinanceBench 10-K, 122 XBRL, 10 hand-written refusals), Gemini
-`gemini-3.5-flash-lite` on the free tier, run on 2026-10-12. Every number links to a committed JSON
+`gemini-3.5-flash-lite` on the free tier, run on 2026-10-13 (Ledger) and 2026-10-14 (baseline), both on the same prompt. Every number links to a committed JSON
 in `eval/results/`.
 
 | System | FinanceBench (10-K subset) | XBRL numeric | Refusals | Groundedness | p50 / p95 latency | Cost / question |
 |---|---|---|---|---|---|---|
-| [Ledger](eval/results/20261012T071411-ledger-test.json) (vector search + pinning + verifier) | **56.5%** (48/85) | **90.2%** (110/122) | **90%** (9/10) | 97.3% | **0.9 s** / 14.6 s | $0 (free tier) |
-| [Long-context baseline](eval/results/20261011T160510-long-context-test.json) (whole filing, no retrieval) | 63.5% (54/85) | 82.6% (100/121)\* | 100% (10/10) | – (no citations) | 5.1 s / 48.5 s | $0 (free tier) |
+| [Ledger](eval/results/20261013T073749-ledger-test.json) (vector search + pinning + verifier) | 56.5% (48/85) | **94.3%** (115/122) | **100%** (10/10) | 96.3% | **0.9 s** / **4.9 s** | $0 (free tier) |
+| [Long-context baseline](eval/results/20261014T080946-long-context-test.json) (whole filing, no retrieval) | **65.9%** (56/85) | 82.0% (100/122) | 100% (10/10) | – (no citations) | 4.1 s / 157.5 s\* | $0 (free tier) |
 | Target (PRF) | ≥ 70% | ≥ 90% | ≥ 85% | ≥ 90% | ≤ 4 s / ≤ 10 s | ≤ $0.02 |
 
-\* One baseline question failed on a temporary Gemini overload (HTTP 503) and is not scored.
+\* The baseline's tail latency includes the free tier's rate-limit waits (each question sends a whole filing, and the last third of the run was throttled to about two minutes a question), so its p95 overstates the cost of the approach; its p50 is the fairer figure. The earlier baseline run (11 Oct, [file](eval/results/20261011T160510-long-context-test.json)) used the previous prompt and scored 74.8% overall.
 Groundedness is the share of claims whose cited passage contains their figures.
 
-**Where this stands.** Overall Ledger answers 76.3% of the 207 scored questions (158) against the
-baseline's 74.8% (154 of 206). It meets four of the six targets: XBRL (narrowly, 110 of 122),
-refusals, groundedness and median latency, with cost at zero. It misses FinanceBench (56.5% against
-70%) and the slowest-5% latency (14.6 s against 10 s). The long-context baseline is better than Ledger
-on FinanceBench by 7 points; Ledger is better on XBRL by 8, and it cites its sources, checks its
-arithmetic and answers in under a second. Where the two disagree, each is right on about the same number
-of questions (Ledger 20, baseline 18). I have not measured run-to-run noise on the free tier, so treat
-gaps under about 3 points as inconclusive.
+**Where this stands.** Overall Ledger answers 78.7% of the 207 scored questions (163) against the
+baseline's 75.4% (156). It meets five of the six targets: XBRL (115 of 122), refusals (10 of 10), groundedness,
+and both latency targets (0.9 s median, 4.9 s slowest-5%), with cost at zero. It misses FinanceBench (56.5% against 70%). The
+long-context baseline is better than Ledger on FinanceBench by 9 points; Ledger is better on XBRL by 12, and it cites
+its sources, checks its arithmetic and answers in about a second. Where the two disagree, Ledger is right on 26 questions
+the baseline gets wrong (15 XBRL, 11 FinanceBench) and the baseline is right on 19 that Ledger gets wrong (all FinanceBench).
+Ledger's p95 of 4.9 s is partly luck of the run (fewer regenerations and no rate-limit waits; 14.6 s on 12 Oct). I have not
+measured run-to-run noise on the free tier beyond the five questions that flipped for the worse on 13 Oct, so treat gaps under
+about 3 points as inconclusive.
 
 **How Ledger got here** (same 217 questions; the first run predates a corrected General Mills answer
 key, which moves three questions):
@@ -57,12 +58,24 @@ key, which moves three questions):
 | [10 Oct](eval/results/20261010T071950-ledger-test.json) | first full run: hybrid search + reranker | 70.0% | 57.6% | 78.7% | 16.0 s |
 | [11 Oct](eval/results/20261011T154339-ledger-test.json) | + net-income prompt, answer-key fix, JnJ alias, year fallback; vector search, no reranker | 68.1% | 52.9% | 78.7% | 0.9 s |
 | [12 Oct](eval/results/20261012T071411-ledger-test.json) | + statement pinning for named line items (cash, R&D, debt...) | 76.3% | 56.5% | 90.2% | 0.9 s |
+| [13 Oct](eval/results/20261013T073749-ledger-test.json) | + J&J fiscal-year label, investment-advice refusal, citation parsing, net-income line | 78.7% | 56.5% | 94.3% | 0.9 s |
+
+**13 Oct follow-up** (the four fixes for the failures below, same 217 questions). Overall 78.7% (163 of 207), XBRL 94.3% (115/122), refusals 10/10, groundedness 96.3%, p50 0.9 s,
+p95 4.9 s. Fixed: five of the six net-income-change questions, the investment-advice refusal, J&J inventory turnover
+and Walmart's EBITDA margin (one of the two citation-parsing failures), plus three FinanceBench questions that
+flipped without a targeted change. Not fixed: two of the three J&J questions (retrieval still misses the evidence
+for 00956 and 00669), 03718 (still refuses although the evidence is retrieved), CVS net income change. Five
+questions got worse (Adobe, Best Buy and Corning now answer for the wrong years or with another line item; American
+Express is refused instead of explained), which looks like the free model's run-to-run variation: FinanceBench overall is
+unchanged at 56.5%, so the FinanceBench gains and losses cancel. The p95 drop (14.6 s to 4.9 s) is mostly
+fewer regenerations (11.5% against 16.1%) and no rate-limit waits on this run, not a latency fix.
+FinanceBench accuracy is the one target still missing.
 
 Dropping the reranker made retrieval 250 times faster but lost ten questions that never say "balance
 sheet" or "income statement", because nothing told Ledger which statement to include. Pinning by line
 item recovered them and more, and XBRL recall rose from 53% to 65%.
 
-**What failed** (from the per-question JSON):
+**What failed** (from the per-question JSON of the 12 Oct run; the 13 Oct paragraph above says what the follow-up fixed):
 
 - **False refusals on FinanceBench: 22 of 85.** Thirteen are narrative questions (acquisitions, customers,
   litigation, segments, registered securities) where retrieval brings statement tables, not the right
@@ -89,29 +102,36 @@ item recovered them and more, and XBRL recall rose from 53% to 65%.
 ### Retrieval experiments
 
 No LLM; [table](eval/results/experiments-retrieval.md), test split, filters read from the question.
-Recall is the share of questions whose passages contain the gold evidence.
+Recall is the share of questions whose passages contain the gold evidence. The table-index rows ran on
+the final code; the three chunking rows (no statement tags, so unaffected by pinning) ran earlier.
 
 | Run | What changes | FinanceBench recall | XBRL recall | p50 retrieval |
 |---|---|---|---|---|
-| **default** | table chunks, hybrid + rerank, statements pinned | **71.8%** | 60.7% | 12.0 s |
-| no-pin-statements | statement pinning off | 28.2% | 47.5% | 15.1 s |
-| hybrid-no-rerank | reranker off | 68.2% | 51.6% | **0.06 s** |
-| rerank-v2-m3 | bge-reranker-v2-m3 instead of -base | **76.5%** | **62.3%** | 52.1 s |
-| vector-only | embeddings only | 71.8% | 62.3% | 16.1 s |
-| keyword-only | BM25 only | 69.4% | 54.1% | 7.9 s |
+| **default** | table chunks, vector search, no reranker, statements pinned | 74.1% | 64.8% | **0.06 s** |
+| hybrid-rerank | hybrid search + bge-reranker-base (the earlier default) | 74.1% | 65.6% | 9.1 s |
+| rerank-top10 | rerank only the top 10 candidates | 72.9% | 64.8% | 3.9 s |
+| rerank-v2-m3 | bge-reranker-v2-m3 instead of -base | **78.8%** | **67.2%** | 42.9 s |
+| hybrid-no-rerank | hybrid search, reranker off | 70.6% | 63.9% | 0.08 s |
+| vector-only | embeddings only, with the reranker | 74.1% | 64.8% | 10.1 s |
+| keyword-only | BM25 only, with the reranker | 71.8% | 63.1% | 14.4 s |
+| no-pin-statements | statement pinning off | 29.4% | 47.5% | 14.9 s |
 | section | section-aware chunks | 27.1% | 54.1% | 11.1 s |
 | fixed-1024 | fixed 1,024-character chunks | 25.9% | 56.6% | 12.7 s |
 | fixed-512 | fixed 512-character chunks | 10.6% | 45.9% | 7.1 s |
 
-- **Statement pinning is the biggest single factor**: FinanceBench recall falls from 71.8% to 28.2%
+- **Statement pinning is the biggest single factor**: FinanceBench recall falls from 74.1% to 29.4%
   without it. It depends on finding the statements, which ingest now does in
-  [all 124 golden filings](eval/results/statements-coverage.md) (it was 107–114 of 124 before:
-  statements split across tables, titles in their own table, PDF-style layouts).
-- **Table-aware chunking beats section and fixed-size chunking** by 45 points on FinanceBench,
+  [all 124 golden filings](eval/results/statements-coverage.md) (it was 107-114 of 124 before:
+  statements split across tables, titles in their own table, PDF-style layouts), and on knowing which
+  statement a question needs, which now includes named line items such as cash or R&D.
+- **Table-aware chunking beats section and fixed-size chunking** by about 47 points on FinanceBench,
   because a statement stays in one chunk.
-- **The reranker costs 12 s for 4 points of FinanceBench recall** (9 on XBRL). The larger v2-m3
-  reranker adds 5 more points at four times the latency. Hybrid search does not beat vector-only
-  here: BM25 adds nothing over embeddings once the statements are pinned.
+- **Once the right statements are pinned, the base reranker adds under one point** (74.1% / 65.6% against
+  74.1% / 64.8%) for 9 seconds, so Ledger dropped it. Only the larger v2-m3 reranker improves recall
+  (+4.7 and +2.4 points), at 43 seconds a question: too slow on a free CPU runner, a reasonable
+  choice with a GPU or a paid reranking API.
+- **Hybrid search does not beat vector search**: BM25 on top of embeddings is 3.5 points worse on
+  FinanceBench recall than embeddings alone once the statements are pinned.
 
 ### Baseline log
 

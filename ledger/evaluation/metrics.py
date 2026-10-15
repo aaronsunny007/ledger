@@ -188,10 +188,12 @@ def aggregate(results: Sequence[ItemResult]) -> dict[str, Any]:
         "accuracy": _mean(scored),
         "accuracy_n": len(scored),
         "refusal_accuracy": _mean([r.correct or 0.0 for r in unanswerable]),
+        "refusal_n": len(unanswerable),
         "false_refusal_rate": _mean([1.0 if r.refused else 0.0 for r in answerable]),
         "groundedness": round(sum(r.grounded_claims for r in ok) / total_claims, 4)
         if total_claims
         else None,
+        "groundedness_n": total_claims,
         "verified_rate": _mean([1.0 if r.verified else 0.0 for r in ok if r.verified is not None]),
         "regenerated_rate": _mean([1.0 if r.regenerated else 0.0 for r in ok]),
         "recall_at_k": _mean([r.recall for r in ok if r.recall is not None]),

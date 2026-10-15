@@ -21,6 +21,12 @@ def system_prompt() -> str:
     return (PROMPTS / "answer_system.md").read_text()
 
 
+# Keys a model may use for the passages behind a claim, in preference order.
+_CITATION_KEYS = ("citations", "citation", "sources", "source", "passages", "passage", "evidence")
+# A bracketed passage reference in a sentence: [1] or [1, 3].
+_TEXT_MARK = re.compile(r"\s*\[\s*\d+(?:\s*,\s*\d+)*\s*\]")
+
+
 @dataclass
 class DraftClaim:
     text: str
@@ -116,11 +122,17 @@ def parse_draft(text: str) -> Draft:
         if not text.strip():
             continue
         c = {**c, "text": text}
-        raw_cites = c.get("citations") or []
+        raw_cites: Any = next((c[k] for k in _CITATION_KEYS if c.get(k)), [])
         if not isinstance(raw_cites, list):
             raw_cites = [raw_cites]
         # Models write citations as 1, "1", "[1]" or "passage 1"; keep the numbers.
         cites = [int(m) for n in raw_cites for m in re.findall(r"\d+", str(n))]
+        if not cites:
+            # Or leave the list empty and mark the sentence itself with [1] or [1, 2].
+            marks = _TEXT_MARK.findall(c["text"])
+            cites = [int(m) for mark in marks for m in re.findall(r"\d+", mark)]
+            if cites:
+                c = {**c, "text": _TEXT_MARK.sub("", c["text"]).strip()}
         calc = c.get("calculation")
         claims.append(
             DraftClaim(

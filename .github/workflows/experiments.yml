@@ -194,5 +194,6 @@ jobs:
           git config user.email "ledger-eval-bot@users.noreply.github.com"
           git add eval/results
           git commit -m "eval: retrieval experiments" || exit 0
-          git pull --rebase origin "$GITHUB_REF_NAME"
+          # These results are newer than anything on the branch: on a clash, keep them.
+          git pull --rebase -X theirs origin "$GITHUB_REF_NAME"
           git push

@@ -59,8 +59,16 @@ Results land in `results/<timestamp>-<tag>.json` with the exact config and git c
 ## The CI gate
 
 A PR fails when `accuracy`, `groundedness` or `refusal_accuracy` on the smoke set drops more than
-2 points below the baseline (CI-2). Leave one deliberately bad PR in history to show the gate
-catching it (CI-4): for example, set `rerank: false` and `top_k: 2` and open a PR.
+2 points below the baseline (CI-2) *and* the drop is larger than sampling noise
+(`ledger/evaluation/gate.py`). With 50 questions a metric's standard error is several points, so a bare
+2-point rule fails on noise about as often as on real regressions: the gate also requires the drop to
+exceed 1.645 standard errors of the difference of the two runs (a one-sided 95% test), computed from
+the claim and question counts stored in the metrics files. On the full test split the 2-point rule is
+the binding one; on the smoke set only a clear regression fails, and the nightly and full runs catch
+the smaller ones. A smoke run cut short by the free-tier quota reports the gate as not evaluated.
+
+Leave one deliberately bad PR in history to show the gate catching it (CI-4): for example, set
+`rerank: false` and `top_k: 2` and open a PR (it has to be a large regression to clear the noise bar).
 
 ## Judge spot-check
 

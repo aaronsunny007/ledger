@@ -1,0 +1,46 @@
+name: collect-experiments
+
+# Re-collect the results of a finished experiments run (its report job's commit
+# can fail when the branch moved meanwhile): download that run's artifacts,
+# rebuild the table and commit. Needs no LLM and no index.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "experiments run id whose artifacts to collect"
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: retrieval-*
+          path: eval/results/retrieval
+          merge-multiple: true
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Build the table
+        run: |
+          python eval/experiments_report.py
+          cat eval/results/experiments-retrieval.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit
+        run: |
+          git config user.name "ledger-eval-bot"
+          git config user.email "ledger-eval-bot@users.noreply.github.com"
+          git add eval/results
+          git commit -m "eval: retrieval experiments (run ${{ inputs.run_id }})" || exit 0
+          # These results are newer than anything on the branch: on a clash, keep them.
+          git pull --rebase -X theirs origin "$GITHUB_REF_NAME"
+          git push

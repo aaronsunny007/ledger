@@ -29,6 +29,7 @@ from ledger.evaluation.golden import (  # noqa: E402
     write_golden,
 )
 from ledger.ingest.edgar import EdgarClient  # noqa: E402
+from ledger.ingest.fiscal import fiscal_year_of  # noqa: E402
 
 # Concept fallbacks: companies tag revenue under different names.
 CONCEPTS = {
@@ -61,7 +62,7 @@ def _concept_values(units: list[dict[str, Any]], instant: bool) -> dict[int, flo
             continue
         if not instant and ("start" not in f or not 350 <= _days(f["start"], f["end"]) <= 380):
             continue
-        year = int(f["end"][:4])
+        year = fiscal_year_of(f["end"])
         # The year's own 10-K is the original figure; later ones may restate it.
         if f.get("fy") == year:
             own.setdefault(year, float(f["val"]))
