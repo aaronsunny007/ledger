@@ -1,0 +1,70 @@
+name: diagnose-narrative
+
+# No LLM, no quota: for named golden question ids, checks whether the gold
+# evidence is in the index and where retrieval ranks it, and how many of the
+# passages handed to the model are tables. Commits a markdown report to
+# eval/results/. Used to understand the FinanceBench narrative questions
+# (acquisitions, customers, geographies, legal matters) that Ledger refuses.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: space-separated golden question ids
+        required: true
+      config:
+        description: optional retrieval config file (for example configs/experiments/prose-first.yaml)
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'Aaron Gandi aarongandi007@gmail.com' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (CPU torch)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install -e ".[models]"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            data/raw
+            data/processed
+            ~/.cache/huggingface
+          key: narrative-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**/*.py') }}-${{ hashFiles('.github/workflows/diagnose-narrative.yml') }}
+          restore-keys: narrative-
+      - name: Download and index (skipped when cached)
+        env:
+          IDS: ${{ inputs.ids }}
+        run: |
+          python eval/needs_for_ids.py $IDS > needs.txt
+          cat needs.txt
+          awk '{y[$1]=y[$1]" "$2} END {for (t in y) print t y[t]}' needs.txt | while read -r t ys; do
+            ledger download --tickers "$t" --years $ys
+          done
+          ledger ingest | tail -3
+      - name: Diagnose
+        env:
+          IDS: ${{ inputs.ids }}
+          CONFIG: ${{ inputs.config }}
+        run: |
+          python eval/diagnose_retrieval.py --sources financebench --limit 500 ${CONFIG:+--config "$CONFIG"} --ids $IDS
+          cat eval/results/*-diagnose.md | tail -n +1 | head -60 >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit report
+        run: |
+          git config user.name "ledger-eval-bot"
+          git config user.email "ledger-eval-bot@users.noreply.github.com"
+          git add eval/results
+          git commit -m "eval: retrieval diagnosis on named questions" || exit 0
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push

@@ -5,7 +5,7 @@ sentence cites the filing passage it came from, and every number is recomputed b
 before you see it. When the filings do not contain the answer, Ledger says so and shows the
 closest passages instead of guessing.
 
-> Live demo: _coming in week 8 (Hugging Face Spaces)_ · Results: [first full test run](#results), 70% on 217 questions
+> Results: [78.7% on the 207 scored test questions](#results) (the long-context baseline gets 75.4%); live demo: not deployed yet, see [Running the demo](#running-the-demo)
 
 ```text
 Q: How much did Apple's net sales change from FY2023 to FY2024?
@@ -20,7 +20,7 @@ Ledger is not a chatbot. It is the part around the chatbot that companies pay fo
 
 | | What | Where |
 |---|---|---|
-| **Measuring it** | A 350-question golden set: the public FinanceBench open set, 150 questions with answers taken from the SEC's own XBRL data, and 50 hand-written traps | [`eval/`](eval/) |
+| **Measuring it** | A 313-question golden set: 150 questions from the public FinanceBench open set, 150 with answers taken from the SEC's own XBRL data, and 13 hand-written traps | [`eval/`](eval/) |
 | **Guarding it** | GitHub refuses to merge a change that clearly drops accuracy, groundedness or refusals (more than 2 points and beyond sampling noise) | [`ci.yml`](.github/workflows/ci.yml) |
 | **Watching it** | Every request traced: latency per stage, tokens, cost, cache, verifier result | [`ledger/obs/`](ledger/obs/) |
 | **Shipping it** | API, UI, Docker; a free public demo | [`ledger/api/`](ledger/api/), [`ui/`](ui/) |
