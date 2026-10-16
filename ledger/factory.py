@@ -55,7 +55,8 @@ def build_ledger(
     config = config or LedgerConfig.load(settings.retrieval_config)
     embedder = embedder or get_embedder(config.retrieval.embedder)
     index = index if index is not None else build_index(settings, embedder, config)
-    reranker = get_reranker(config.retrieval.reranker) if config.retrieval.rerank else None
+    wants_rerank = config.retrieval.rerank or bool(config.retrieval.narrative_rerank)
+    reranker = get_reranker(config.retrieval.reranker) if wants_rerank else None
     if llm is None:
         llm, large_llm = build_llms(settings)
 

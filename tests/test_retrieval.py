@@ -59,6 +59,50 @@ def test_rerank_off_by_config_ignores_reranker(
     assert Retriever(index, embedder, cfg, OverlapReranker()).reranker is None
 
 
+def test_narrative_questions_use_their_own_settings(
+    index: InMemoryIndex, embedder: HashingEmbedder
+) -> None:
+    cfg = RetrievalConfig(
+        embedder="hashing",
+        mode="vector",
+        rerank=False,
+        top_k=3,
+        candidates=10,
+        narrative_mode="hybrid",
+        narrative_top_k=8,
+        narrative_rerank=True,
+    )
+    r = Retriever(index, embedder, cfg, OverlapReranker())
+    assert r.reranker is not None
+    narrative = r.plan("Did Acme report customer concentration?")
+    assert (narrative.mode, narrative.top_k, narrative.rerank) == ("hybrid", 8, True)
+    numeric = r.plan("What was Acme's total revenue in 2024?")
+    assert (numeric.mode, numeric.top_k, numeric.rerank) == ("vector", 3, False)
+
+
+def test_narrative_settings_default_to_the_general_ones(
+    index: InMemoryIndex, embedder: HashingEmbedder
+) -> None:
+    cfg = RetrievalConfig(embedder="hashing", rerank=False, top_k=4)
+    plan = Retriever(index, embedder, cfg).plan("Which acquisitions did Acme make?")
+    assert (plan.mode, plan.top_k, plan.rerank) == (cfg.mode, 4, False)
+
+
+@pytest.mark.parametrize(
+    ("question", "narrative"),
+    [
+        ("Is 3M a capital-intensive business?", False),
+        ("Has MGM paid dividends to common shareholders in FY2022?", False),
+        ("Did AMD report customer concentration in FY22?", True),
+        ("What are major acquisitions that Ulta has done?", True),
+    ],
+)
+def test_is_narrative(question: str, narrative: bool) -> None:
+    from ledger.retrieve.needs import is_narrative
+
+    assert is_narrative(question) is narrative
+
+
 def test_filters_by_year(index: InMemoryIndex, embedder: HashingEmbedder) -> None:
     cfg = RetrievalConfig(embedder="hashing", rerank=False)
     assert Retriever(index, embedder, cfg).retrieve("revenue", Filters(years=[2019])) == []

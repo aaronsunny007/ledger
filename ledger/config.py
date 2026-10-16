@@ -68,6 +68,13 @@ class RetrievalConfig(BaseModel):
     pin_statements: bool = True
     # "FY2017 vs FY2019" -> search the FY2019 filing, which holds the comparatives.
     latest_year_only: bool = True
+    # Questions that need no primary statement (acquisitions, customers, legal matters,
+    # geographies) are answered from prose that similarity search ranks poorly. They can
+    # use their own settings; "same" / 0 / None keep the settings above.
+    narrative_mode: Literal["same", "vector", "keyword", "hybrid"] = "same"
+    narrative_candidates: int = 0
+    narrative_top_k: int = 0
+    narrative_rerank: bool | None = None
 
 
 class AnswerConfig(BaseModel):
