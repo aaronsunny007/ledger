@@ -109,11 +109,17 @@ item recovered them and more, and XBRL recall rose from 53% to 65%.
 
 No LLM; [table](eval/results/experiments-retrieval.md), test split, filters read from the question.
 Recall is the share of questions whose passages contain the gold evidence. The table-index rows ran on
-the final code; the three chunking rows (no statement tags, so unaffected by pinning) ran earlier.
+the code of 13 Oct; the first three rows were re-run on 16 Oct after "capital-intensive" and "dividends
+paid" questions started pinning the statements they need, and the three chunking rows (no statement tags, so
+unaffected by pinning) ran earlier. Compare the first three rows with each other, and the rest with the
+`vector, all questions` row of 13 Oct (74.1%).
 
 | Run | What changes | FinanceBench recall | XBRL recall | p50 retrieval |
 |---|---|---|---|---|
-| **default** | table chunks, vector search, no reranker, statements pinned | 74.1% | 64.8% | **0.06 s** |
+| **default** | table chunks, vector search; questions needing no statement (acquisitions, customers, legal) use keyword fusion and 10 passages | **80.0%** | 64.8% | **0.06 s** |
+| narrative-rerank | the same, but those questions are reranked (8 passages) | 78.8% | 64.8% | 0.06 s median (the reranker runs only for those questions, so its tail is slower) |
+| vector, all questions | the same without the narrative settings | 76.5% | 64.8% | 0.07 s |
+| vector, 13 Oct | the earlier default, before the new pinning wording | 74.1% | 64.8% | 0.06 s |
 | hybrid-rerank | hybrid search + bge-reranker-base (the earlier default) | 74.1% | 65.6% | 9.1 s |
 | rerank-top10 | rerank only the top 10 candidates | 72.9% | 64.8% | 3.9 s |
 | rerank-v2-m3 | bge-reranker-v2-m3 instead of -base | **78.8%** | **67.2%** | 42.9 s |
@@ -137,7 +143,12 @@ the final code; the three chunking rows (no statement tags, so unaffected by pin
   (+4.7 and +2.4 points), at 43 seconds a question: too slow on a free CPU runner, a reasonable
   choice with a GPU or a paid reranking API.
 - **Hybrid search does not beat vector search**: BM25 on top of embeddings is 3.5 points worse on
-  FinanceBench recall than embeddings alone once the statements are pinned.
+  FinanceBench recall than embeddings alone once the statements are pinned. It does help the questions
+  that need no statement: for those, [19 failed narrative questions](eval/results/20261016T134937-diagnose.md)
+  went from 0 to 2 findable with keyword fusion and 10 passages (3 with a reranker), and over the whole test
+  split that setting adds 3.5 points of FinanceBench recall (76.5% to 80.0%) without touching XBRL. Most
+  narrative evidence is still missed: the passages are in the index, but the small embedding model ranks
+  generic text above them.
 
 ### Baseline log
 
