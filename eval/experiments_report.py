@@ -22,6 +22,8 @@ ORDER = {
     "rerank-v2-m3": "Reranker bge-reranker-v2-m3 instead of -base",
     "rerank-top10": "Rerank the top 10 candidates instead of 30",
     "vector-no-rerank": "Vector search only, reranker off",
+    "narrative-hybrid": "Narrative questions: keyword fusion, 10 passages",
+    "narrative-rerank": "Narrative questions: keyword fusion, reranked, 8 passages",
     "vector-only": "Vector search only",
     "keyword-only": "Keyword (BM25) search only",
     "section": "Section-aware chunks",
