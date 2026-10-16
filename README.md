@@ -250,6 +250,30 @@ Point it at any folder of PDF, HTML or text files with one YAML file; see
 ledger ingest --folder configs/examples/my_docs.yaml
 ```
 
+## Running the demo
+
+A public demo that costs nothing: a free Hugging Face Docker Space (CPU) serving the
+Streamlit UI, with the free Gemini tier answering. Step by step, with every click, in
+[docs/deploy-demo.md](docs/deploy-demo.md); in short:
+
+1. Run the **build-demo-index** workflow (Actions tab). It indexes the filings and attaches
+   `demo-index.tar.gz` to a release named `demo-index`.
+2. Create a free Docker Space and push the three files in [`deploy/hf-space/`](deploy/hf-space).
+3. In the Space's *Variables and secrets*: secret `GEMINI_API_KEY`, variable
+   `LEDGER_INDEX_URL` (the release asset URL). Optional: `LANGFUSE_PUBLIC_KEY` and
+   `LANGFUSE_SECRET_KEY` from the free Langfuse Cloud Hobby tier.
+
+Keep billing disabled everywhere, and keys only in those secret settings. To protect the free
+quota the API answers at most `LEDGER_DAILY_BUDGET` questions a day (default 300) and
+`LEDGER_PER_CLIENT_DAILY` per visitor (default 15); after that it returns HTTP 429 and the UI
+says the free daily quota is used up and when it resets (midnight Pacific, 07:00 UTC). Cache
+hits and investment-advice refusals are not counted. Tracing always goes to a local file
+(`data/traces/requests.jsonl`, shown on the UI's Dashboard tab); Langfuse is added on top when
+its keys are set, and is skipped without them.
+
+Expect a free-CPU cold start of a few minutes after the Space has slept, a hard daily cap, and
+answers that are not investment advice.
+
 ## Evaluate
 
 ```bash
@@ -272,7 +296,7 @@ ledger/
   verifier/    ported from Financial-NRF (VER-1..4)
   cache/       semantic_cache.py (CACHE-1..3)
   obs/         tracing.py, langfuse_sink.py, dashboard.py (OBS-1..5)
-  api/         main.py (API-1/2, COST-3)
+  api/         main.py (API-1/2, COST-3), budget.py (daily free-tier quota)
   evaluation/  golden.py, metrics.py, gate.py, judge.py, baseline.py
 eval/          golden/*.jsonl, run_eval.py, results/
 configs/       corpus.yaml, retrieval.yaml

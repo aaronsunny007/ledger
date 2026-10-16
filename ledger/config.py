@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     daily_spend_cap_usd: float = 1.0  # COST-3
     rate_limit_per_minute: int = 10  # COST-3, per IP
     max_question_chars: int = 1000  # SEC-3; FinanceBench questions run to ~700
+    # Public demo: stay inside the free Gemini tier (about 500 requests a day).
+    ledger_daily_budget: int = 300  # answers that call the model, whole service
+    ledger_per_client_daily: int = 15  # the same, per client IP
+    ledger_budget_file: str = ""  # optional JSON file so counters survive a restart
 
     retrieval_config: Path = ROOT / "configs" / "retrieval.yaml"
 

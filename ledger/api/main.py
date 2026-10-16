@@ -15,10 +15,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import time
 from collections import defaultdict, deque
 from collections.abc import AsyncIterator
 from datetime import UTC, date, datetime
+from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -26,6 +28,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from ledger.answer.llm import QuotaExhausted
+from ledger.api.budget import BudgetExhausted, DailyBudget
 from ledger.config import ROOT, Settings
 from ledger.pipeline import Ledger, QuestionTooLong
 from ledger.retrieve.filters import Filters
@@ -97,6 +101,11 @@ app.add_middleware(
 )
 limiter = RateLimiter(settings.rate_limit_per_minute)
 spend = SpendCap(settings.daily_spend_cap_usd)
+budget = DailyBudget(
+    settings.ledger_daily_budget,
+    settings.ledger_per_client_daily,
+    Path(settings.ledger_budget_file) if settings.ledger_budget_file else None,
+)
 _ledger: Ledger | None = None
 
 
@@ -117,9 +126,18 @@ def _client_ip(request: Request) -> str:
     return fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "?")
 
 
+def _quota_error(e: BudgetExhausted) -> HTTPException:
+    return HTTPException(429, e.detail(), headers={"Retry-After": str(e.retry_after)})
+
+
 def _guard(request: Request) -> None:
-    if not limiter.allow(_client_ip(request)):
+    ip = _client_ip(request)
+    if not limiter.allow(ip):
         raise HTTPException(429, "Rate limit reached; try again in a minute.")
+    try:
+        budget.check(ip)
+    except BudgetExhausted as e:
+        raise _quota_error(e) from e
     if spend.exhausted():
         raise HTTPException(503, "The demo's daily budget is used up; try again tomorrow.")
 
@@ -128,11 +146,20 @@ def _filters(req: AskRequest) -> Filters:
     return Filters(tickers=[t.upper() for t in req.tickers], years=req.years, sections=req.sections)
 
 
-def _ask(ledger: Ledger, req: AskRequest) -> Answer:
+def _ask(ledger: Ledger, req: AskRequest, client: str) -> Answer:
+    try:
+        budget.reserve(client)  # counted up front so parallel requests cannot overshoot
+    except BudgetExhausted as e:
+        raise _quota_error(e) from e
     try:
         answer = ledger.ask(req.question, _filters(req))
     except QuestionTooLong as e:
+        budget.refund(client)
         raise HTTPException(422, str(e)) from e
+    except QuotaExhausted as e:  # the provider's own free quota ran out first
+        raise _quota_error(budget.provider_exhausted()) from e
+    if not answer.model or answer.cache_hit:  # no model call: advice refusal, cache, no passage
+        budget.refund(client)
     spend.add(answer.cost_usd)
     return answer
 
@@ -144,6 +171,7 @@ def health() -> dict[str, Any]:
         "time": datetime.now(UTC).isoformat(timespec="seconds"),
         "llm_provider": settings.llm_provider,
         "store": settings.store,
+        "daily_budget_remaining": budget.remaining(),
     }
 
 
@@ -155,16 +183,17 @@ def documents(ledger: LedgerDep) -> list[dict[str, object]]:
 @app.post("/ask", response_model=Answer)
 def ask(req: AskRequest, request: Request, ledger: LedgerDep) -> Answer:
     _guard(request)
-    return _ask(ledger, req)
+    return _ask(ledger, req, _client_ip(request))
 
 
 @app.post("/ask/stream")
 async def ask_stream(req: AskRequest, request: Request, ledger: LedgerDep) -> StreamingResponse:
     _guard(request)
+    ip = _client_ip(request)
 
     async def events() -> AsyncIterator[str]:
         yield _sse("status", {"stage": "retrieving"})
-        task = asyncio.create_task(asyncio.to_thread(_ask, ledger, req))
+        task = asyncio.create_task(asyncio.to_thread(_ask, ledger, req, ip))
         stages = ["reranking", "drafting", "verifying"]
         i = 0
         while not task.done():
@@ -187,11 +216,14 @@ def feedback(fb: Feedback) -> dict[str, str]:
     with FEEDBACK_LOG.open("a") as f:
         f.write(json.dumps({**fb.model_dump(), "ts": time.time()}) + "\n")
     if settings.langfuse_public_key and settings.langfuse_secret_key:
-        from ledger.obs.langfuse_sink import LangfuseSink
+        try:
+            from ledger.obs.langfuse_sink import LangfuseSink
 
-        LangfuseSink(
-            settings.langfuse_public_key, settings.langfuse_secret_key, settings.langfuse_host
-        ).score(fb.request_id, float(fb.thumbs_up), fb.comment)
+            LangfuseSink(
+                settings.langfuse_public_key, settings.langfuse_secret_key, settings.langfuse_host
+            ).score(fb.request_id, float(fb.thumbs_up), fb.comment)
+        except Exception:  # the local log above already has it; Langfuse is a bonus
+            logging.getLogger(__name__).exception("Langfuse feedback score failed")
     return {"status": "recorded"}
 
 

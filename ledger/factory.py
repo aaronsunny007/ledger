@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from ledger.answer.generate import Generator
@@ -60,13 +61,18 @@ def build_ledger(
 
     sinks: list[TraceSink] = [JsonlSink(trace_log)] if trace_log else []
     if settings.langfuse_public_key and settings.langfuse_secret_key:
-        from ledger.obs.langfuse_sink import LangfuseSink
+        try:
+            from ledger.obs.langfuse_sink import LangfuseSink
 
-        sinks.append(
-            LangfuseSink(
-                settings.langfuse_public_key, settings.langfuse_secret_key, settings.langfuse_host
+            sinks.append(
+                LangfuseSink(
+                    settings.langfuse_public_key,
+                    settings.langfuse_secret_key,
+                    settings.langfuse_host,
+                )
             )
-        )
+        except Exception:  # missing extra or bad config: keep the local sink, never fail to start
+            logging.getLogger(__name__).exception("Langfuse tracing disabled")
 
     corpus = ROOT / "configs" / "corpus.yaml"
     return Ledger(
