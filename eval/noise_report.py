@@ -21,7 +21,7 @@ RESULTS = ROOT / "eval" / "results"
 OUT = RESULTS / "noise.md"
 
 
-def load_runs() -> list[tuple[Path, dict]]:
+def load_runs(hashes: list[str]) -> list[tuple[Path, dict]]:
     runs = []
     for f in sorted(RESULTS.glob("*-ledger-test*.json")):
         if f.name.endswith("-ledger-test.json") or "-ledger-test-repeat" in f.name:
@@ -30,6 +30,8 @@ def load_runs() -> list[tuple[Path, dict]]:
                 runs.append((f, d))
     if not runs:
         return []
+    if hashes:
+        return [r for r in runs if r[1]["code_hash"] in hashes]
     newest = max(runs, key=lambda r: r[1]["timestamp"])[1]["code_hash"]
     return [r for r in runs if r[1]["code_hash"] == newest]
 
@@ -51,7 +53,10 @@ def groundedness(items: list[dict]) -> float:
 
 
 def main() -> int:
-    runs = load_runs()
+    hashes = sys.argv[
+        1:
+    ]  # code hashes to treat as the same code (a change that cannot alter answers)
+    runs = load_runs(hashes)
     if len(runs) < 2:
         print(f"need at least two complete runs of the same code, found {len(runs)}")
         return 1
@@ -64,7 +69,14 @@ def main() -> int:
     lines = [
         "# Run-to-run noise (same code, same questions)",
         "",
-        f"Runs compared: {len(runs)}, all with code hash `{runs[0][1]['code_hash']}`.",
+        f"Runs compared: {len(runs)}, code hash(es) "
+        + ", ".join(f"`{h}`" for h in sorted({d["code_hash"] for _, d in runs}))
+        + (
+            ". Several hashes are listed because the change between them (for example a type "
+            "annotation) cannot alter an answer."
+            if len({d["code_hash"] for _, d in runs}) > 1
+            else "."
+        ),
         "",
         "| Run | file |",
         "|---|---|",

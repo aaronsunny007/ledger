@@ -46,9 +46,15 @@ and both latency targets (0.9 s median, 4.9 s slowest-5%), with cost at zero. It
 long-context baseline is better than Ledger on FinanceBench by 9 points; Ledger is better on XBRL by 12, and it cites
 its sources, checks its arithmetic and answers in about a second. Where the two disagree, Ledger is right on 26 questions
 the baseline gets wrong (15 XBRL, 11 FinanceBench) and the baseline is right on 19 that Ledger gets wrong (all FinanceBench).
-Ledger's p95 of 4.9 s is partly luck of the run (fewer regenerations and no rate-limit waits; 14.6 s on 12 Oct). I have not
-measured run-to-run noise on the free tier beyond the five questions that flipped for the worse on 13 Oct, so treat gaps under
-about 3 points as inconclusive.
+Ledger's p95 of 4.9 s is partly luck of the run (fewer regenerations and no rate-limit waits; 14.6 s on 12 Oct).
+
+**Run-to-run noise.** The free tier does not answer the same way twice. A repeat of the same code on 16 Oct
+([file](eval/results/20261016T134041-ledger-test-repeat1.json), [report](eval/results/noise.md)) scored 77.3% overall
+against 78.7%, FinanceBench 52.9% against 56.5%, XBRL 94.3% both times, groundedness 96.8% against 96.3%. Nine of the
+217 questions changed between right and wrong (all FinanceBench), including four I had counted as fixed on 13 Oct and
+three I had counted as regressions. So differences of about 3 points on FinanceBench or 1.5 points overall between two
+runs are inside the noise; only the XBRL and refusal results were stable. Two runs are a small sample, and a third is
+planned.
 
 **How Ledger got here** (same 217 questions; the first run predates a corrected General Mills answer
 key, which moves three questions):
