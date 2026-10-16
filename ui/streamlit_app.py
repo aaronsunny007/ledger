@@ -1,8 +1,9 @@
 """Ledger demo UI (weeks 3 to 8). Run: ``streamlit run ui/streamlit_app.py``
 
 Talks to the FastAPI service at LEDGER_API (default http://localhost:8000),
-or, when LEDGER_API is "inprocess", builds Ledger in this process, which is
-how the free Hugging Face Space runs it as a single container.
+or, when LEDGER_API is "inprocess", builds Ledger in this process (handy for
+a quick local look; it skips the API's daily quota guard, so a public demo
+should use the API, as deploy/hf-space/start.sh does).
 """
 
 from __future__ import annotations
@@ -29,7 +30,13 @@ EXAMPLES = [
     "What will Apple's revenue be in fiscal year 2031?",  # a refusal: future
 ]
 
+INDEX_STATUS = ROOT / "data" / "index-status.txt"  # why deploy/hf-space/start.sh found no index
+
 st.set_page_config(page_title="Ledger", page_icon="📒", layout="wide")
+
+
+class QuotaUsedUp(Exception):
+    """The API's daily quota (or the provider's free tier) is spent; ``str(e)`` is for the user."""
 
 
 @st.cache_resource
@@ -39,6 +46,15 @@ def _inprocess() -> Any:
     return build_ledger()
 
 
+def _client_headers() -> dict[str, str]:
+    """Pass the visitor's address on, so the API's per-client quota sees them, not this server."""
+    try:
+        fwd = st.context.headers.get("X-Forwarded-For")
+    except Exception:  # no request context (tests, old Streamlit)
+        fwd = None
+    return {"X-Forwarded-For": fwd} if fwd else {}
+
+
 def ask(question: str, tickers: list[str], years: list[int]) -> dict[str, Any]:
     if API == "inprocess":
         from ledger.retrieve.filters import Filters
@@ -46,10 +62,32 @@ def ask(question: str, tickers: list[str], years: list[int]) -> dict[str, Any]:
         a = _inprocess().ask(question, Filters(tickers=tickers, years=years))
         return dict(a.model_dump())
     r = httpx.post(
-        f"{API}/ask", json={"question": question, "tickers": tickers, "years": years}, timeout=120
+        f"{API}/ask",
+        json={"question": question, "tickers": tickers, "years": years},
+        headers=_client_headers(),
+        timeout=120,
     )
+    if r.status_code == 429:
+        detail = r.json().get("detail")
+        if isinstance(detail, dict) and detail.get("error") == "daily_quota_exhausted":
+            raise QuotaUsedUp(detail["message"])
     r.raise_for_status()
     return dict(r.json())
+
+
+def index_ready() -> bool:
+    """False until at least one filing is indexed (a fresh Space starts empty)."""
+    if st.session_state.get("index_ready"):
+        return True
+    try:
+        if API == "inprocess":
+            docs = _inprocess().retriever.index.documents()
+        else:
+            docs = httpx.get(f"{API}/documents", timeout=120).json()
+    except Exception:
+        return False
+    st.session_state["index_ready"] = bool(docs)
+    return bool(docs)
 
 
 def feedback(request_id: str, up: bool) -> None:
@@ -124,16 +162,33 @@ with tab_ask:
         st.divider()
         st.caption("Not investment advice. Answers come only from ingested 10-K filings.")
 
-    example = st.selectbox("Try an example", ["", *EXAMPLES])
-    question = st.text_input("Question", value=example, max_chars=1000)
-    if st.button("Ask", type="primary") and question:
-        with st.spinner("Searching, drafting and verifying…"):
-            try:
-                st.session_state["answer"] = ask(question, tickers, years)
-            except httpx.HTTPStatusError as e:
-                st.error(e.response.json().get("detail", str(e)))
-    if "answer" in st.session_state:
-        render_answer(st.session_state["answer"])
+    with st.spinner("Loading the filings index…"):
+        ready = index_ready()
+    if not ready:
+        reason = INDEX_STATUS.read_text().strip() if INDEX_STATUS.exists() else ""
+        st.error(
+            "No filings are loaded on this server yet, so there is nothing to ask about. "
+            + (reason + " " if reason else "")
+            + "The owner can fix this by following docs/deploy-demo.md "
+            "(set LEDGER_INDEX_URL to the demo index); locally, run `ledger download` "
+            "then `ledger ingest`."
+        )
+    else:
+        example = st.selectbox("Try an example", ["", *EXAMPLES])
+        question = st.text_input("Question", value=example, max_chars=1000)
+        if st.button("Ask", type="primary") and question:
+            with st.spinner("Searching, drafting and verifying…"):
+                try:
+                    st.session_state["answer"] = ask(question, tickers, years)
+                except QuotaUsedUp as e:
+                    st.session_state.pop("answer", None)
+                    st.warning(f"**Daily quota used up.** {e}")
+                except httpx.HTTPStatusError as e:
+                    st.error(e.response.json().get("detail", str(e)))
+                except httpx.HTTPError:
+                    st.error("The Ledger API is not reachable right now. Try again in a minute.")
+        if "answer" in st.session_state:
+            render_answer(st.session_state["answer"])
 
 with tab_dash:
     st.header("Requests")
