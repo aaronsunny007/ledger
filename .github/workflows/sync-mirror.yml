@@ -1,0 +1,42 @@
+name: sync-mirror
+
+# Keeps aaronsunny007/ledger-mirror identical to this repository's main. It needs a
+# fine-grained personal access token with "Contents: read and write" on the mirror
+# repository only, stored here as the secret MIRROR_PUSH_TOKEN. Without the secret
+# the job logs a notice and exits cleanly, so it never turns a push red.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "41 8 * * *"  # picks up the nightly bot's "[skip ci]" commits
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-mirror
+  cancel-in-progress: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    env:
+      MIRROR_REPO: aaronsunny007/ledger-mirror
+      MIRROR_PUSH_TOKEN: ${{ secrets.MIRROR_PUSH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Push main to the mirror
+        run: |
+          if [ -z "$MIRROR_PUSH_TOKEN" ]; then
+            echo "::notice::MIRROR_PUSH_TOKEN is not set; skipping. See docs/mirror.md."
+            exit 0
+          fi
+          auth=$(printf 'x-access-token:%s' "$MIRROR_PUSH_TOKEN" | base64 -w0)
+          echo "::add-mask::$auth"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+            push --force "https://github.com/$MIRROR_REPO.git" HEAD:refs/heads/main

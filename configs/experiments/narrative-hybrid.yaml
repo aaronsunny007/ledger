@@ -1,0 +1,28 @@
+# Experiment: narrative-hybrid. Differs from configs/retrieval.yaml only for questions that need no
+# primary statement: keyword fusion over 30 candidates and 10 passages.
+chunking:
+  strategy: table
+  size: 1024
+  overlap: 128
+retrieval:
+  embedder: bge-small
+  mode: vector
+  candidates: 30
+  rrf_k: 60
+  rerank: false
+  reranker: BAAI/bge-reranker-base
+  top_k: 6
+  min_score: 0.0
+  pin_statements: true
+  latest_year_only: true
+  narrative_mode: hybrid
+  narrative_candidates: 30
+  narrative_top_k: 10
+  narrative_rerank: false
+answer:
+  verify: true
+  regenerate_on_failure: true
+  max_context_chars: 18000
+cache:
+  enabled: true
+  threshold: 0.92

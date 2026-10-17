@@ -28,7 +28,8 @@ _NEEDS = {
         r"PP&E|\bPPNE\b|property,?\s+(plant\s+)?and\s+equipment|fixed\s+asset|total\s+debt|"
         r"long-?term\s+debt|short-?term\s+(debt|borrowings)|debt[-\s]to|equity|retained\s+earnings|"
         r"cash\s+and\s+cash\s+equivalents|cash\s+equivalents|marketable\s+securities|goodwill|"
-        r"book\s+value|\bROA\b|return\s+on\s+assets|liquidity|solvency|leverage",
+        r"book\s+value|\bROA\b|return\s+on\s+assets|liquidity|solvency|leverage|"
+        r"capital[-\s]+intensi",
         re.I,
     ),
     INCOME: re.compile(
@@ -38,13 +39,15 @@ _NEEDS = {
         r"research\s+and\s+development|\bR&D\b|selling,?\s+general|\bSG&A\b|"
         r"income\s+before|pre-?tax|income\s+tax|\bEPS\b|earnings\s+per\s+share|diluted|"
         r"effective\s+tax|interest\s+expense|restructuring|"
-        r"\bROA\b|return\s+on|turnover|payout\s+ratio|\bDPO\b|\bDSO\b|\bDIO\b|cash\s+conversion",
+        r"\bROA\b|return\s+on|turnover|payout\s+ratio|\bDPO\b|\bDSO\b|\bDIO\b|cash\s+conversion|"
+        r"capital[-\s]+intensi",
         re.I,
     ),
     CASH_FLOW: re.compile(
         r"cash\s+flow|capex|capital\s+expenditure|purchases?\s+of\s+property|"
         r"cash\s+(from|provided\s+by)\s+operat|operating\s+cash|free\s+cash|dividends?\s+paid|"
-        r"total\s+cash\s+dividends|payout\s+ratio|depreciation|\bD&A\b|share\s+repurchase|buyback",
+        r"total\s+cash\s+dividends|dividends?\s+(to|paid)|paid\s+dividends|payout\s+ratio|"
+        r"depreciation|\bD&A\b|share\s+repurchase|buyback|capital[-\s]+intensi",
         re.I,
     ),
 }
@@ -53,3 +56,8 @@ _NEEDS = {
 def statements_needed(question: str) -> list[str]:
     """Which primary statements a question's figures come from."""
     return [kind for kind in STATEMENTS if _NEEDS[kind].search(question)]
+
+
+def is_narrative(question: str) -> bool:
+    """A question no primary statement answers: its evidence is prose."""
+    return not statements_needed(question)
