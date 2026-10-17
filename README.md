@@ -40,7 +40,7 @@ in `eval/results/`.
 \* The baseline's tail latency includes the free tier's rate-limit waits (each question sends a whole filing, and the last third of the run was throttled to about two minutes a question), so its p95 overstates the cost of the approach; its p50 is the fairer figure. The earlier baseline run (11 Oct, [file](eval/results/20261011T160510-long-context-test.json)) used the previous prompt and scored 74.8% overall.
 Groundedness is the share of claims whose cited passage contains their figures.
 
-**Where this stands.** Overall Ledger answers 78.7% of the 207 scored questions (163) against the
+**Where this stands.** On the 13 Oct run, Ledger answers 78.7% of the 207 scored questions (163; 77.3% and 77.8% on the two later runs, see below) against the
 baseline's 75.4% (156). It meets five of the six targets: XBRL (115 of 122), refusals (10 of 10), groundedness,
 and both latency targets (0.9 s median, 4.9 s slowest-5%), with cost at zero. It misses FinanceBench (56.5% against 70%). The
 long-context baseline is better than Ledger on FinanceBench by 9 points; Ledger is better on XBRL by 12, and it cites
