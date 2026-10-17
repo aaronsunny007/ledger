@@ -5,7 +5,7 @@ sentence cites the filing passage it came from, and every number is recomputed b
 before you see it. When the filings do not contain the answer, Ledger says so and shows the
 closest passages instead of guessing.
 
-> Results: [78.7% on the 207 scored test questions](#results) (the long-context baseline gets 75.4%); live demo: not deployed yet, see [Running the demo](#running-the-demo)
+> Results: [77.3–78.7% on the 207 scored test questions](#results), three runs (the long-context baseline gets 75.4%); live demo: not deployed yet, see [Running the demo](#running-the-demo)
 
 ```text
 Q: How much did Apple's net sales change from FY2023 to FY2024?
@@ -53,8 +53,18 @@ Ledger's p95 of 4.9 s is partly luck of the run (fewer regenerations and no rate
 against 78.7%, FinanceBench 52.9% against 56.5%, XBRL 94.3% both times, groundedness 96.8% against 96.3%. Nine of the
 217 questions changed between right and wrong (all FinanceBench), including four I had counted as fixed on 13 Oct and
 three I had counted as regressions. So differences of about 3 points on FinanceBench or 1.5 points overall between two
-runs are inside the noise; only the XBRL and refusal results were stable. Two runs are a small sample, and a third is
-planned.
+runs are inside the noise; only the XBRL and refusal results were stable.
+
+**17 Oct: narrative retrieval, end to end** ([file](eval/results/20261017T071149-ledger-test.json), the same 217 questions
+with the narrative settings from `configs/retrieval.yaml`). Overall 77.8% (161 of 207), FinanceBench 55.3% (47 of 85),
+XBRL 93.4% (114 of 122), refusals 10/10, groundedness 98.2%, p50 1.0 s, p95 2.6 s, no errors. All three are
+inside the noise range of the two earlier runs (overall 77.3–78.7%, FinanceBench 52.9–56.5%): **this run does not show an accuracy
+gain on the whole set.** What it does show is on the 19 narrative questions I had traced: all 19 were wrong in both
+earlier runs, and 4 are right now (ids 00499, 01028, 01981, 02024), none of them wrong again. The other flips are
+questions the narrative settings do not touch, and they go both ways (8 against the 13 Oct run, 5 against the 16 Oct
+run), which is what the noise looks like. So the change helps the questions it was built for, a little (4 of 19), and
+the evidence of a net gain is not strong enough to claim it. Retrieval recall rose as measured (FinanceBench 80.0%),
+latency did not move. The code differs from the other two runs, so this run is not pooled into the noise report.
 
 **How Ledger got here** (same 217 questions; the first run predates a corrected General Mills answer
 key, which moves three questions):
