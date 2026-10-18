@@ -6,13 +6,13 @@
   "refusal_accuracy": 1.0,
   "refusal_n": 3,
   "false_refusal_rate": 0.0851,
-  "groundedness": 0.9367,
-  "groundedness_n": 79,
+  "groundedness": 0.9359,
+  "groundedness_n": 78,
   "verified_rate": 0.881,
   "regenerated_rate": 0.24,
   "recall_at_k": 0.6809,
   "mrr": 0.656,
-  "latency_p50_ms": 997.5,
-  "latency_p95_ms": 18650.2,
+  "latency_p50_ms": 914.5,
+  "latency_p95_ms": 18602.5,
   "cost_per_question_usd": 0.0
 }
