@@ -254,3 +254,27 @@ def test_claim_verifier_flags_implausible_after_arithmetic_passes(cv: ClaimVerif
         question="What is the FY2018 fixed asset turnover ratio for CVS Health?",
     )
     assert r.status is ClaimStatus.IMPLAUSIBLE and "multiply by 100" in r.message
+
+
+def test_repair_result_swaps_the_stated_value_for_the_recomputed_one() -> None:
+    from ledger.verifier.verifier import repair_result
+
+    text = "Turnover was 18.23, calculated as $194,579 / (($11,349 + $10,292) / 2)."
+    fixed = repair_result(text, "194579 / ((11349 + 10292) / 2)", 18.23)
+    assert fixed is not None
+    assert fixed[0] == text.replace("18.23", "17.98") and round(fixed[1], 2) == 17.98
+    # keeps the thousands separators and decimals the model used
+    again = repair_result("Total was $1,300.50 million.", "1000 + 200.5", 1300.5)
+    assert again is not None and again[0] == "Total was $1,200.50 million."
+
+
+def test_repair_result_leaves_alone_what_it_cannot_or_need_not_fix() -> None:
+    from ledger.verifier.verifier import repair_result
+
+    assert repair_result("Growth was 12.5%.", "(4500 - 4000) / 4000 * 100", 12.5) is None  # right
+    assert repair_result("Growth was 99%.", "(4500 - 4000) / 4000 * 100", 12.0) is None  # not found
+    assert repair_result("Growth was 12.0%.", "__import__('os')", 12.0) is None  # unsafe
+    assert (
+        repair_result("It was 112.0.", "(4500 - 4000) / 4000 * 100", 12.0) is None
+    )  # inside 112.0
+    assert repair_result("No calculation.", None, 12.0) is None
