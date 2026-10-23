@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     ledger_daily_budget: int = 300  # answers that call the model, whole service
     ledger_per_client_daily: int = 15  # the same, per client IP
     ledger_budget_file: str = ""  # optional JSON file so counters survive a restart
+    # Proxies in front of the API that append to X-Forwarded-For. The client is the entry
+    # that many places from the right; earlier entries are whatever the caller sent.
+    trusted_proxy_hops: int = 1
 
     retrieval_config: Path = ROOT / "configs" / "retrieval.yaml"
 

@@ -31,7 +31,7 @@ from pydantic import BaseModel, Field
 from ledger.answer.llm import QuotaExhausted
 from ledger.api.budget import BudgetExhausted, DailyBudget
 from ledger.config import ROOT, Settings
-from ledger.pipeline import Ledger, QuestionTooLong
+from ledger.pipeline import CacheMiss, Ledger, QuestionTooLong
 from ledger.retrieve.filters import Filters
 from ledger.types import Answer
 
@@ -122,22 +122,28 @@ LedgerDep = Annotated[Ledger, Depends(get_ledger)]
 
 
 def _client_ip(request: Request) -> str:
+    """The address our own proxy saw. The left of X-Forwarded-For is caller-controlled."""
     fwd = request.headers.get("x-forwarded-for")
-    return fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "?")
+    hops = [h.strip() for h in fwd.split(",") if h.strip()] if fwd else []
+    if hops and settings.trusted_proxy_hops > 0:
+        return hops[max(0, len(hops) - settings.trusted_proxy_hops)]
+    return request.client.host if request.client else "?"
 
 
 def _quota_error(e: BudgetExhausted) -> HTTPException:
     return HTTPException(429, e.detail(), headers={"Retry-After": str(e.retry_after)})
 
 
-def _guard(request: Request) -> None:
+def _guard(request: Request, ledger: Ledger, req: AskRequest) -> None:
     ip = _client_ip(request)
     if not limiter.allow(ip):
         raise HTTPException(429, "Rate limit reached; try again in a minute.")
     try:
         budget.check(ip)
     except BudgetExhausted as e:
-        raise _quota_error(e) from e
+        # A cached answer costs no model call, so it is still served after the quota is spent.
+        if not ledger.has_cached_answer(req.question, _filters(req)):
+            raise _quota_error(e) from e
     if spend.exhausted():
         raise HTTPException(503, "The demo's daily budget is used up; try again tomorrow.")
 
@@ -150,7 +156,12 @@ def _ask(ledger: Ledger, req: AskRequest, client: str) -> Answer:
     try:
         budget.reserve(client)  # counted up front so parallel requests cannot overshoot
     except BudgetExhausted as e:
-        raise _quota_error(e) from e
+        try:
+            return ledger.ask(req.question, _filters(req), cache_only=True)
+        except CacheMiss:
+            raise _quota_error(e) from e
+        except QuestionTooLong as too_long:
+            raise HTTPException(422, str(too_long)) from too_long
     try:
         answer = ledger.ask(req.question, _filters(req))
     except QuestionTooLong as e:
@@ -182,13 +193,13 @@ def documents(ledger: LedgerDep) -> list[dict[str, object]]:
 
 @app.post("/ask", response_model=Answer)
 def ask(req: AskRequest, request: Request, ledger: LedgerDep) -> Answer:
-    _guard(request)
+    _guard(request, ledger, req)
     return _ask(ledger, req, _client_ip(request))
 
 
 @app.post("/ask/stream")
 async def ask_stream(req: AskRequest, request: Request, ledger: LedgerDep) -> StreamingResponse:
-    _guard(request)
+    _guard(request, ledger, req)
     ip = _client_ip(request)
 
     async def events() -> AsyncIterator[str]:

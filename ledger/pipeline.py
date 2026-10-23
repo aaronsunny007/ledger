@@ -32,6 +32,10 @@ class QuestionTooLong(ValueError):
     pass
 
 
+class CacheMiss(LookupError):
+    """``cache_only`` was set and the semantic cache holds no answer for this question."""
+
+
 @dataclass
 class _Checked:
     claim: DraftClaim
@@ -138,7 +142,20 @@ class Ledger:
 
     # -- main entry point ----------------------------------------------------
 
-    def ask(self, question: str, filters: Filters | None = None) -> Answer:
+    def has_cached_answer(self, question: str, filters: Filters | None = None) -> bool:
+        """Would ``ask`` be answered from the cache, with no model call?"""
+        if self.cache is None or not self.config.cache.enabled:
+            return False
+        question = question.strip()
+        cached, _ = self.cache.lookup(
+            question, filters_from_question(question, self.registry, filters)
+        )
+        return cached is not None
+
+    def ask(
+        self, question: str, filters: Filters | None = None, cache_only: bool = False
+    ) -> Answer:
+        """Answer ``question``. With ``cache_only`` never call the model: raise ``CacheMiss``."""
         question = question.strip()
         if len(question) > self.max_question_chars:
             raise QuestionTooLong(f"Questions are limited to {self.max_question_chars} characters.")
@@ -174,6 +191,8 @@ class Ledger:
                 }
             )
             return self._finish(trace, answer, llm_calls)
+        if cache_only:
+            raise CacheMiss(question)
 
         with trace.span("retrieve") as s:
             passages = self.retriever.retrieve(question, f)
