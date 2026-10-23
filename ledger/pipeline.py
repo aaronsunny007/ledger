@@ -32,6 +32,12 @@ class QuestionTooLong(ValueError):
     pass
 
 
+REPARSE_FEEDBACK = (
+    "Your reply was not a single valid JSON object. Reply with exactly the JSON object "
+    "described in the instructions and nothing else."
+)
+
+
 class CacheMiss(LookupError):
     """``cache_only`` was set and the semantic cache holds no answer for this question."""
 
@@ -215,6 +221,15 @@ class Ledger:
             s.attrs.update(
                 model=res.model, input_tokens=res.input_tokens, output_tokens=res.output_tokens
             )
+
+        if draft.parse_error:
+            # Malformed JSON is the model's slip, not a genuine refusal: ask once more.
+            with trace.span("generate_reparse") as s:
+                draft, res = self._redraft(question, passages, [REPARSE_FEEDBACK])
+                llm_calls.append(res)
+                s.attrs.update(
+                    model=res.model, input_tokens=res.input_tokens, output_tokens=res.output_tokens
+                )
 
         if not draft.answerable:
             answer = self._refusal(question, draft.refusal_reason or "Not answerable.", passages)
