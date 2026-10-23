@@ -71,16 +71,21 @@ The free Gemini tier allows roughly 500 requests a day on `gemini-3.5-flash-lite
 fewer on the larger retry model), and resets at midnight Pacific. The API protects it:
 
 - `LEDGER_DAILY_BUDGET` (default **300**): questions answered per day across all visitors.
-- `LEDGER_PER_CLIENT_DAILY` (default **15**): per visitor, keyed by the first address in
-  `X-Forwarded-For`, else the connection's address. The UI forwards the visitor's address to
-  the API. Anyone who can forge that header can dodge the per-visitor cap, never the global one.
+- `LEDGER_PER_CLIENT_DAILY` (default **15**): per visitor. The visitor is the address the
+  platform's proxy appended to `X-Forwarded-For` (the last entry; `TRUSTED_PROXY_HOPS`, default
+  1, sets how many proxies append, and 0 ignores the header and uses the connection's address).
+  Entries to the left of that are whatever the caller sent, so forging them does not dodge the
+  cap. The UI forwards the header to the API unchanged. If after deploying every visitor seems
+  to share one quota (everyone gets the per-visitor message after 15 questions in total), the
+  Space has more than one proxy: set `TRUSTED_PROXY_HOPS` to 2.
 - Only questions that really call the model count. Semantic-cache hits, investment-advice
   refusals and over-long questions do not.
 - When a cap is reached the API returns HTTP 429 with `{"detail": {"error":
   "daily_quota_exhausted", "message": "...resets at 07:00 UTC (midnight Pacific)...",
-  "resets_at": ..., "retry_after_seconds": ...}}`, and the UI shows the message. While a cap
-  is reached even cache hits are refused (the check runs before the cache lookup). If Google
-  itself reports its quota spent first, the same message is shown.
+  "resets_at": ..., "retry_after_seconds": ...}}`, and the UI shows the message. A question the
+  semantic cache can answer is still served once a cap is reached, since it needs no model
+  call (the cache is in memory and starts empty after a restart). If Google itself reports its
+  quota spent first, the same message is shown.
 - Counters reset at a fixed 07:00 UTC, which is midnight Pacific during daylight saving. From
   November to March Google's own reset is at 08:00 UTC, so in that first hour our counters have
   reset while Google's quota may still be spent; the provider's refusal is then shown with the

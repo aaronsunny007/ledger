@@ -92,9 +92,28 @@ def test_client_quota_returns_429_with_reset_message(client: TestClient) -> None
     assert detail["error"] == "daily_quota_exhausted" and detail["scope"] == "client"
     assert "free daily quota" in detail["message"] and "UTC" in detail["message"]
     assert int(r.headers["retry-after"]) == detail["retry_after_seconds"] > 0
-    # another client is still served (the first hop of X-Forwarded-For names the client)
-    other = client.post("/ask", json=ASK, headers={"X-Forwarded-For": "198.51.100.7, 10.0.0.1"})
+    # another client is still served (the proxy appends the client's address on the right)
+    other = client.post("/ask", json=ASK, headers={"X-Forwarded-For": "10.0.0.1, 198.51.100.7"})
     assert other.status_code == 200
+
+
+def test_forged_forwarded_for_does_not_dodge_the_client_quota(client: TestClient) -> None:
+    api.budget = DailyBudget(300, 1)
+    real = "203.0.113.9"  # appended by our proxy
+    assert client.post("/ask", json=ASK, headers={"X-Forwarded-For": real}).status_code == 200
+    for forged in ("1.2.3.4", "5.6.7.8, 9.9.9.9"):
+        r = client.post("/ask", json=ASK, headers={"X-Forwarded-For": f"{forged}, {real}"})
+        assert r.status_code == 429 and r.json()["detail"]["scope"] == "client"
+
+
+def test_direct_connection_ignores_forwarded_for(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(api.settings, "trusted_proxy_hops", 0)
+    api.budget = DailyBudget(300, 1)
+    assert client.post("/ask", json=ASK, headers={"X-Forwarded-For": "1.1.1.1"}).status_code == 200
+    r = client.post("/ask", json=ASK, headers={"X-Forwarded-For": "2.2.2.2"})
+    assert r.status_code == 429
 
 
 def test_global_quota_blocks_everyone_and_stream_too(client: TestClient) -> None:
@@ -131,6 +150,31 @@ def test_cache_hit_does_not_count(make_ledger: Callable[..., tuple[Ledger, objec
         assert api.budget.remaining() == 299
         assert c.post("/ask", json=ASK).json()["cache_hit"] is True
         assert api.budget.remaining() == 299
+    finally:
+        api.app.dependency_overrides.clear()
+
+
+def test_cached_answer_still_served_after_the_quota_is_spent(
+    make_ledger: Callable[..., tuple[Ledger, object]],
+) -> None:
+    def respond(system: str, user: str) -> str:
+        n = passage_number(user, "Operating income was $630 million")
+        return claims_json({"text": "Operating income was $630 million.", "citations": [n]})
+
+    ledger, _ = make_ledger(respond, cache=True)
+    api.app.dependency_overrides[api.get_ledger] = lambda: ledger
+    api.limiter.per_minute = 1000
+    api.budget = DailyBudget(1, 15)
+    try:
+        c = TestClient(api.app)
+        assert c.post("/ask", json=ASK).json()["cache_hit"] is False
+        assert api.budget.remaining() == 0
+        again = c.post("/ask", json=ASK)  # budget gone, but this needs no model call
+        assert again.status_code == 200 and again.json()["cache_hit"] is True
+        with c.stream("POST", "/ask/stream", json=ASK) as s:
+            assert "event: answer" in "".join(s.iter_text())
+        fresh = c.post("/ask", json={"question": "What was Acme Widgets revenue in 2024?"})
+        assert fresh.status_code == 429 and fresh.json()["detail"]["scope"] == "global"
     finally:
         api.app.dependency_overrides.clear()
 

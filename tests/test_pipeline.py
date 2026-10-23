@@ -37,6 +37,26 @@ def test_correct_answer_is_cited_and_verified(make_ledger: Make) -> None:
     assert len(llm.calls) == 1  # type: ignore[attr-defined]
 
 
+def test_malformed_json_is_retried_once_not_treated_as_a_refusal(make_ledger: Make) -> None:
+    replies = iter(["Sure! Here is the answer: {not json", None])
+
+    def respond(system: str, user: str) -> str:
+        bad = next(replies)
+        return bad if bad is not None else growth(user, 12.5)
+
+    ledger, llm = make_ledger(respond)
+    a = ledger.ask(Q)
+    assert not a.refused and a.verified is True
+    assert len(llm.calls) == 2  # type: ignore[attr-defined]
+    assert "valid JSON" in llm.calls[1][1]  # type: ignore[attr-defined]
+
+
+def test_malformed_json_twice_still_refuses(make_ledger: Make) -> None:
+    ledger, llm = make_ledger(lambda s, u: "no json here")
+    a = ledger.ask(Q)
+    assert a.refused and len(llm.calls) == 2  # type: ignore[attr-defined]
+
+
 def test_wrong_arithmetic_triggers_one_regeneration_with_correction(make_ledger: Make) -> None:
     answers = iter([12.0, 12.5])
 
