@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from ledger.api import main as api
+from ledger.api.budget import DailyBudget
 from ledger.pipeline import Ledger
 from tests.conftest import claims_json, passage_number
 
@@ -22,6 +23,7 @@ def client(make_ledger: Callable[..., tuple[Ledger, object]]) -> Iterator[TestCl
     api.app.dependency_overrides[api.get_ledger] = lambda: ledger
     api.limiter.per_minute = 1000
     api.spend.spent = 0.0
+    api.budget = DailyBudget(300, 15)
     yield TestClient(api.app)
     api.app.dependency_overrides.clear()
 
@@ -76,3 +78,71 @@ def test_feedback(client: TestClient, tmp_path: object, monkeypatch: pytest.Monk
     monkeypatch.setattr(api, "FEEDBACK_LOG", Path(str(tmp_path)) / "fb.jsonl")
     r = client.post("/feedback", json={"request_id": "abc", "thumbs_up": False})
     assert r.json() == {"status": "recorded"}
+
+
+ASK = {"question": "What was Acme Widgets operating income in 2024?"}
+
+
+def test_client_quota_returns_429_with_reset_message(client: TestClient) -> None:
+    api.budget = DailyBudget(300, 1)
+    assert client.post("/ask", json=ASK).status_code == 200
+    r = client.post("/ask", json=ASK)
+    assert r.status_code == 429
+    detail = r.json()["detail"]
+    assert detail["error"] == "daily_quota_exhausted" and detail["scope"] == "client"
+    assert "free daily quota" in detail["message"] and "UTC" in detail["message"]
+    assert int(r.headers["retry-after"]) == detail["retry_after_seconds"] > 0
+    # another client is still served (the first hop of X-Forwarded-For names the client)
+    other = client.post("/ask", json=ASK, headers={"X-Forwarded-For": "198.51.100.7, 10.0.0.1"})
+    assert other.status_code == 200
+
+
+def test_global_quota_blocks_everyone_and_stream_too(client: TestClient) -> None:
+    api.budget = DailyBudget(1, 15)
+    assert client.post("/ask", json=ASK, headers={"X-Forwarded-For": "1.1.1.1"}).status_code == 200
+    r = client.post("/ask", json=ASK, headers={"X-Forwarded-For": "2.2.2.2"})
+    assert r.status_code == 429 and r.json()["detail"]["scope"] == "global"
+    s = client.post("/ask/stream", json=ASK, headers={"X-Forwarded-For": "2.2.2.2"})
+    assert s.status_code == 429
+    assert client.get("/health").json()["daily_budget_remaining"] == 0
+
+
+def test_advice_refusal_and_too_long_do_not_count(client: TestClient) -> None:
+    advice = {"question": "Should I buy Acme Widgets stock?"}
+    assert client.post("/ask", json=advice).json()["refused"] is True
+    assert client.post("/ask", json={"question": "x" * 1500}).status_code == 422
+    assert api.budget.remaining() == 300
+    assert client.post("/ask", json=ASK).status_code == 200
+    assert api.budget.remaining() == 299
+
+
+def test_cache_hit_does_not_count(make_ledger: Callable[..., tuple[Ledger, object]]) -> None:
+    def respond(system: str, user: str) -> str:
+        n = passage_number(user, "Operating income was $630 million")
+        return claims_json({"text": "Operating income was $630 million.", "citations": [n]})
+
+    ledger, _ = make_ledger(respond, cache=True)
+    api.app.dependency_overrides[api.get_ledger] = lambda: ledger
+    api.limiter.per_minute = 1000
+    api.budget = DailyBudget(300, 15)
+    try:
+        c = TestClient(api.app)
+        assert c.post("/ask", json=ASK).json()["cache_hit"] is False
+        assert api.budget.remaining() == 299
+        assert c.post("/ask", json=ASK).json()["cache_hit"] is True
+        assert api.budget.remaining() == 299
+    finally:
+        api.app.dependency_overrides.clear()
+
+
+def test_provider_quota_exhausted_maps_to_same_429(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ledger.answer.llm import QuotaExhausted
+
+    def boom(*_: object, **__: object) -> None:
+        raise QuotaExhausted(429, "daily limit")
+
+    monkeypatch.setattr(Ledger, "ask", boom)
+    r = client.post("/ask", json=ASK)
+    assert r.status_code == 429 and r.json()["detail"]["error"] == "daily_quota_exhausted"

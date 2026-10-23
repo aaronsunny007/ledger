@@ -37,13 +37,15 @@ def main() -> int:
     p.add_argument("--sources", nargs="*", default=["financebench"])
     p.add_argument("--limit", type=int, default=20)
     p.add_argument("--threshold", type=float, default=0.5)
+    p.add_argument("--ids", nargs="*", help="only these question ids (any split)")
+    p.add_argument("--config", type=Path, help="retrieval config override (experiments)")
     args = p.parse_args()
 
     from ledger.answer.llm import FakeLLM
     from ledger.factory import build_ledger
 
     settings = Settings()
-    config = LedgerConfig.load()
+    config = LedgerConfig.load(args.config) if args.config else LedgerConfig.load()
     ledger = build_ledger(settings, config, llm=FakeLLM(lambda s, u: "{}"), trace_log=None)
     index = ledger.retriever.index
     assert isinstance(index, InMemoryIndex), "diagnosis reads the in-memory index"
@@ -51,7 +53,7 @@ def main() -> int:
     items = [
         i
         for i in load_golden()
-        if i.split == args.split
+        if (i.id in args.ids if args.ids else i.split == args.split)
         and i.source in args.sources
         and "out-of-corpus" not in i.tags
         and i.answer_type != "refusal"
@@ -70,7 +72,13 @@ def main() -> int:
             hits[name] = {
                 "first_hit_rank": first,
                 "best_overlap": round(max(overlaps, default=0), 2),
-                "top": [f"{c.chunk.section[:24]} | {c.chunk.text[:90]!r}" for c in got[:3]],
+                "top": [
+                    f"{'T' if c.chunk.is_table else 'P'} {c.chunk.section[:24]} | "
+                    f"{c.chunk.text[:90]!r}"
+                    for c in got[:6]
+                ],
+                "tables_in_passages": sum(1 for c in got if c.chunk.is_table),
+                "passages": len(got),
             }
         doc_chunks = [
             c for c in index.chunks if c.ticker == item.ticker and c.fiscal_year == item.fiscal_year
@@ -88,6 +96,13 @@ def main() -> int:
                 "chunks_in_filing": len(doc_chunks),
                 "best_overlap_in_filing": round(best_any, 2),
                 "best_chunk": (best_chunk.text[:160] if best_chunk else ""),
+                "best_chunk_kind": (
+                    f"{'table' if best_chunk.is_table else 'prose'}, {best_chunk.section[:40]}"
+                    if best_chunk
+                    else ""
+                ),
+                "tables_in_passages": hits["extracted"]["tables_in_passages"],
+                "passages": hits["extracted"]["passages"],
                 "evidence": item.evidence[0].text[:160] if item.evidence else "",
                 **{
                     f"{k}_{m}": v[m]
@@ -144,7 +159,9 @@ def main() -> int:
             f"gold filters {r['gold_first_hit_rank']} "
             f"(best overlap {r['extracted_best_overlap']} / {r['gold_best_overlap']})",
             f"- evidence starts: `{r['evidence']!r}`",
-            f"- best indexed chunk: `{r['best_chunk']!r}`",
+            f"- best indexed chunk ({r['best_chunk_kind']}): `{r['best_chunk']!r}`",
+            f"- passages given to the model: {r['passages']}, of which tables: "
+            f"{r['tables_in_passages']}",
             "- top retrieved:",
             *[f"  - `{t}`" for t in r["top_extracted"]],
             "",

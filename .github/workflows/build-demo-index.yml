@@ -1,0 +1,85 @@
+name: build-demo-index
+
+# Builds the index the free public demo (Hugging Face Space) starts from:
+# downloads the 10-K filings the demo needs, runs `ledger ingest`, tars
+# data/processed and attaches it to a GitHub release named `demo-index`.
+# The Space downloads that asset at start-up (LEDGER_INDEX_URL, see
+# docs/deploy-demo.md). No API key is needed: indexing uses the local
+# embedding model and the SEC's free EDGAR service. The repository must be
+# public for the asset URL to work without a token.
+
+on:
+  workflow_dispatch:
+    inputs:
+      from_eval:
+        description: include every filing the eval questions need (the same set full-eval indexes)
+        type: boolean
+        default: true
+      extra:
+        description: "more filings, as TICKER:YEAR separated by spaces (defaults cover the UI's example questions)"
+        default: "AAPL:2022 AAPL:2023 MSFT:2023 NKE:2022 NKE:2023"
+
+permissions:
+  contents: write
+
+env:
+  SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'Aaron Gandi aarongandi007@gmail.com' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (CPU torch)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install -e ".[models]"
+      - uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: raw-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/edgar.py') }}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            data/processed
+            ~/.cache/huggingface
+          key: index-table-${{ hashFiles('eval/golden/**', 'configs/corpus.yaml', 'ledger/ingest/**/*.py') }}
+      - name: Download and index (skipped when cached)
+        env:
+          FROM_EVAL: ${{ inputs.from_eval }}
+          EXTRA: ${{ inputs.extra }}
+        run: |
+          : > needs.txt
+          if [ "$FROM_EVAL" = true ]; then
+            python eval/run_eval.py --split all --sources financebench xbrl --print-needs >> needs.txt
+          fi
+          for pair in $EXTRA; do echo "${pair%%:*} ${pair##*:}" >> needs.txt; done
+          sort -u needs.txt -o needs.txt
+          awk '{y[$1]=y[$1]" "$2} END {for (t in y) print t y[t]}' needs.txt | while read -r t ys; do
+            ledger download --tickers "$t" --years $ys
+          done
+          ledger ingest | tail -5
+      - name: Pack the index
+        run: |
+          ls data/processed/index/*/chunks.jsonl
+          tar -czf demo-index.tar.gz data/processed
+          ls -lh demo-index.tar.gz
+      - name: Attach to the demo-index release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="Prebuilt index for the public demo, built by the build-demo-index workflow on $(date -u +%F). Extract at the repository root (it holds data/processed/)."
+          if gh release view demo-index --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release edit demo-index --repo "$GITHUB_REPOSITORY" --notes "$notes"
+          else
+            gh release create demo-index --repo "$GITHUB_REPOSITORY" --title demo-index \
+              --notes "$notes" --latest=false
+          fi
+          gh release upload demo-index demo-index.tar.gz --repo "$GITHUB_REPOSITORY" --clobber
+          echo "LEDGER_INDEX_URL=https://github.com/$GITHUB_REPOSITORY/releases/download/demo-index/demo-index.tar.gz" \
+            | tee -a "$GITHUB_STEP_SUMMARY"

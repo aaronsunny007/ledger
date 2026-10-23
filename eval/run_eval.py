@@ -266,7 +266,9 @@ def main() -> int:
     def run_item(item: GoldenItem, filters: Filters | None) -> ItemResult:
         try:
             answer = system.ask(item.question, filters)
-            r = score_item(item, answer, config.retrieval.top_k)
+            r = score_item(
+                item, answer, max(config.retrieval.top_k, config.retrieval.narrative_top_k)
+            )
             if r.correct is None and judge_llm is not None and not answer.refused:
                 from ledger.evaluation.judge import judge
 

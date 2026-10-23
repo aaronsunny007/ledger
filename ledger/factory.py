@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from ledger.answer.generate import Generator
@@ -54,19 +55,25 @@ def build_ledger(
     config = config or LedgerConfig.load(settings.retrieval_config)
     embedder = embedder or get_embedder(config.retrieval.embedder)
     index = index if index is not None else build_index(settings, embedder, config)
-    reranker = get_reranker(config.retrieval.reranker) if config.retrieval.rerank else None
+    wants_rerank = config.retrieval.rerank or bool(config.retrieval.narrative_rerank)
+    reranker = get_reranker(config.retrieval.reranker) if wants_rerank else None
     if llm is None:
         llm, large_llm = build_llms(settings)
 
     sinks: list[TraceSink] = [JsonlSink(trace_log)] if trace_log else []
     if settings.langfuse_public_key and settings.langfuse_secret_key:
-        from ledger.obs.langfuse_sink import LangfuseSink
+        try:
+            from ledger.obs.langfuse_sink import LangfuseSink
 
-        sinks.append(
-            LangfuseSink(
-                settings.langfuse_public_key, settings.langfuse_secret_key, settings.langfuse_host
+            sinks.append(
+                LangfuseSink(
+                    settings.langfuse_public_key,
+                    settings.langfuse_secret_key,
+                    settings.langfuse_host,
+                )
             )
-        )
+        except Exception:  # missing extra or bad config: keep the local sink, never fail to start
+            logging.getLogger(__name__).exception("Langfuse tracing disabled")
 
     corpus = ROOT / "configs" / "corpus.yaml"
     return Ledger(

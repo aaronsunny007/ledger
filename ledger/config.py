@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     daily_spend_cap_usd: float = 1.0  # COST-3
     rate_limit_per_minute: int = 10  # COST-3, per IP
     max_question_chars: int = 1000  # SEC-3; FinanceBench questions run to ~700
+    # Public demo: stay inside the free Gemini tier (about 500 requests a day).
+    ledger_daily_budget: int = 300  # answers that call the model, whole service
+    ledger_per_client_daily: int = 15  # the same, per client IP
+    ledger_budget_file: str = ""  # optional JSON file so counters survive a restart
 
     retrieval_config: Path = ROOT / "configs" / "retrieval.yaml"
 
@@ -64,6 +68,13 @@ class RetrievalConfig(BaseModel):
     pin_statements: bool = True
     # "FY2017 vs FY2019" -> search the FY2019 filing, which holds the comparatives.
     latest_year_only: bool = True
+    # Questions that need no primary statement (acquisitions, customers, legal matters,
+    # geographies) are answered from prose that similarity search ranks poorly. They can
+    # use their own settings; "same" / 0 / None keep the settings above.
+    narrative_mode: Literal["same", "vector", "keyword", "hybrid"] = "same"
+    narrative_candidates: int = 0
+    narrative_top_k: int = 0
+    narrative_rerank: bool | None = None
 
 
 class AnswerConfig(BaseModel):

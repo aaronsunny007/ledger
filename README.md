@@ -5,7 +5,7 @@ sentence cites the filing passage it came from, and every number is recomputed b
 before you see it. When the filings do not contain the answer, Ledger says so and shows the
 closest passages instead of guessing.
 
-> Live demo: _coming in week 8 (Hugging Face Spaces)_ · Results: [first full test run](#results), 70% on 217 questions
+> Results: [77.3–78.7% on the 207 scored test questions](#results), three runs (the long-context baseline gets 75.4%); live demo: not deployed yet, see [Running the demo](#running-the-demo)
 
 ```text
 Q: How much did Apple's net sales change from FY2023 to FY2024?
@@ -20,7 +20,7 @@ Ledger is not a chatbot. It is the part around the chatbot that companies pay fo
 
 | | What | Where |
 |---|---|---|
-| **Measuring it** | A 350-question golden set: the public FinanceBench open set, 150 questions with answers taken from the SEC's own XBRL data, and 50 hand-written traps | [`eval/`](eval/) |
+| **Measuring it** | A 313-question golden set: 150 questions from the public FinanceBench open set, 150 with answers taken from the SEC's own XBRL data, and 13 hand-written traps | [`eval/`](eval/) |
 | **Guarding it** | GitHub refuses to merge a change that clearly drops accuracy, groundedness or refusals (more than 2 points and beyond sampling noise) | [`ci.yml`](.github/workflows/ci.yml) |
 | **Watching it** | Every request traced: latency per stage, tokens, cost, cache, verifier result | [`ledger/obs/`](ledger/obs/) |
 | **Shipping it** | API, UI, Docker; a free public demo | [`ledger/api/`](ledger/api/), [`ui/`](ui/) |
@@ -40,15 +40,31 @@ in `eval/results/`.
 \* The baseline's tail latency includes the free tier's rate-limit waits (each question sends a whole filing, and the last third of the run was throttled to about two minutes a question), so its p95 overstates the cost of the approach; its p50 is the fairer figure. The earlier baseline run (11 Oct, [file](eval/results/20261011T160510-long-context-test.json)) used the previous prompt and scored 74.8% overall.
 Groundedness is the share of claims whose cited passage contains their figures.
 
-**Where this stands.** Overall Ledger answers 78.7% of the 207 scored questions (163) against the
+**Where this stands.** On the 13 Oct run, Ledger answers 78.7% of the 207 scored questions (163; 77.3% and 77.8% on the two later runs, see below) against the
 baseline's 75.4% (156). It meets five of the six targets: XBRL (115 of 122), refusals (10 of 10), groundedness,
 and both latency targets (0.9 s median, 4.9 s slowest-5%), with cost at zero. It misses FinanceBench (56.5% against 70%). The
 long-context baseline is better than Ledger on FinanceBench by 9 points; Ledger is better on XBRL by 12, and it cites
 its sources, checks its arithmetic and answers in about a second. Where the two disagree, Ledger is right on 26 questions
 the baseline gets wrong (15 XBRL, 11 FinanceBench) and the baseline is right on 19 that Ledger gets wrong (all FinanceBench).
-Ledger's p95 of 4.9 s is partly luck of the run (fewer regenerations and no rate-limit waits; 14.6 s on 12 Oct). I have not
-measured run-to-run noise on the free tier beyond the five questions that flipped for the worse on 13 Oct, so treat gaps under
-about 3 points as inconclusive.
+Ledger's p95 of 4.9 s is partly luck of the run (fewer regenerations and no rate-limit waits; 14.6 s on 12 Oct).
+
+**Run-to-run noise.** The free tier does not answer the same way twice. A repeat of the same code on 16 Oct
+([file](eval/results/20261016T134041-ledger-test-repeat1.json), [report](eval/results/noise.md)) scored 77.3% overall
+against 78.7%, FinanceBench 52.9% against 56.5%, XBRL 94.3% both times, groundedness 96.8% against 96.3%. Nine of the
+217 questions changed between right and wrong (all FinanceBench), including four I had counted as fixed on 13 Oct and
+three I had counted as regressions. So differences of about 3 points on FinanceBench or 1.5 points overall between two
+runs are inside the noise; only the XBRL and refusal results were stable.
+
+**17 Oct: narrative retrieval, end to end** ([file](eval/results/20261017T071149-ledger-test.json), the same 217 questions
+with the narrative settings from `configs/retrieval.yaml`). Overall 77.8% (161 of 207), FinanceBench 55.3% (47 of 85),
+XBRL 93.4% (114 of 122), refusals 10/10, groundedness 98.2%, p50 1.0 s, p95 2.6 s, no errors. All three are
+inside the noise range of the two earlier runs (overall 77.3–78.7%, FinanceBench 52.9–56.5%): **this run does not show an accuracy
+gain on the whole set.** What it does show is on the 19 narrative questions I had traced: all 19 were wrong in both
+earlier runs, and 4 are right now (ids 00499, 01028, 01981, 02024), none of them wrong again. The other flips are
+questions the narrative settings do not touch, and they go both ways (8 against the 13 Oct run, 5 against the 16 Oct
+run), which is what the noise looks like. So the change helps the questions it was built for, a little (4 of 19), and
+the evidence of a net gain is not strong enough to claim it. Retrieval recall rose as measured (FinanceBench 80.0%),
+latency did not move. The code differs from the other two runs, so this run is not pooled into the noise report.
 
 **How Ledger got here** (same 217 questions; the first run predates a corrected General Mills answer
 key, which moves three questions):
@@ -103,11 +119,17 @@ item recovered them and more, and XBRL recall rose from 53% to 65%.
 
 No LLM; [table](eval/results/experiments-retrieval.md), test split, filters read from the question.
 Recall is the share of questions whose passages contain the gold evidence. The table-index rows ran on
-the final code; the three chunking rows (no statement tags, so unaffected by pinning) ran earlier.
+the code of 13 Oct; the first three rows were re-run on 16 Oct after "capital-intensive" and "dividends
+paid" questions started pinning the statements they need, and the three chunking rows (no statement tags, so
+unaffected by pinning) ran earlier. Compare the first three rows with each other, and the rest with the
+`vector, all questions` row of 13 Oct (74.1%).
 
 | Run | What changes | FinanceBench recall | XBRL recall | p50 retrieval |
 |---|---|---|---|---|
-| **default** | table chunks, vector search, no reranker, statements pinned | 74.1% | 64.8% | **0.06 s** |
+| **default** | table chunks, vector search; questions needing no statement (acquisitions, customers, legal) use keyword fusion and 10 passages | **80.0%** | 64.8% | **0.06 s** |
+| narrative-rerank | the same, but those questions are reranked (8 passages) | 78.8% | 64.8% | 0.06 s median (the reranker runs only for those questions, so its tail is slower) |
+| vector, all questions | the same without the narrative settings | 76.5% | 64.8% | 0.07 s |
+| vector, 13 Oct | the earlier default, before the new pinning wording | 74.1% | 64.8% | 0.06 s |
 | hybrid-rerank | hybrid search + bge-reranker-base (the earlier default) | 74.1% | 65.6% | 9.1 s |
 | rerank-top10 | rerank only the top 10 candidates | 72.9% | 64.8% | 3.9 s |
 | rerank-v2-m3 | bge-reranker-v2-m3 instead of -base | **78.8%** | **67.2%** | 42.9 s |
@@ -131,7 +153,12 @@ the final code; the three chunking rows (no statement tags, so unaffected by pin
   (+4.7 and +2.4 points), at 43 seconds a question: too slow on a free CPU runner, a reasonable
   choice with a GPU or a paid reranking API.
 - **Hybrid search does not beat vector search**: BM25 on top of embeddings is 3.5 points worse on
-  FinanceBench recall than embeddings alone once the statements are pinned.
+  FinanceBench recall than embeddings alone once the statements are pinned. It does help the questions
+  that need no statement: for those, [19 failed narrative questions](eval/results/20261016T134937-diagnose.md)
+  went from 0 to 2 findable with keyword fusion and 10 passages (3 with a reranker), and over the whole test
+  split that setting adds 3.5 points of FinanceBench recall (76.5% to 80.0%) without touching XBRL. Most
+  narrative evidence is still missed: the passages are in the index, but the small embedding model ranks
+  generic text above them.
 
 ### Baseline log
 
@@ -250,6 +277,30 @@ Point it at any folder of PDF, HTML or text files with one YAML file; see
 ledger ingest --folder configs/examples/my_docs.yaml
 ```
 
+## Running the demo
+
+A public demo that costs nothing: a free Hugging Face Docker Space (CPU) serving the
+Streamlit UI, with the free Gemini tier answering. Step by step, with every click, in
+[docs/deploy-demo.md](docs/deploy-demo.md); in short:
+
+1. Run the **build-demo-index** workflow (Actions tab). It indexes the filings and attaches
+   `demo-index.tar.gz` to a release named `demo-index`.
+2. Create a free Docker Space and push the three files in [`deploy/hf-space/`](deploy/hf-space).
+3. In the Space's *Variables and secrets*: secret `GEMINI_API_KEY`, variable
+   `LEDGER_INDEX_URL` (the release asset URL). Optional: `LANGFUSE_PUBLIC_KEY` and
+   `LANGFUSE_SECRET_KEY` from the free Langfuse Cloud Hobby tier.
+
+Keep billing disabled everywhere, and keys only in those secret settings. To protect the free
+quota the API answers at most `LEDGER_DAILY_BUDGET` questions a day (default 300) and
+`LEDGER_PER_CLIENT_DAILY` per visitor (default 15); after that it returns HTTP 429 and the UI
+says the free daily quota is used up and when it resets (midnight Pacific, 07:00 UTC). Cache
+hits and investment-advice refusals are not counted. Tracing always goes to a local file
+(`data/traces/requests.jsonl`, shown on the UI's Dashboard tab); Langfuse is added on top when
+its keys are set, and is skipped without them.
+
+Expect a free-CPU cold start of a few minutes after the Space has slept, a hard daily cap, and
+answers that are not investment advice.
+
 ## Evaluate
 
 ```bash
@@ -272,7 +323,7 @@ ledger/
   verifier/    ported from Financial-NRF (VER-1..4)
   cache/       semantic_cache.py (CACHE-1..3)
   obs/         tracing.py, langfuse_sink.py, dashboard.py (OBS-1..5)
-  api/         main.py (API-1/2, COST-3)
+  api/         main.py (API-1/2, COST-3), budget.py (daily free-tier quota)
   evaluation/  golden.py, metrics.py, gate.py, judge.py, baseline.py
 eval/          golden/*.jsonl, run_eval.py, results/
 configs/       corpus.yaml, retrieval.yaml

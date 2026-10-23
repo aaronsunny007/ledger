@@ -28,6 +28,9 @@ on:
       allow_hash_baseline:
         description: "Baseline: same, for the long-context baseline"
         default: ""
+      tag_suffix:
+        description: "Ledger repeat for the noise estimate: a suffix such as -repeat1 starts a fresh run saved under its own tag instead of reusing the finished one"
+        default: ""
 
 permissions:
   contents: write
@@ -71,6 +74,7 @@ jobs:
       SPLIT: ${{ inputs.split || 'test' }}
       ALLOW_HASH_LEDGER: ${{ inputs.allow_hash_ledger }}
       ALLOW_HASH_BASELINE: ${{ inputs.allow_hash_baseline }}
+      TAG_SUFFIX: ${{ inputs.tag_suffix }}
     steps:
       - uses: actions/checkout@v4
       - name: Check the API key
@@ -153,7 +157,7 @@ jobs:
         timeout-minutes: 150
         run: |
           python eval/run_eval.py --split "$SPLIT" --judge --sleep 4 --resume --allow-hash $ALLOW_HASH_LEDGER \
-            --tag "ledger-$SPLIT" --summary ledger.md
+            --tag "ledger-$SPLIT$TAG_SUFFIX" --summary ledger.md
           cat ledger.md >> "$GITHUB_STEP_SUMMARY"
       - name: Long-context baseline
         if: always() && steps.ledger.outcome != 'skipped' && (github.event_name == 'schedule' || inputs.baseline)
