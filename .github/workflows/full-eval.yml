@@ -51,6 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       go: ${{ steps.check.outputs.go }}
+      suffix: ${{ steps.check.outputs.suffix }}
+      baseline: ${{ steps.check.outputs.baseline }}
     steps:
       - uses: actions/checkout@v4
       - id: check
@@ -58,12 +60,20 @@ jobs:
           if [ "${{ github.event_name }}" != schedule ]; then
             echo go=true >> "$GITHUB_OUTPUT"; exit 0
           fi
-          go=false
-          for tag in ledger-test long-context-test; do
-            last=$(ls eval/results/*-"$tag".json 2>/dev/null | sort | tail -1)
-            if [ -n "$last" ] && grep -q '"partial": true' "$last"; then go=true; fi
+          # Continue the newest partial run of each kind, including suffixed ones such as
+          # ledger-test-v2 or ledger-test-repeat1; a finished run is never started again.
+          go=false; suffix=""; baseline=false
+          for tag in $(ls eval/results | sed -nE 's/^[0-9]{8}T[0-9]{6}-((ledger|long-context)-test.*)\.json$/\1/p' | sort -u); do
+            last=$(ls eval/results/*-"$tag".json | sort | tail -1)
+            grep -q '"partial": true' "$last" || continue
+            go=true
+            case "$tag" in
+              ledger-test*) suffix="${tag#ledger-test}" ;;
+              long-context-test) baseline=true ;;
+            esac
           done
-          echo "go=$go" | tee -a "$GITHUB_OUTPUT"
+          echo "go=$go" "suffix=$suffix" "baseline=$baseline"
+          { echo "go=$go"; echo "suffix=$suffix"; echo "baseline=$baseline"; } >> "$GITHUB_OUTPUT"
 
   eval:
     needs: check
@@ -74,7 +84,7 @@ jobs:
       SPLIT: ${{ inputs.split || 'test' }}
       ALLOW_HASH_LEDGER: ${{ inputs.allow_hash_ledger }}
       ALLOW_HASH_BASELINE: ${{ inputs.allow_hash_baseline }}
-      TAG_SUFFIX: ${{ inputs.tag_suffix }}
+      TAG_SUFFIX: ${{ inputs.tag_suffix || needs.check.outputs.suffix }}
     steps:
       - uses: actions/checkout@v4
       - name: Check the API key
@@ -160,7 +170,7 @@ jobs:
             --tag "ledger-$SPLIT$TAG_SUFFIX" --summary ledger.md
           cat ledger.md >> "$GITHUB_STEP_SUMMARY"
       - name: Long-context baseline
-        if: always() && steps.ledger.outcome != 'skipped' && (github.event_name == 'schedule' || inputs.baseline)
+        if: always() && steps.ledger.outcome != 'skipped' && ((github.event_name == 'schedule' && needs.check.outputs.baseline == 'true') || inputs.baseline)
         timeout-minutes: 150
         run: |
           python eval/run_eval.py --system long-context --split "$SPLIT" --judge \
