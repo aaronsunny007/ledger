@@ -36,6 +36,20 @@ must contain `deploy/hf-space/` and the daily-quota code.
 
 ## 2. Create the Space (Hugging Face)
 
+**Shortcut (a workflow does the steps below for you).** You only make the account and a token:
+
+1. Create a free account at <https://huggingface.co/join>. Do not add a payment method.
+2. <https://huggingface.co/settings/tokens>: **Create new token**, type **Write**, any name. Copy it.
+3. In this repository: **Settings, Secrets and variables, Actions, New repository secret**, name
+   `HF_TOKEN`, value the token. `GEMINI_API_KEY` is already there from the evals.
+4. **Actions, deploy-hf-space, Run workflow.** It checks the index release exists, creates
+   `<you>/ledger` on the free CPU tier, copies `GEMINI_API_KEY` (and the Langfuse keys if set) into
+   the Space's secrets, sets `LEDGER_INDEX_URL`, uploads the three files and prints the Space URL.
+   Run it again any time to update the Space. The first build takes several minutes.
+
+The manual route, if you prefer it or the workflow fails:
+
+
 1. Create a free account at <https://huggingface.co/join>. Do not add a payment method.
 2. **New Space**: name `ledger`, SDK **Docker** (Blank template), hardware **CPU basic
    (free)**, visibility **Public**. Never pick an upgraded hardware tier.

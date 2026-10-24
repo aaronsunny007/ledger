@@ -1,0 +1,50 @@
+name: deploy-hf-space
+
+# Creates or updates the free Hugging Face Docker Space for the public demo, using
+# secrets that already live in GitHub, so no key is pasted anywhere else. One-time setup:
+#   1. A free Hugging Face account (no payment method) and a token with the "Write" role
+#      (huggingface.co/settings/tokens).
+#   2. Repository secrets: HF_TOKEN (that token) and GEMINI_API_KEY (already set for evals).
+#      Optional: LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
+#   3. The demo-index release must exist (run build-demo-index once).
+# Then run this workflow. Re-running it updates the Space in place. See docs/deploy-demo.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      space:
+        description: Space name under your Hugging Face account
+        default: ledger
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+      LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+      LEDGER_DAILY_BUDGET: ${{ vars.LEDGER_DAILY_BUDGET }}
+      LEDGER_PER_CLIENT_DAILY: ${{ vars.LEDGER_PER_CLIENT_DAILY }}
+      TRUSTED_PROXY_HOPS: ${{ vars.TRUSTED_PROXY_HOPS }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the index release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="https://github.com/${{ github.repository }}/releases/download/demo-index/demo-index.tar.gz"
+          code=$(curl -s -o /dev/null -L -w "%{http_code}" -I "$url")
+          echo "index asset -> HTTP $code"
+          [ "$code" = 200 ] || { echo "::error::No demo-index release asset yet: run build-demo-index first (and the repository must be public)."; exit 1; }
+          echo "INDEX_URL=$url" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install huggingface_hub
+      - name: Deploy the Space
+        run: python scripts/deploy_hf_space.py --space "${{ inputs.space }}" --index-url "$INDEX_URL" | tee -a "$GITHUB_STEP_SUMMARY"
