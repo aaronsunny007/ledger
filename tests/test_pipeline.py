@@ -25,6 +25,14 @@ def growth(user: str, result: float) -> str:
     )
 
 
+def invented(user: str) -> str:
+    """A claim whose figure is in no cited passage: the usual reason for a regeneration."""
+    n = passage_number(user, "Total revenue | $4,500")
+    return claims_json(
+        {"text": "Acme Widgets' total revenue was $9,999 million.", "citations": [n]}
+    )
+
+
 def test_correct_answer_is_cited_and_verified(make_ledger: Make) -> None:
     ledger, llm = make_ledger(lambda s, u: growth(u, 12.5))
     a = ledger.ask(Q)
@@ -57,24 +65,28 @@ def test_malformed_json_twice_still_refuses(make_ledger: Make) -> None:
     assert a.refused and len(llm.calls) == 2  # type: ignore[attr-defined]
 
 
-def test_wrong_arithmetic_triggers_one_regeneration_with_correction(make_ledger: Make) -> None:
-    answers = iter([12.0, 12.5])
+def test_wrong_stated_result_is_repaired_from_the_models_own_calculation(make_ledger: Make) -> None:
+    ledger, llm = make_ledger(lambda s, u: growth(u, 12.0))  # (4500 - 4000) / 4000 * 100 = 12.5
+    a = ledger.ask(Q)
+    assert a.verified is True and not a.regenerated
+    assert "up 12.5%" in a.answer and "12.0" not in a.answer
+    assert a.claims[0].result == 12.5
+    assert len(llm.calls) == 1  # type: ignore[attr-defined]
 
-    def respond(system: str, user: str) -> str:
-        return growth(user, next(answers))
 
-    ledger, llm = make_ledger(respond)
+def test_ungrounded_figure_triggers_one_regeneration_with_correction(make_ledger: Make) -> None:
+    replies = iter([invented, lambda u: growth(u, 12.5)])
+    ledger, llm = make_ledger(lambda s, u: next(replies)(u))
     a = ledger.ask(Q)
     assert a.regenerated and a.verified is True
-    second_prompt = llm.calls[1][1]  # type: ignore[attr-defined]
-    assert "evaluates to 12.5" in second_prompt
+    assert "not in the cited passages" in llm.calls[1][1]  # type: ignore[attr-defined]
 
 
-def test_persistently_wrong_arithmetic_is_flagged_unverified(make_ledger: Make) -> None:
-    ledger, llm = make_ledger(lambda s, u: growth(u, 20.0))
+def test_persistently_ungrounded_figure_is_flagged_unverified(make_ledger: Make) -> None:
+    ledger, llm = make_ledger(lambda s, u: invented(u))
     a = ledger.ask(Q)
     assert a.verified is False
-    assert a.claims[0].verifier_status == "mismatch"
+    assert a.claims[0].verifier_status == "ungrounded"
     assert len(llm.calls) == 2  # type: ignore[attr-defined]
 
 
@@ -203,8 +215,8 @@ def test_daily_quota_stops_retrying_at_once() -> None:
 def test_regeneration_falls_back_when_the_large_model_is_out_of_quota(make_ledger: Make) -> None:
     from ledger.answer.llm import QuotaExhausted
 
-    answers = iter([12.0, 12.5])
-    ledger, llm = make_ledger(lambda s, u: growth(u, next(answers)))
+    replies = iter([invented, lambda u: growth(u, 12.5)])
+    ledger, llm = make_ledger(lambda s, u: next(replies)(u))
 
     class OutOfQuota:
         model = "large"

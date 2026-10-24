@@ -21,6 +21,7 @@ from ledger.retrieve.filters import CompanyRegistry, Filters, filters_from_quest
 from ledger.retrieve.hybrid import Retriever
 from ledger.types import Answer, Citation, Claim, ScoredChunk
 from ledger.verifier import ClaimCheck, ClaimVerifier
+from ledger.verifier.verifier import repair_result
 
 log = logging.getLogger(__name__)
 verifier_log = logging.getLogger("ledger.verifier")
@@ -69,6 +70,13 @@ class Ledger:
         out = []
         for claim in draft.claims:
             problems = []
+            if self.config.answer.verify and (
+                fixed := repair_result(claim.text, claim.calculation, claim.result)
+            ):
+                # The calculation is the model's own and the check recomputes it; when the
+                # value it wrote beside it is off, say the recomputed one (VER-2).
+                log.info("arithmetic repaired: %s -> %s", claim.result, fixed[1])
+                claim.text, claim.result = fixed
             valid = [n for n in claim.citations if 1 <= n <= len(passages)]
             if not valid:
                 problems.append(

@@ -334,3 +334,31 @@ class ClaimVerifier:
         if not claim_numbers and expression is None:
             return ClaimCheck(ClaimStatus.NO_NUMBERS)
         return ClaimCheck(ClaimStatus.VERIFIED, expression, stated_result, recomputed)
+
+
+def repair_result(
+    text: str, expression: str | None, stated: float | None, rel_tolerance: float = 0.005
+) -> tuple[str, float] | None:
+    """Fix a slip in the model's own arithmetic: the calculation is right, the value beside it not.
+
+    When ``expression`` recomputes to something other than ``stated``, return the claim text with
+    the stated value swapped for the recomputed one (same number of decimals) and the new result.
+    ``None`` when there is nothing to fix or the stated value cannot be found in the text. The
+    operands are not trusted any more for this: the usual grounding check still runs afterwards.
+    """
+    if not expression or stated is None:
+        return None
+    try:
+        value = safe_eval_arithmetic(expression)
+    except (UnsafeExpressionError, SyntaxError, ZeroDivisionError, TypeError, ValueError):
+        return None
+    if abs(value - stated) <= max(0.01, rel_tolerance * abs(value)):
+        return None
+    for decimals in range(6, -1, -1):
+        for fmt in (f"{{:,.{decimals}f}}", f"{{:.{decimals}f}}"):
+            old = fmt.format(stated)
+            hit = re.search(rf"(?<![\d.,]){re.escape(old)}(?![\d]|\.\d|,\d)", text)
+            if hit:
+                new = fmt.format(value)
+                return text[: hit.start()] + new + text[hit.end() :], value
+    return None
