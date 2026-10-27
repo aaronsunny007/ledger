@@ -191,6 +191,7 @@ questions:
     category: messy
     expect: answer
     question: whats teslas revnue in 2022
+    must_include_any: ["81,462", "81.5"]
   - id: mess-2
     category: messy
     expect: safe
@@ -202,7 +203,9 @@ questions:
   - id: mess-4
     category: messy
     expect: answer
+    note: Asked after look-2 (Nike revenue); the answer cache must not hand back the revenue answer.
     question: WHAT WAS NIKE'S NET INCOME IN FISCAL 2023???
+    must_include_any: ["5,070", "5.07"]
   - id: mess-5
     category: messy
     expect: refuse

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from functools import cache
@@ -13,6 +14,7 @@ from ledger.answer.llm import LLM, LLMResult
 from ledger.types import ScoredChunk
 
 PROMPTS = Path(__file__).parent / "prompts"
+log = logging.getLogger(__name__)
 
 
 @cache
@@ -150,11 +152,14 @@ def parse_draft(text: str) -> Draft:
         # so a format mismatch is not mistaken for a genuine refusal.
         keys = ", ".join(sorted(data)) if isinstance(data, dict) else type(data).__name__
         reason = f"Model output had no usable claims (keys: {keys})."
+        log.warning("%s Reply began: %r", reason, text[:300])
     return Draft(
         answerable=answerable and bool(claims),
         claims=claims,
         confidence=conf if conf in ("high", "medium", "low") else "low",
         refusal_reason=str(reason) if reason else None,
+        # a slip of the model's, not a refusal: the pipeline asks once more
+        parse_error=reason if answerable and not claims else None,
     )
 
 

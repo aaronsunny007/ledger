@@ -9,6 +9,7 @@ are never cached.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -16,6 +17,73 @@ import numpy as np
 from ledger.retrieve.embed import Embedder, Vector
 from ledger.retrieve.filters import Filters
 from ledger.types import Answer
+
+# Words that carry no meaning for "is this the same question?". Everything else must match:
+# "Nike's revenue in 2023" and "Nike's net income in 2023" embed almost identically, but they
+# are different questions, so the words that name the metric have to agree, not just the vector.
+_FILLER = frozenset(
+    [
+        "a",
+        "an",
+        "the",
+        "of",
+        "in",
+        "for",
+        "to",
+        "and",
+        "or",
+        "at",
+        "by",
+        "on",
+        "with",
+        "from",
+        "as",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "did",
+        "does",
+        "do",
+        "has",
+        "have",
+        "had",
+        "how",
+        "what",
+        "which",
+        "who",
+        "whom",
+        "much",
+        "many",
+        "s",
+        "fiscal",
+        "financial",
+        "year",
+        "years",
+        "fy",
+        "please",
+        "tell",
+        "me",
+        "give",
+        "show",
+        "its",
+        "it",
+        "their",
+        "company",
+        "corporation",
+        "inc",
+        "during",
+        "end",
+        "ended",
+    ]
+)
+
+
+def content_words(question: str) -> frozenset[str]:
+    words = re.findall(r"[a-z]+|\d+", question.lower())
+    return frozenset(w.rstrip("s") if len(w) > 3 else w for w in words if w not in _FILLER)
 
 
 @dataclass
@@ -60,12 +128,15 @@ class SemanticCache:
             return None, 0.0
         q = self.embedder.embed_query(question)
         sims = np.array([float(e.vector @ q) for e in bucket])
-        best = int(np.argmax(sims))
-        if sims[best] >= self.threshold:
-            self.stats.hits += 1
-            return bucket[best].answer, float(sims[best])
+        words = content_words(question)
+        for i in np.argsort(-sims):
+            if sims[i] < self.threshold:
+                break
+            if content_words(bucket[i].question) == words:
+                self.stats.hits += 1
+                return bucket[i].answer, float(sims[i])
         self.stats.misses += 1
-        return None, float(sims[best])
+        return None, float(sims.max())
 
     def store(self, question: str, filters: Filters, answer: Answer, doc_ids: set[str]) -> None:
         if not self.cacheable(filters) or answer.refused:

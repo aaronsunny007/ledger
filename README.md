@@ -8,12 +8,12 @@ closest passages instead of guessing.
 > Results: [80.7% on the 207 scored test questions](#results) on the latest run (24 Oct; three earlier runs of older code scored 77.3–78.7%), the long-context baseline gets 75.4%; live demo: not deployed yet, see [Running the demo](#running-the-demo)
 
 ```text
-Q: How much did Apple's net sales change from FY2023 to FY2024?
+Q: How much did Apple's net sales change from FY2022 to FY2023?
 
-Apple's total net sales rose from $383,285 million in FY2023 to $391,035 million in
-FY2024, an increase of 2.0% [1].            ✔ verifier: (391035 - 383285) / 383285 * 100 = 2.02
+Apple's total net sales fell from $394,328 million in FY2022 to $383,285 million in
+FY2023, a decrease of 2.80% [1].            ✔ verifier: (383285 - 394328) / 394328 * 100 = -2.80
 
-[1] Apple Inc. 10-K FY2024, Item 8. Financial Statements  → opens sec.gov at the highlighted row
+[1] Apple Inc. 10-K FY2023, Item 8. Financial Statements  → opens sec.gov at the highlighted row
 ```
 
 Ledger is not a chatbot. It is the part around the chatbot that companies pay for:
