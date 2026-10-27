@@ -94,3 +94,23 @@ def test_unusable_claims_are_retried_once(
     ledger, llm = make_ledger(respond)
     a = ledger.ask("What was Acme Widgets operating income in 2024?")
     assert not a.refused and len(llm.calls) == 2  # type: ignore[attr-defined]
+
+
+def test_company_names_tolerate_a_plural_and_one_typo() -> None:
+    from pathlib import Path
+
+    from ledger.retrieve.filters import CompanyRegistry
+
+    reg = CompanyRegistry.from_yaml(
+        Path(__file__).resolve().parent.parent / "configs" / "corpus.yaml"
+    )
+    assert reg.find("whats teslas revnue in 2022") == ["TSLA"]
+    assert reg.find("Tesla's revenue") == ["TSLA"]
+    assert reg.find("What was Mircosoft revenue 2023") == ["MSFT"]
+    # nothing close to a loaded company: stays unmatched, so Ledger asks which one is meant
+    for q in (
+        "What was the revenue last year?",
+        "What was Zoom's revenue?",
+        "population of France",
+    ):
+        assert reg.find(q) == [], q
