@@ -174,9 +174,10 @@ class Generator:
         passages: list[ScoredChunk],
         feedback: list[str] | None = None,
         llm: LLM | None = None,
+        max_chars: int | None = None,
     ) -> tuple[Draft, LLMResult]:
         result = (llm or self.llm).complete(
             system_prompt(),
-            build_user_prompt(question, passages, self.max_context_chars, feedback),
+            build_user_prompt(question, passages, max_chars or self.max_context_chars, feedback),
         )
         return parse_draft(result.text), result

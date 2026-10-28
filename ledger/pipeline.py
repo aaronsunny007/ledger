@@ -271,6 +271,29 @@ class Ledger:
                     model=res.model, input_tokens=res.input_tokens, output_tokens=res.output_tokens
                 )
 
+        if (
+            not draft.answerable
+            and not draft.parse_error
+            and self.config.answer.retry_wide_on_refusal
+        ):
+            # The model says the passages lack the answer. Often the right filing is loaded and the
+            # right paragraph or statement was just not among the first few: search wider, once.
+            with trace.span("retrieve_wide") as s:
+                wide = self.retriever.retrieve(question, f, wide=True)
+                seen = {p.chunk.id for p in passages}
+                s.attrs.update(n=len(wide), new=sum(1 for p in wide if p.chunk.id not in seen))
+            if any(p.chunk.id not in seen for p in wide):
+                with trace.span("generate_wide") as s:
+                    draft2, res2 = self.generator.draft(
+                        question, wide, max_chars=self.config.answer.wide_context_chars
+                    )
+                    llm_calls.append(res2)
+                    s.attrs.update(model=res2.model, answerable=draft2.answerable)
+                if draft2.answerable:
+                    draft, passages = draft2, wide
+                elif not draft2.parse_error:
+                    draft = draft2  # refuse with the reason from the wider look
+
         if not draft.answerable:
             answer = self._refusal(question, draft.refusal_reason or "Not answerable.", passages)
             return self._finish(trace, answer, llm_calls, passages)

@@ -229,3 +229,55 @@ def test_missing_year_note_says_what_is_loaded() -> None:
     assert missing_year_note(docs, "COST", [2022], "Costco") is None  # it is loaded
     assert missing_year_note(docs, "COST", [], "Costco") is None  # no year asked
     assert missing_year_note(docs, "ZZZ", [2023], "Nobody") is None  # nothing loaded for it
+
+
+# -- one wider look before refusing -------------------------------------------------------------
+
+
+def _answer_from(user: str) -> str:
+    n = passage_number(user, "Operating income was $630 million")
+    return claims_json(
+        {"text": "Acme Widgets' operating income was $630 million.", "citations": [n]}
+    )
+
+
+def test_a_refusal_gets_one_wider_look_and_can_become_an_answer(
+    make_ledger: Callable[..., tuple[Ledger, object]],
+) -> None:
+    prompts: list[str] = []
+
+    def respond(system: str, user: str) -> str:
+        prompts.append(user)
+        if len(prompts) == 1:  # the first, narrow look: the model says it is not there
+            return claims_json(answerable=False)
+        return _answer_from(user)
+
+    ledger, llm = make_ledger(respond)
+    ledger.config.retrieval.top_k = 1  # narrow enough that the wide look finds more
+    a = ledger.ask("What was Acme Widgets operating income in 2024?")
+    assert not a.refused and "630" in a.answer and a.verified is True
+    assert len(llm.calls) == 2  # type: ignore[attr-defined]
+    assert prompts[1].count("<passage ") > prompts[0].count("<passage ")
+
+
+def test_a_wider_look_that_still_finds_nothing_refuses_after_one_extra_call(
+    make_ledger: Callable[..., tuple[Ledger, object]],
+) -> None:
+    ledger, llm = make_ledger(lambda s, u: claims_json(answerable=False))
+    ledger.config.retrieval.top_k = 1
+    a = ledger.ask("What was Acme Widgets operating income in 2024?")
+    assert a.refused and len(llm.calls) == 2  # type: ignore[attr-defined]
+
+
+def test_the_wider_look_can_be_switched_off_and_skips_when_nothing_new(
+    make_ledger: Callable[..., tuple[Ledger, object]],
+) -> None:
+    ledger, llm = make_ledger(lambda s, u: claims_json(answerable=False))
+    ledger.config.retrieval.top_k = 1
+    ledger.config.answer.retry_wide_on_refusal = False
+    assert ledger.ask("What was Acme Widgets operating income in 2024?").refused
+    assert len(llm.calls) == 1  # type: ignore[attr-defined]
+    ledger2, llm2 = make_ledger(lambda s, u: claims_json(answerable=False))
+    ledger2.config.retrieval.top_k = 50  # the first look already saw everything there is
+    assert ledger2.ask("What was Acme Widgets operating income in 2024?").refused
+    assert len(llm2.calls) == 1  # type: ignore[attr-defined]
