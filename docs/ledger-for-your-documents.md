@@ -20,6 +20,10 @@ questions.**
 3. `ledger ingest --folder your_docs.yaml` indexes it on your own machine.
 4. Ask through the web page or the API.
 
+Ledger asks the user to name a company when a question names none it knows (so it never answers about
+a company at random). A folder of your own documents usually has no company names in its questions, so
+set `answer.require_company: false` in `configs/retrieval.yaml` for it.
+
 Private documents stay private: run the model locally with Ollama, or on a paid API tier with
 no data retention. Nothing needs to leave your network.
 

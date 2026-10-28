@@ -6,6 +6,7 @@ answered from a Microsoft passage that happened to score well.
 
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -49,10 +50,23 @@ class CompanyRegistry:
         patterns = []
         for c in companies:
             for alias in {c.name, *c.aliases}:
-                patterns.append((re.compile(rf"\b{re.escape(alias)}\b", re.IGNORECASE), c.ticker))
+                # "Tesla's", "teslas": a trailing possessive or plural is still the company.
+                patterns.append(
+                    (
+                        re.compile(rf"\b{re.escape(alias)}(?:['\u2019]?s)?\b", re.IGNORECASE),
+                        c.ticker,
+                    )
+                )
             # Tickers only match in capitals, so "MO" and "ALL" don't fire on prose.
             patterns.append((re.compile(rf"\b{re.escape(c.ticker)}\b"), c.ticker))
         self._patterns = patterns
+        # One-word names for the typo fallback in ``find`` ("mircosoft", "teslaa").
+        self._words = {
+            alias.lower(): c.ticker
+            for c in companies
+            for alias in {c.name, *c.aliases}
+            if re.fullmatch(r"[A-Za-z]{5,}", alias)
+        }
 
     @classmethod
     def from_yaml(cls, path: Path) -> CompanyRegistry:
@@ -72,6 +86,11 @@ class CompanyRegistry:
         for pattern, ticker in self._patterns:
             if pattern.search(text):
                 found.setdefault(ticker, None)
+        if not found:  # nothing matched exactly: allow one misspelt company name
+            for word in re.findall(r"[A-Za-z]{5,}", text):
+                close = difflib.get_close_matches(word.lower(), self._words, n=1, cutoff=0.86)
+                if close:
+                    found.setdefault(self._words[close[0]], None)
         return list(found)
 
 

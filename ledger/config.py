@@ -84,6 +84,9 @@ class AnswerConfig(BaseModel):
     verify: bool = True
     regenerate_on_failure: bool = True
     max_context_chars: int = 18000
+    # Refuse (no model call) when no known company is named. Turn off for a corpus whose
+    # questions never name one, such as a folder of your own policy documents.
+    require_company: bool = True
 
 
 class CacheConfig(BaseModel):

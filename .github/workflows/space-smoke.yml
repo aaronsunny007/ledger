@@ -1,0 +1,79 @@
+name: space-smoke
+
+# Builds the Hugging Face Space image (deploy/hf-space/Dockerfile) exactly as Hugging Face
+# would, starts it with the real demo index, and probes it: the UI is up, the API is up, the
+# index loaded, an investment-advice question and a no-company question are refused without
+# calling the model, and a malformed request is rejected. It also prints the memory the
+# running container uses (a free Space has 16 GB). No secrets: the probes never call the
+# model, and a dummy key stands in so the app can start. Run it before deploying, and after
+# any change to deploy/hf-space/ or to start-up code. The image builds the branch it is run on
+# (the pull request's branch on a PR). It runs by itself on pull requests that touch
+# deploy/hf-space/ or this file.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - deploy/hf-space/**
+      - .github/workflows/space-smoke.yml
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Space image
+        run: |
+          docker build --build-arg LEDGER_REPO="https://github.com/${{ github.repository }}" \
+            --build-arg LEDGER_REF="${{ github.head_ref || github.ref_name }}" -t ledger-space deploy/hf-space
+      - name: Start it with the demo index
+        run: |
+          docker run -d --name space -p 7860:7860 \
+            -e LEDGER_INDEX_URL="https://github.com/${{ github.repository }}/releases/download/demo-index/demo-index.tar.gz" \
+            -e GEMINI_API_KEY=dummy-never-called ledger-space
+      - name: Wait for the UI and the API
+        run: |
+          for i in $(seq 90); do
+            ui=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/_stcore/health || true)
+            api=$(docker exec space curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/health || true)
+            echo "attempt $i: ui=$ui api=$api"
+            [ "$ui" = 200 ] && [ "$api" = 200 ] && exit 0
+            sleep 10
+          done
+          echo "::error::The Space did not come up in 15 minutes"; docker logs space | tail -60; exit 1
+      - name: Probe the API inside the container
+        run: |
+          api() { docker exec space curl -s -X POST http://127.0.0.1:8000/ask -H 'Content-Type: application/json' -d "$1" -w '\n%{http_code}'; }
+          docker exec space curl -s http://127.0.0.1:8000/documents > documents.json
+          docker exec space curl -s http://127.0.0.1:8000/health > health.json
+          api '{"question":"Should I buy Tesla stock?"}' > advice.txt
+          api '{"question":"What was the revenue last year?"}' > nocompany.txt
+          api '{"question":"x"}' > short.txt
+          python3 - <<'PY'
+          import json
+          docs = json.load(open("documents.json"))
+          tickers = {d["ticker"] for d in docs}
+          print("documents:", len(docs), "companies:", len(tickers))
+          assert len(tickers) >= 30, "the demo index did not load (too few companies)"
+          print("health:", json.load(open("health.json")))
+          def read(name):
+              body, code = open(name).read().rsplit("\n", 1)
+              return json.loads(body), int(code)
+          a, code = read("advice.txt")
+          assert code == 200 and a["refused"] and "investment advice" in a["answer"], a
+          n, code = read("nocompany.txt")
+          assert code == 200 and n["refused"] and "which company" in n["answer"], n
+          _, code = read("short.txt")
+          assert code == 422, code
+          print("probes passed: advice refused, no-company refused, short input rejected (422)")
+          PY
+      - name: Memory the running container uses
+        if: always()
+        run: docker stats --no-stream --format "memory {{.MemUsage}} ({{.MemPerc}}), cpu {{.CPUPerc}}" space | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Container log, if anything failed
+        if: failure()
+        run: docker logs space | tail -80

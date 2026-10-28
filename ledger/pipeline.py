@@ -34,8 +34,16 @@ class QuestionTooLong(ValueError):
 
 
 REPARSE_FEEDBACK = (
-    "Your reply was not a single valid JSON object. Reply with exactly the JSON object "
-    "described in the instructions and nothing else."
+    "Your reply could not be used. Reply with exactly one valid JSON object as described in "
+    'the instructions and nothing else. When "answerable" is true, "claims" must hold at '
+    "least one claim with its text and citations."
+)
+
+NO_COMPANY = (
+    "I could not tell which company your question is about. Ledger only knows the companies "
+    'whose annual reports it has loaded, so name one of them (for example "What was '
+    'Microsoft\'s revenue in fiscal year 2023?"). The "Companies loaded" list in the app '
+    "shows them."
 )
 
 
@@ -187,6 +195,13 @@ class Ledger:
                 answer=ADVICE_REFUSAL,
                 refused=True,
                 refusal_reason=ADVICE_REFUSAL,
+            )
+            return self._finish(trace, answer, llm_calls)
+
+        if self.config.answer.require_company and not f.tickers:
+            # Retrieval would otherwise pick some company at random and answer about it.
+            answer = Answer(
+                question=question, answer=NO_COMPANY, refused=True, refusal_reason=NO_COMPANY
             )
             return self._finish(trace, answer, llm_calls)
 

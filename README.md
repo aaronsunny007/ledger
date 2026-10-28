@@ -8,12 +8,12 @@ closest passages instead of guessing.
 > Results: [80.7% on the 207 scored test questions](#results) on the latest run (24 Oct; three earlier runs of older code scored 77.3–78.7%), the long-context baseline gets 75.4%; live demo: not deployed yet, see [Running the demo](#running-the-demo)
 
 ```text
-Q: How much did Apple's net sales change from FY2023 to FY2024?
+Q: How much did Apple's net sales change from FY2022 to FY2023?
 
-Apple's total net sales rose from $383,285 million in FY2023 to $391,035 million in
-FY2024, an increase of 2.0% [1].            ✔ verifier: (391035 - 383285) / 383285 * 100 = 2.02
+Apple's total net sales fell from $394,328 million in FY2022 to $383,285 million in
+FY2023, a decrease of 2.80% [1].            ✔ verifier: (383285 - 394328) / 394328 * 100 = -2.80
 
-[1] Apple Inc. 10-K FY2024, Item 8. Financial Statements  → opens sec.gov at the highlighted row
+[1] Apple Inc. 10-K FY2023, Item 8. Financial Statements  → opens sec.gov at the highlighted row
 ```
 
 Ledger is not a chatbot. It is the part around the chatbot that companies pay for:
@@ -353,6 +353,12 @@ python eval/run_eval.py --system long-context --split test
 
 Or run the **build-golden** workflow from the Actions tab. See [`eval/README.md`](eval/README.md).
 
+Before putting the demo in front of people, run the **prelaunch** workflow (`eval/prelaunch.py`): 42 realistic
+questions (examples, lookups, calculations, prose, refusals, investment advice, attempts to break the rules,
+messy input) through the same index the demo uses, with a readable report in `eval/results/`. It is not an
+accuracy score. The **space-smoke** workflow builds the Hugging Face Space image and checks that it starts and
+answers.
+
 ## Repository
 
 ```text
@@ -378,6 +384,18 @@ comments so each one can be traced.
 Ledger answers only from filings it has ingested, gives no investment advice and has no market
 data. FinanceBench is CC BY-NC 4.0: fine for this portfolio project, not for paid client work.
 See [MODEL_CARD.md](MODEL_CARD.md) and [SECURITY.md](SECURITY.md).
+
+Known limits, found by the pre-launch check and not fixed:
+
+- **Fiscal-year labels.** A filing is labelled with the calendar year its period ends in. A retailer
+  whose year ends in January (Home Depot, Walmart) calls the year ending January 2023 "fiscal 2022",
+  so asking for "fiscal 2023" is refused with an honest but confusing reply. The app's sidebar says so.
+- **It must be told which company.** A question that names no company Ledger has loaded is answered
+  with a request to name one, not a guess (`answer.require_company` in `configs/retrieval.yaml`).
+- **Prose and multi-step questions are the weak spot** (FinanceBench 63.5% on the test split, target 70%).
+- **Some answers are slow** (10 to 50 seconds) when the free model tier is busy.
+- **"Verified" is not "correct".** It means the sentence agrees with the cited text and the arithmetic
+  adds up; the model can still pick the wrong line item or year.
 
 ## Licence
 

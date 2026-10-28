@@ -16,6 +16,7 @@ next time ingest changes anyway (removing it now would force a reindex).
 
 from __future__ import annotations
 
+import difflib
 import re
 
 from ledger.ingest.statements import BALANCE_SHEET, CASH_FLOW, INCOME, STATEMENTS
@@ -53,8 +54,51 @@ _NEEDS = {
 }
 
 
+# Words whose misspelling would hide a statement: "revnue", "incom", "asets".
+_VOCAB = [
+    "revenue",
+    "revenues",
+    "income",
+    "profit",
+    "profits",
+    "sales",
+    "margin",
+    "margins",
+    "earnings",
+    "assets",
+    "liabilities",
+    "expenses",
+    "expenditure",
+    "equity",
+    "inventory",
+    "receivable",
+    "receivables",
+    "payable",
+    "payables",
+    "dividends",
+    "depreciation",
+    "amortization",
+    "goodwill",
+    "operating",
+    "liquidity",
+    "turnover",
+]
+
+
+def _fix_typos(text: str) -> str:
+    def fix(m: re.Match[str]) -> str:
+        word = m.group(0)
+        if len(word) < 5 or word.lower() in _VOCAB:
+            return word
+        close = difflib.get_close_matches(word.lower(), _VOCAB, n=1, cutoff=0.84)
+        return close[0] if close else word
+
+    return re.sub(r"[A-Za-z]+", fix, text)
+
+
 def statements_needed(question: str) -> list[str]:
     """Which primary statements a question's figures come from."""
+    question = _fix_typos(question)
     return [kind for kind in STATEMENTS if _NEEDS[kind].search(question)]
 
 
