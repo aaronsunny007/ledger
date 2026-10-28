@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import numpy as np
 
-from ledger.cache.semantic_cache import SemanticCache, content_words
+from ledger.cache.semantic_cache import SemanticCache, content_words, same_question
 from ledger.pipeline import NO_COMPANY, Ledger
 from ledger.retrieve.filters import Filters
 from ledger.retrieve.needs import statements_needed
@@ -114,3 +114,28 @@ def test_company_names_tolerate_a_plural_and_one_typo() -> None:
         "population of France",
     ):
         assert reg.find(q) == [], q
+
+
+def test_coverage_lines_group_years_by_company() -> None:
+    from ledger.retrieve.coverage import coverage_lines
+
+    docs = [
+        {"ticker": "MSFT", "company": "Microsoft Corp", "fiscal_year": 2023},
+        {"ticker": "AAPL", "company": "Apple Inc.", "fiscal_year": 2023},
+        {"ticker": "AAPL", "company": "Apple Inc.", "fiscal_year": 2021},
+        {"ticker": "", "company": "No ticker", "fiscal_year": 2020},
+    ]
+    assert coverage_lines(docs) == ["Apple Inc. (AAPL): 2021, 2023", "Microsoft Corp (MSFT): 2023"]
+    assert coverage_lines([]) == []
+
+
+def test_the_order_of_the_years_matters() -> None:
+    a = "How much did Nike's revenue change from 2022 to 2023?"
+    b = "How much did Nike's revenue change from 2023 to 2022?"
+    assert not same_question(a, b)
+    assert same_question(a, "nike revenue change from 2022 to 2023")
+    cache = SemanticCache(SameVector(), threshold=0.9)  # type: ignore[arg-type]
+    cache.store(
+        a, Filters(tickers=["NKE"], years=[2022, 2023]), Answer(question="q", answer="up"), set()
+    )
+    assert cache.lookup(b, Filters(tickers=["NKE"], years=[2022, 2023]))[0] is None

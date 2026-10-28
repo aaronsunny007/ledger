@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from ledger.obs.dashboard import daily_stats, load_requests  # noqa: E402
+from ledger.retrieve.coverage import coverage_lines  # noqa: E402
 
 API = os.environ.get("LEDGER_API", "http://localhost:8000")
 EXAMPLES = [
@@ -75,19 +76,24 @@ def ask(question: str, tickers: list[str], years: list[int]) -> dict[str, Any]:
     return dict(r.json())
 
 
-def index_ready() -> bool:
-    """False until at least one filing is indexed (a fresh Space starts empty)."""
-    if st.session_state.get("index_ready"):
-        return True
+def documents() -> list[dict[str, Any]]:
+    """The filings the server has indexed (empty if it cannot be reached yet)."""
+    if st.session_state.get("docs"):
+        return list(st.session_state["docs"])
     try:
         if API == "inprocess":
             docs = _inprocess().retriever.index.documents()
         else:
             docs = httpx.get(f"{API}/documents", timeout=120).json()
     except Exception:
-        return False
-    st.session_state["index_ready"] = bool(docs)
-    return bool(docs)
+        return []
+    st.session_state["docs"] = docs
+    return list(docs)
+
+
+def index_ready() -> bool:
+    """False until at least one filing is indexed (a fresh Space starts empty)."""
+    return bool(documents())
 
 
 def feedback(request_id: str, up: bool) -> None:
@@ -164,6 +170,15 @@ with tab_ask:
 
     with st.spinner("Loading the filings index…"):
         ready = index_ready()
+    if ready:
+        lines = coverage_lines(documents())
+        with st.sidebar.expander(f"Companies loaded ({len(lines)})"):
+            st.caption(
+                "Years are the calendar year each report's period ends in, so a retailer's "
+                "year ending in January 2023 appears as 2023 even if the company calls it "
+                "fiscal 2022."
+            )
+            st.markdown("\n".join(f"- {line}" for line in lines))
     if not ready:
         reason = INDEX_STATUS.read_text().strip() if INDEX_STATUS.exists() else ""
         st.error(

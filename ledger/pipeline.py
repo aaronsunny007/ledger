@@ -42,7 +42,8 @@ REPARSE_FEEDBACK = (
 NO_COMPANY = (
     "I could not tell which company your question is about. Ledger only knows the companies "
     'whose annual reports it has loaded, so name one of them (for example "What was '
-    "Microsoft's revenue in fiscal year 2023?\"). The app lists what is loaded."
+    'Microsoft\'s revenue in fiscal year 2023?"). The "Companies loaded" list in the app '
+    "shows them."
 )
 
 

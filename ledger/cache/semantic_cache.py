@@ -86,6 +86,17 @@ def content_words(question: str) -> frozenset[str]:
     return frozenset(w.rstrip("s") if len(w) > 3 else w for w in words if w not in _FILLER)
 
 
+def same_question(a: str, b: str) -> bool:
+    """Same meaning words, and the same numbers in the same order.
+
+    The order matters: "change from 2022 to 2023" and "from 2023 to 2022" use the same words
+    and give answers of opposite sign.
+    """
+    if content_words(a) != content_words(b):
+        return False
+    return re.findall(r"\d+", a) == re.findall(r"\d+", b)
+
+
 @dataclass
 class _Entry:
     question: str
@@ -128,11 +139,10 @@ class SemanticCache:
             return None, 0.0
         q = self.embedder.embed_query(question)
         sims = np.array([float(e.vector @ q) for e in bucket])
-        words = content_words(question)
         for i in np.argsort(-sims):
             if sims[i] < self.threshold:
                 break
-            if content_words(bucket[i].question) == words:
+            if same_question(bucket[i].question, question):
                 self.stats.hits += 1
                 return bucket[i].answer, float(sims[i])
         self.stats.misses += 1
