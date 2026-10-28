@@ -58,6 +58,7 @@ jobs:
               "section": ("section", "configs/experiments/section.yaml"),
               "fixed-1024": ("fixed-1024", "configs/experiments/fixed-1024.yaml"),
               "fixed-512": ("fixed-512", "configs/experiments/fixed-512.yaml"),
+              "bge-base": ("table-bge-base", "configs/experiments/bge-base.yaml"),
           }
           only = os.environ.get("ONLY", "").split()
           unknown = set(only) - set(RUNS)
