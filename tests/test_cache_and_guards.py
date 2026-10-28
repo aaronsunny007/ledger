@@ -139,3 +139,93 @@ def test_the_order_of_the_years_matters() -> None:
         a, Filters(tickers=["NKE"], years=[2022, 2023]), Answer(question="q", answer="up"), set()
     )
     assert cache.lookup(b, Filters(tickers=["NKE"], years=[2022, 2023]))[0] is None
+
+
+# -- interactive latency: say "busy" instead of sleeping, and say what is loaded ---------------
+
+
+def test_a_long_rate_limit_wait_raises_busy_instead_of_sleeping(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    import httpx
+    import pytest
+
+    from ledger.answer import llm as llm_mod
+    from ledger.answer.llm import GeminiLLM, LLMBusy
+
+    monkeypatch.setattr(llm_mod.time, "sleep", lambda s: pytest.fail("must not sleep"))
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = {"error": {"message": "rate", "details": [{"retryDelay": "45s"}]}}
+        return httpx.Response(429, json=body)
+
+    patient = GeminiLLM("k", "m")  # batch default: no cap
+    quick = GeminiLLM("k", "m", max_retry_wait=15)
+    quick._http = httpx.Client(transport=httpx.MockTransport(handler))
+    with pytest.raises(LLMBusy) as e:
+        quick.complete("s", "u")
+    assert e.value.retry_after == 45
+    assert patient._max_retry_wait is None  # the eval keeps waiting
+
+
+def test_a_short_rate_limit_wait_is_still_waited_out(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    import httpx
+
+    from ledger.answer import llm as llm_mod
+    from ledger.answer.llm import GeminiLLM
+
+    slept: list[float] = []
+    monkeypatch.setattr(llm_mod.time, "sleep", slept.append)
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return httpx.Response(429, json={"error": {"details": [{"retryDelay": "3s"}]}})
+        return httpx.Response(200, json={"candidates": [{"content": {"parts": [{"text": "{}"}]}}]})
+
+    llm = GeminiLLM("k", "m", max_retry_wait=15)
+    llm._http = httpx.Client(transport=httpx.MockTransport(handler))
+    assert llm.complete("s", "u").text == "{}" and slept == [4.0]
+
+
+def test_busy_model_gives_a_503_and_does_not_use_up_a_question(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from fastapi.testclient import TestClient
+
+    from ledger.answer.llm import LLMBusy
+    from ledger.api import main as api
+    from ledger.api.budget import DailyBudget
+    from ledger.pipeline import Ledger
+
+    def busy(*_: object, **__: object) -> None:
+        raise LLMBusy(429, "rate", retry_after=30)
+
+    monkeypatch.setattr(Ledger, "ask", busy)
+    api.budget = DailyBudget(300, 15)
+    api.limiter.per_minute = 1000
+    api.app.dependency_overrides[api.get_ledger] = lambda: Ledger.__new__(Ledger)
+    try:
+        r = TestClient(api.app).post("/ask", json={"question": "What was Nike revenue in 2023?"})
+    finally:
+        api.app.dependency_overrides.clear()
+    assert r.status_code == 503 and r.headers["retry-after"] == "30"
+    assert (
+        r.json()["detail"]["error"] == "model_busy"
+        and "30 seconds" in r.json()["detail"]["message"]
+    )
+    assert api.budget.remaining() == 300  # refunded
+
+
+def test_missing_year_note_says_what_is_loaded() -> None:
+    from ledger.retrieve.coverage import missing_year_note
+
+    docs = [
+        {"ticker": "HD", "fiscal_year": 2023},
+        {"ticker": "COST", "fiscal_year": 2021},
+        {"ticker": "COST", "fiscal_year": 2022},
+    ]
+    note = missing_year_note(docs, "COST", [2009], "Costco")
+    assert note == "I have Costco filings for 2021, 2022, but none for 2009."
+    hd = missing_year_note(docs, "HD", [2024], "Home Depot", "start")
+    assert hd and "none for 2024" in hd and "fiscal 2022" in hd and "labelled 2023" in hd
+    assert missing_year_note(docs, "COST", [2022], "Costco") is None  # it is loaded
+    assert missing_year_note(docs, "COST", [], "Costco") is None  # no year asked
+    assert missing_year_note(docs, "ZZZ", [2023], "Nobody") is None  # nothing loaded for it

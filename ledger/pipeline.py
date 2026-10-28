@@ -17,6 +17,7 @@ from ledger.answer.llm import LLM, LLMError, LLMResult, QuotaExhausted
 from ledger.cache.semantic_cache import SemanticCache
 from ledger.config import LedgerConfig
 from ledger.obs.tracing import Trace, Tracer
+from ledger.retrieve.coverage import missing_year_note
 from ledger.retrieve.filters import CompanyRegistry, Filters, filters_from_question
 from ledger.retrieve.hybrid import Retriever
 from ledger.types import Answer, Citation, Claim, ScoredChunk
@@ -107,6 +108,22 @@ class Ledger:
                     problems.append(f'Claim "{claim.text}": {check.message}')
             out.append(_Checked(claim, check, problems))
         return out
+
+    def _no_passage_reason(self, f: Filters) -> str:
+        """Why nothing was found: if a year is simply not loaded, say what is."""
+        if self.registry is not None and len(f.tickers) == 1 and f.years:
+            company = self.registry.get(f.tickers[0])
+            if company is not None:
+                note = missing_year_note(
+                    self.retriever.index.documents(),
+                    company.ticker,
+                    f.years,
+                    company.name,
+                    company.year_naming,
+                )
+                if note:
+                    return note
+        return "No relevant passage found."
 
     @staticmethod
     def _refusal(question: str, reason: str, passages: list[ScoredChunk]) -> Answer:
@@ -235,7 +252,7 @@ class Ledger:
         if not passages or (
             self.retriever.reranker is not None and min_score and passages[0].score < min_score
         ):
-            answer = self._refusal(question, "No relevant passage found.", passages)
+            answer = self._refusal(question, self._no_passage_reason(f), passages)
             return self._finish(trace, answer, llm_calls, passages)
 
         with trace.span("generate") as s:

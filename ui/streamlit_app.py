@@ -68,9 +68,12 @@ def ask(question: str, tickers: list[str], years: list[int]) -> dict[str, Any]:
         headers=_client_headers(),
         timeout=120,
     )
-    if r.status_code == 429:
+    if r.status_code in (429, 503):
         detail = r.json().get("detail")
-        if isinstance(detail, dict) and detail.get("error") == "daily_quota_exhausted":
+        if isinstance(detail, dict) and detail.get("error") in (
+            "daily_quota_exhausted",
+            "model_busy",
+        ):
             raise QuotaUsedUp(detail["message"])
     r.raise_for_status()
     return dict(r.json())

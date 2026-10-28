@@ -44,7 +44,7 @@ companies:
   - {ticker: PYPL, name: PayPal}
   - {ticker: PEP, name: PepsiCo, aliases: [Pepsi]}
   - {ticker: PFE, name: Pfizer}
-  - {ticker: ULTA, name: Ulta Beauty, aliases: [Ulta]}
+  - {ticker: ULTA, name: Ulta Beauty, aliases: [Ulta], year_naming: start}
   - {ticker: VZ, name: Verizon}
   - {ticker: WMT, name: Walmart}
   # --- extra large caps, used by the XBRL-generated questions ---
@@ -54,5 +54,5 @@ companies:
   - {ticker: NVDA, name: NVIDIA, aliases: [Nvidia]}
   - {ticker: TSLA, name: Tesla}
   - {ticker: INTC, name: Intel}
-  - {ticker: HD, name: Home Depot, aliases: [The Home Depot]}
+  - {ticker: HD, name: Home Depot, aliases: [The Home Depot], year_naming: start}
   - {ticker: PG, name: Procter & Gamble, aliases: [Procter and Gamble, P&G]}

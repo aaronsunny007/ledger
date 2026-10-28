@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     groq_api_key: str = ""
     ollama_url: str = "http://localhost:11434"
+    # Interactive use (the public demo): give up on a model call after this many seconds, and when
+    # the provider asks for a longer wait than max_retry_wait say "busy" instead of sleeping.
+    # Unset, both keep the patient batch behaviour the eval relies on.
+    llm_timeout: float = 120.0
+    llm_max_retry_wait: float | None = None
 
     store: Literal["memory", "postgres"] = "memory"
     database_url: str = "postgresql://ledger:ledger@localhost:5432/ledger"

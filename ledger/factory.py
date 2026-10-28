@@ -34,6 +34,8 @@ def build_llms(settings: Settings) -> tuple[LLM, LLM | None]:
         "gemini_api_key": settings.gemini_api_key,
         "groq_api_key": settings.groq_api_key,
         "ollama_url": settings.ollama_url,
+        "timeout": settings.llm_timeout,
+        "max_retry_wait": settings.llm_max_retry_wait,
     }
     llm = make_llm(settings.llm_provider, settings.llm_model or small, **kw)
     large_name = settings.llm_model_large or large

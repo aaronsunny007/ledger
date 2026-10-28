@@ -31,6 +31,9 @@ COPY start.sh /app/start.sh
 RUN useradd -m -u 1000 user && mkdir -p data .cache && chown -R user /app
 USER user
 
-ENV STORE=memory LEDGER_API=http://127.0.0.1:8000 LEDGER_BUDGET_FILE=/app/data/budget.json
+# Interactive limits: a visitor gets an answer or a clear "busy" message within about a minute,
+# not a silent two-minute wait for the free tier's rate limit.
+ENV STORE=memory LEDGER_API=http://127.0.0.1:8000 LEDGER_BUDGET_FILE=/app/data/budget.json \
+    LLM_MAX_RETRY_WAIT=15 LLM_TIMEOUT=45
 EXPOSE 7860
 CMD ["sh", "/app/start.sh"]

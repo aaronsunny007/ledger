@@ -67,6 +67,19 @@ class LLMError(RuntimeError):
         self.status = status
 
 
+class LLMBusy(LLMError):
+    """The provider asked us to wait longer than an interactive request should (a per-minute limit).
+
+    ``retry_after`` is how many seconds it asked for. Only raised when ``max_retry_wait`` is set,
+    which the public demo does so a visitor gets an answer or a clear message within seconds,
+    not a silent minute-long wait. Batch runs (the eval) leave it unset and keep waiting.
+    """
+
+    def __init__(self, status: int, message: str, retry_after: float):
+        super().__init__(status, message)
+        self.retry_after = retry_after
+
+
 class QuotaExhausted(LLMError):
     """A free-tier quota that is too long to wait out inside a request.
 
@@ -113,9 +126,12 @@ def _retry_delay(resp: httpx.Response, default: float) -> float:
 class _HttpLLM:
     model: str
 
-    def __init__(self, timeout: float = 120, max_retries: int = 5):
+    def __init__(
+        self, timeout: float = 120, max_retries: int = 5, max_retry_wait: float | None = None
+    ):
         self._http = httpx.Client(timeout=timeout)
         self._max_retries = max_retries
+        self._max_retry_wait = max_retry_wait
 
     def _post(self, url: str, body: dict[str, Any], headers: dict[str, str]) -> Any:
         for attempt in range(self._max_retries + 1):
@@ -134,6 +150,8 @@ class _HttpLLM:
                 # quota, which retrying within this run cannot fix.
                 if resp.status_code == 429 and wait > 120:
                     raise QuotaExhausted(429, _error_message(resp), retry_after=wait)
+                if self._max_retry_wait is not None and wait > self._max_retry_wait:
+                    raise LLMBusy(resp.status_code, _error_message(resp), retry_after=wait)
                 if attempt < self._max_retries:
                     log.warning("LLM %s, retrying in %.0fs", resp.status_code, wait)
                     time.sleep(wait + 1)
@@ -149,8 +167,8 @@ class _HttpLLM:
 class GeminiLLM(_HttpLLM):
     URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
-    def __init__(self, api_key: str, model: str):
-        super().__init__()
+    def __init__(self, api_key: str, model: str, **tuning: Any):
+        super().__init__(**tuning)
         if not api_key:
             raise ValueError("GEMINI_API_KEY is not set (free key: https://aistudio.google.com)")
         self.model, self._key = model, api_key
@@ -180,8 +198,14 @@ class GeminiLLM(_HttpLLM):
 class OpenAICompatibleLLM(_HttpLLM):
     """Groq (and any OpenAI-compatible endpoint)."""
 
-    def __init__(self, api_key: str, model: str, base_url: str = "https://api.groq.com/openai/v1"):
-        super().__init__()
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        base_url: str = "https://api.groq.com/openai/v1",
+        **tuning: Any,
+    ):
+        super().__init__(**tuning)
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set (free key: https://console.groq.com)")
         self.model, self._key, self._base = model, api_key, base_url.rstrip("/")
@@ -265,11 +289,14 @@ def make_llm(
     gemini_api_key: str = "",
     groq_api_key: str = "",
     ollama_url: str = "http://localhost:11434",
+    timeout: float = 120,
+    max_retry_wait: float | None = None,
 ) -> LLM:
+    tuning = {"timeout": timeout, "max_retry_wait": max_retry_wait}
     if provider == "gemini":
-        return GeminiLLM(gemini_api_key, model)
+        return GeminiLLM(gemini_api_key, model, **tuning)
     if provider == "groq":
-        return OpenAICompatibleLLM(groq_api_key, model)
+        return OpenAICompatibleLLM(groq_api_key, model, **tuning)
     if provider == "ollama":
         return OllamaLLM(model, ollama_url)
     raise ValueError(f"unknown LLM provider {provider!r}")

@@ -28,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ledger.answer.llm import QuotaExhausted
+from ledger.answer.llm import LLMBusy, QuotaExhausted
 from ledger.api.budget import BudgetExhausted, DailyBudget
 from ledger.config import ROOT, Settings
 from ledger.pipeline import CacheMiss, Ledger, QuestionTooLong
@@ -169,6 +169,20 @@ def _ask(ledger: Ledger, req: AskRequest, client: str) -> Answer:
         raise HTTPException(422, str(e)) from e
     except QuotaExhausted as e:  # the provider's own free quota ran out first
         raise _quota_error(budget.provider_exhausted()) from e
+    except LLMBusy as e:  # a per-minute limit: nothing was answered, so the question is not counted
+        budget.refund(client)
+        wait = max(1, int(e.retry_after))
+        raise HTTPException(
+            503,
+            {
+                "error": "model_busy",
+                "message": (
+                    f"The free model is busy right now. Please try again in about {wait} seconds."
+                ),
+                "retry_after_seconds": wait,
+            },
+            headers={"Retry-After": str(wait)},
+        ) from e
     if not answer.model or answer.cache_hit:  # no model call: advice refusal, cache, no passage
         budget.refund(client)
     spend.add(answer.cost_usd)
