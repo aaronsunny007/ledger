@@ -6,10 +6,16 @@ name: space-smoke
 # calling the model, and a malformed request is rejected. It also prints the memory the
 # running container uses (a free Space has 16 GB). No secrets: the probes never call the
 # model, and a dummy key stands in so the app can start. Run it before deploying, and after
-# any change to deploy/hf-space/ or to start-up code. The image builds the branch it is run on.
+# any change to deploy/hf-space/ or to start-up code. The image builds the branch it is run on
+# (the pull request's branch on a PR). It runs by itself on pull requests that touch
+# deploy/hf-space/ or this file.
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - deploy/hf-space/**
+      - .github/workflows/space-smoke.yml
 
 permissions:
   contents: read
@@ -23,7 +29,7 @@ jobs:
       - name: Build the Space image
         run: |
           docker build --build-arg LEDGER_REPO="https://github.com/${{ github.repository }}" \
-            --build-arg LEDGER_REF="${GITHUB_REF_NAME}" -t ledger-space deploy/hf-space
+            --build-arg LEDGER_REF="${{ github.head_ref || github.ref_name }}" -t ledger-space deploy/hf-space
       - name: Start it with the demo index
         run: |
           docker run -d --name space -p 7860:7860 \
