@@ -5,7 +5,7 @@ sentence cites the filing passage it came from, and every number is recomputed b
 before you see it. When the filings do not contain the answer, Ledger says so and shows the
 closest passages instead of guessing.
 
-> Results: [80.7% on the 207 scored test questions](#results) on the latest run (24 Oct; three earlier runs of older code scored 77.3–78.7%), the long-context baseline gets 75.4%; live demo: not deployed yet, see [Running the demo](#running-the-demo)
+> Results: [83.1% on the 207 scored test questions](#results) on the latest run (29 Oct; the 24 Oct run scored 80.7%, three earlier runs of older code 77.3–78.7%), the long-context baseline gets 75.4%; live demo: not deployed yet, see [Running the demo](#running-the-demo)
 
 ```text
 Q: How much did Apple's net sales change from FY2022 to FY2023?
@@ -28,25 +28,31 @@ Ledger is not a chatbot. It is the part around the chatbot that companies pay fo
 ## Results
 
 Test split (217 questions: 85 FinanceBench 10-K, 122 XBRL, 10 hand-written refusals), Gemini
-`gemini-3.5-flash-lite` on the free tier, run on 2026-10-23/24 (Ledger) and 2026-10-14 (baseline). The baseline ran on an
+`gemini-3.5-flash-lite` on the free tier, run on 2026-10-29 (Ledger) and 2026-10-14 (baseline). The baseline ran on an
 earlier version of the prompt (the Ledger prompt has changed since, see "24 Oct" below). Every number links to a committed JSON
 in `eval/results/`.
 
 | System | FinanceBench (10-K subset) | XBRL numeric | Refusals | Groundedness | p50 / p95 latency | Cost / question |
 |---|---|---|---|---|---|---|
-| [Ledger](eval/results/20261023T232507-ledger-test-v2.json) (vector search + pinning + verifier) | 63.5% (54/85) | **92.6%** (113/122) | **100%** (10/10) | 94.6% | **1.8 s** / **6.3 s** | $0 (free tier) |
-| [Long-context baseline](eval/results/20261014T080946-long-context-test.json) (whole filing, no retrieval) | **65.9%** (56/85) | 82.0% (100/122) | 100% (10/10) | – (no citations) | 4.1 s / 157.5 s\* | $0 (free tier) |
+| [Ledger](eval/results/20261029T002749-ledger-test-v3.json) (vector search + pinning + verifier + wider retry) | **70.6%** (60/85) | 91.8% (112/122) | **100%** (10/10) | 94.1% | **1.0 s** / 10.1 s | $0 (free tier) |
+| [Long-context baseline](eval/results/20261014T080946-long-context-test.json) (whole filing, no retrieval) | 65.9% (56/85) | 82.0% (100/122) | 100% (10/10) | – (no citations) | 4.1 s / 157.5 s\* | $0 (free tier) |
 | Target (PRF) | ≥ 70% | ≥ 90% | ≥ 85% | ≥ 90% | ≤ 4 s / ≤ 10 s | ≤ $0.02 |
 
 \* The baseline's tail latency includes the free tier's rate-limit waits (each question sends a whole filing, and the last third of the run was throttled to about two minutes a question), so its p95 overstates the cost of the approach; its p50 is the fairer figure. The earlier baseline run (11 Oct, [file](eval/results/20261011T160510-long-context-test.json)) used the previous prompt and scored 74.8% overall.
 Groundedness is the share of claims whose cited passage contains their figures.
 
-**Where this stands.** On the 24 Oct run Ledger answers 80.7% of the 207 scored questions (167) against the
-baseline's 75.4% (156). It meets five of the six targets: XBRL (113 of 122), refusals (10 of 10), groundedness (94.6%),
-and both latency targets (1.8 s median, 6.3 s slowest-5%), with cost at zero. It still misses FinanceBench (63.5%
-against 70%). The long-context baseline is now ahead of Ledger on FinanceBench by 2 points (65.9% against 63.5%), where on
-13 Oct it was ahead by 9; Ledger is ahead on XBRL by 11, and it cites its sources, checks its arithmetic and answers in
-under two seconds. The three earlier runs (13, 16 and 17 Oct) scored 77.3–78.7% overall and 52.9–56.5% on FinanceBench.
+**Where this stands.** On the 29 Oct run Ledger answers 83.1% of the 207 scored questions (172) against the
+baseline's 75.4% (156). It meets six of the seven targets: FinanceBench (60 of 85 = 70.6%, only just over 70%, see the
+caveat below), XBRL (112 of 122), refusals (10 of 10), groundedness (94.1%), median latency (1.0 s) and cost (zero). It
+misses one by a hair: the slowest 5% took 10.1 s against a 10 s target. Ledger is now ahead of the long-context baseline on
+FinanceBench by 4.7 points (70.6% against 65.9%) as well as on XBRL (by 10), and it cites its sources, checks its
+arithmetic and answers in about a second. Earlier runs: 24 Oct 80.7% / 63.5%; 13, 16 and 17 Oct 77.3–78.7% overall and
+52.9–56.5% on FinanceBench.
+
+**Read the 70.6% with care.** It is one run. With 85 questions the standard error alone is about 5 points, and the repeat
+run I measured moved FinanceBench by 3.6 points on identical code. Against the 24 Oct run the gain is 7.1 points (above the
+noise range I measured, but that range comes from only two runs). Whether the true figure is above or below 70% I cannot
+say. A repeat on another day would help.
 
 **Run-to-run noise.** The free tier does not answer the same way twice. A repeat of the same code on 16 Oct
 ([file](eval/results/20261016T134041-ledger-test-repeat1.json), [report](eval/results/noise.md)) scored 77.3% overall
@@ -105,6 +111,26 @@ Costs and caveats:
   below comes from them), and the dev split is small (31 FinanceBench questions). The specific fixes above came from
   dev failures, but the test number is a little optimistic for that reason. A fresh repeat on another day would say how much.
 
+**29 Oct: a wider search before refusing, and failing fast** ([file](eval/results/20261029T002749-ledger-test-v3.json)).
+Overall 83.1% (172 of 207, +2.4 points), FinanceBench 70.6% (60 of 85, +7.1), XBRL 91.8% (112 of 122, -0.8, one question),
+refusals 10/10, groundedness 94.1%, verified 92.0%, p50 1.0 s, p95 10.1 s, no errors. When the model says the passages do
+not contain the answer, Ledger now searches once more (hybrid search, eight more passages, all three primary statements,
+a 40,000-character budget) and asks again before refusing. It costs one extra model call, only for refusals, and is skipped
+if the wider search finds nothing new. Wrong refusals on FinanceBench fell from 21.2% to 15.3%. On the dev split the same
+change took accuracy from 85.5% to 89.1% (49 of 55) with all three hand-written refusals still refused.
+
+Against the 24 Oct run 9 questions turned right and 4 turned wrong. Seven of the nine gains were refusals that are now
+answered (Adobe, Best Buy, Corning, Johnson & Johnson, Ulta twice, Walmart); the others are American Express's locations and General
+Mills's net earnings. The four losses are 3M (answered, but wrong; I did not trace why), Tesla's net-income change (an XBRL question,
+$2,387 million written against a gold of $2,441 million), and Lockheed Martin's revenue growth rate and PepsiCo's EBITDA less capex,
+which are now refused with "no claim could be supported with a citation": the evidence is retrieved, but the verifier
+rejects the first answer and the retry fails. I did not fix those two. Because the free model is not deterministic, I
+would expect a few more of these flips in either direction on a repeat.
+
+Costs and caveats: the slowest 5% got slower (10.1 s against 6.3 s) because a retried refusal makes two model calls;
+the median got faster (1.0 s against 1.8 s), which owes something to a quiet day on the free tier. The dev split I used to choose
+the change is small, and I had read test-split failures earlier, so the test figure is a little optimistic.
+
 **How Ledger got here** (same 217 questions; the first run predates a corrected General Mills answer
 key, which moves three questions):
 
@@ -115,6 +141,7 @@ key, which moves three questions):
 | [12 Oct](eval/results/20261012T071411-ledger-test.json) | + statement pinning for named line items (cash, R&D, debt...) | 76.3% | 56.5% | 90.2% | 0.9 s |
 | [13 Oct](eval/results/20261013T073749-ledger-test.json) | + J&J fiscal-year label, investment-advice refusal, citation parsing, net-income line | 78.7% | 56.5% | 94.3% | 0.9 s |
 | [24 Oct](eval/results/20261023T232507-ledger-test-v2.json) | + narrative retrieval (17 Oct, no net change), answer form, arithmetic repair, stated fallbacks, JSON retry | 80.7% | 63.5% | 92.6% | 1.8 s |
+| [29 Oct](eval/results/20261029T002749-ledger-test-v3.json) | + wider search retry before refusing, fast failure on a busy model | 83.1% | 70.6% | 91.8% | 1.0 s |
 
 **13 Oct follow-up** (the four fixes for the failures below, same 217 questions). Overall 78.7% (163 of 207), XBRL 94.3% (115/122), refusals 10/10, groundedness 96.3%, p50 0.9 s,
 p95 4.9 s. Fixed: five of the six net-income-change questions, the investment-advice refusal, J&J inventory turnover
@@ -385,15 +412,18 @@ Ledger answers only from filings it has ingested, gives no investment advice and
 data. FinanceBench is CC BY-NC 4.0: fine for this portfolio project, not for paid client work.
 See [MODEL_CARD.md](MODEL_CARD.md) and [SECURITY.md](SECURITY.md).
 
-Known limits, found by the pre-launch check and not fixed:
+Known limits (the pre-launch check found them; the fiscal-year and slow-answer entries were softened on 29 Oct):
 
-- **Fiscal-year labels.** A filing is labelled with the calendar year its period ends in. A retailer
-  whose year ends in January (Home Depot, Walmart) calls the year ending January 2023 "fiscal 2022",
-  so asking for "fiscal 2023" is refused with an honest but confusing reply. The app's sidebar says so.
+- **Fiscal-year labels.** A filing is labelled with the calendar year its period ends in. Home Depot and Ulta
+  name their year by the year it begins in, so the year ending January 2023 is their "fiscal 2022". Asking for
+  "fiscal 2023" is still refused, but the reply now says which years are loaded and how the label works
+  instead of just saying nothing was found. It does not relabel the filing for you. The app's sidebar lists
+  the loaded years.
 - **It must be told which company.** A question that names no company Ledger has loaded is answered
   with a request to name one, not a guess (`answer.require_company` in `configs/retrieval.yaml`).
-- **Prose and multi-step questions are the weak spot** (FinanceBench 63.5% on the test split, target 70%).
-- **Some answers are slow** (10 to 50 seconds) when the free model tier is busy.
+- **Prose and multi-step questions are the weak spot** (FinanceBench 70.6% on the test split on the 29 Oct run, a target of 70% met by less than the run-to-run noise).
+- **The free model can still be busy.** The demo no longer makes you wait: after about 15 seconds it says the
+  model is busy and when to retry. The benchmark's slowest 5% was 10.1 s on 29 Oct, a hair over the 10 s target.
 - **"Verified" is not "correct".** It means the sentence agrees with the cited text and the arithmetic
   adds up; the model can still pick the wrong line item or year.
 
