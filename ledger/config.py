@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     groq_api_key: str = ""
     ollama_url: str = "http://localhost:11434"
+    # Interactive use (the public demo): give up on a model call after this many seconds, and when
+    # the provider asks for a longer wait than max_retry_wait say "busy" instead of sleeping.
+    # Unset, both keep the patient batch behaviour the eval relies on.
+    llm_timeout: float = 120.0
+    llm_max_retry_wait: float | None = None
 
     store: Literal["memory", "postgres"] = "memory"
     database_url: str = "postgresql://ledger:ledger@localhost:5432/ledger"
@@ -78,6 +83,10 @@ class RetrievalConfig(BaseModel):
     narrative_candidates: int = 0
     narrative_top_k: int = 0
     narrative_rerank: bool | None = None
+    # The wider search used for one retry when the model says the passages lack the answer:
+    # more passages, hybrid search, and all three primary statements.
+    wide_extra_k: int = 8
+    wide_candidates: int = 60
 
 
 class AnswerConfig(BaseModel):
@@ -87,6 +96,11 @@ class AnswerConfig(BaseModel):
     # Refuse (no model call) when no known company is named. Turn off for a corpus whose
     # questions never name one, such as a folder of your own policy documents.
     require_company: bool = True
+    # When the model says the passages do not contain the answer, search wider once and ask again
+    # before refusing (one extra model call, only for refusals). wide_context_chars is the larger
+    # passage budget that retry gets.
+    retry_wide_on_refusal: bool = True
+    wide_context_chars: int = 40000
 
 
 class CacheConfig(BaseModel):

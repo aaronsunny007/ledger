@@ -17,6 +17,7 @@ from ledger.answer.llm import LLM, LLMError, LLMResult, QuotaExhausted
 from ledger.cache.semantic_cache import SemanticCache
 from ledger.config import LedgerConfig
 from ledger.obs.tracing import Trace, Tracer
+from ledger.retrieve.coverage import missing_year_note
 from ledger.retrieve.filters import CompanyRegistry, Filters, filters_from_question
 from ledger.retrieve.hybrid import Retriever
 from ledger.types import Answer, Citation, Claim, ScoredChunk
@@ -107,6 +108,22 @@ class Ledger:
                     problems.append(f'Claim "{claim.text}": {check.message}')
             out.append(_Checked(claim, check, problems))
         return out
+
+    def _no_passage_reason(self, f: Filters) -> str:
+        """Why nothing was found: if a year is simply not loaded, say what is."""
+        if self.registry is not None and len(f.tickers) == 1 and f.years:
+            company = self.registry.get(f.tickers[0])
+            if company is not None:
+                note = missing_year_note(
+                    self.retriever.index.documents(),
+                    company.ticker,
+                    f.years,
+                    company.name,
+                    company.year_naming,
+                )
+                if note:
+                    return note
+        return "No relevant passage found."
 
     @staticmethod
     def _refusal(question: str, reason: str, passages: list[ScoredChunk]) -> Answer:
@@ -235,7 +252,7 @@ class Ledger:
         if not passages or (
             self.retriever.reranker is not None and min_score and passages[0].score < min_score
         ):
-            answer = self._refusal(question, "No relevant passage found.", passages)
+            answer = self._refusal(question, self._no_passage_reason(f), passages)
             return self._finish(trace, answer, llm_calls, passages)
 
         with trace.span("generate") as s:
@@ -253,6 +270,29 @@ class Ledger:
                 s.attrs.update(
                     model=res.model, input_tokens=res.input_tokens, output_tokens=res.output_tokens
                 )
+
+        if (
+            not draft.answerable
+            and not draft.parse_error
+            and self.config.answer.retry_wide_on_refusal
+        ):
+            # The model says the passages lack the answer. Often the right filing is loaded and the
+            # right paragraph or statement was just not among the first few: search wider, once.
+            with trace.span("retrieve_wide") as s:
+                wide = self.retriever.retrieve(question, f, wide=True)
+                seen = {p.chunk.id for p in passages}
+                s.attrs.update(n=len(wide), new=sum(1 for p in wide if p.chunk.id not in seen))
+            if any(p.chunk.id not in seen for p in wide):
+                with trace.span("generate_wide") as s:
+                    draft2, res2 = self.generator.draft(
+                        question, wide, max_chars=self.config.answer.wide_context_chars
+                    )
+                    llm_calls.append(res2)
+                    s.attrs.update(model=res2.model, answerable=draft2.answerable)
+                if draft2.answerable:
+                    draft, passages = draft2, wide
+                elif not draft2.parse_error:
+                    draft = draft2  # refuse with the reason from the wider look
 
         if not draft.answerable:
             answer = self._refusal(question, draft.refusal_reason or "Not answerable.", passages)

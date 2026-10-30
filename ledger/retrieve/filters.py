@@ -41,6 +41,9 @@ class Company:
     ticker: str
     name: str
     aliases: list[str] = field(default_factory=list)
+    # Ledger labels a filing by the calendar year its period ends in. "start": the company names
+    # the year by the year it begins in (Home Depot's fiscal 2022 ends in January 2023).
+    year_naming: str = "end"
 
 
 class CompanyRegistry:
@@ -73,7 +76,12 @@ class CompanyRegistry:
         data = yaml.safe_load(path.read_text()) or {}
         return cls(
             [
-                Company(ticker=row["ticker"], name=row["name"], aliases=row.get("aliases", []))
+                Company(
+                    ticker=row["ticker"],
+                    name=row["name"],
+                    aliases=row.get("aliases", []),
+                    year_naming=row.get("year_naming", "end"),
+                )
                 for row in data.get("companies", [])
             ]
         )

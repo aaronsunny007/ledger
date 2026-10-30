@@ -11,6 +11,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from ledger.config import RetrievalConfig
+from ledger.ingest.statements import STATEMENTS
 from ledger.retrieve.embed import Embedder
 from ledger.retrieve.filters import Filters
 from ledger.retrieve.needs import is_narrative, statements_needed
@@ -55,18 +56,28 @@ class Retriever:
         self.config = config
         self.reranker = reranker if (config.rerank or config.narrative_rerank) else None
 
-    def plan(self, question: str) -> Plan:
-        """Narrative questions (no statement needed) may use their own settings."""
+    def plan(self, question: str, wide: bool = False) -> Plan:
+        """Narrative questions (no statement needed) may use their own settings.
+
+        ``wide`` is the retry plan: hybrid search over more candidates and more passages.
+        """
         cfg = self.config
         plan = Plan(cfg.mode, cfg.candidates, cfg.top_k, cfg.rerank)
-        if not is_narrative(question):
-            return plan
-        return Plan(
-            cfg.mode if cfg.narrative_mode == "same" else cfg.narrative_mode,
-            cfg.narrative_candidates or plan.candidates,
-            cfg.narrative_top_k or plan.top_k,
-            plan.rerank if cfg.narrative_rerank is None else cfg.narrative_rerank,
-        )
+        if is_narrative(question):
+            plan = Plan(
+                cfg.mode if cfg.narrative_mode == "same" else cfg.narrative_mode,
+                cfg.narrative_candidates or plan.candidates,
+                cfg.narrative_top_k or plan.top_k,
+                plan.rerank if cfg.narrative_rerank is None else cfg.narrative_rerank,
+            )
+        if wide:
+            return Plan(
+                "hybrid",
+                max(plan.candidates, cfg.wide_candidates),
+                plan.top_k + cfg.wide_extra_k,
+                False,
+            )
+        return plan
 
     def candidates(
         self, question: str, filters: Filters, plan: Plan | None = None
@@ -80,26 +91,28 @@ class Retriever:
             rankings["keyword"] = self.index.keyword_search(question, plan.candidates, filters)
         return reciprocal_rank_fusion(rankings, self.config.rrf_k)[: plan.candidates]
 
-    def retrieve(self, question: str, filters: Filters) -> list[ScoredChunk]:
+    def retrieve(self, question: str, filters: Filters, wide: bool = False) -> list[ScoredChunk]:
         if self.config.latest_year_only and len(filters.years) > 1:
             latest = Filters(filters.tickers, [max(filters.years)], filters.sections)
-            found = self._retrieve(question, latest)
+            found = self._retrieve(question, latest, wide)
             if found:
                 return found
-        found = self._retrieve(question, filters)
+        found = self._retrieve(question, filters, wide)
         if found or not (filters.tickers and filters.years):
             return found
         # A 10-K reports two or three years, so a year whose own filing is not
         # indexed is often a comparative in the next one or two.
         for later in (1, 2):
             year = max(filters.years) + later
-            found = self._retrieve(question, Filters(filters.tickers, [year], filters.sections))
+            found = self._retrieve(
+                question, Filters(filters.tickers, [year], filters.sections), wide
+            )
             if found:
                 return found
         return found
 
-    def _retrieve(self, question: str, filters: Filters) -> list[ScoredChunk]:
-        plan = self.plan(question)
+    def _retrieve(self, question: str, filters: Filters, wide: bool = False) -> list[ScoredChunk]:
+        plan = self.plan(question, wide)
         cands = self.candidates(question, filters, plan)
         if plan.rerank and self.reranker is not None and cands:
             scores = self.reranker.score(question, [c.chunk.text for c in cands])
@@ -111,7 +124,7 @@ class Retriever:
         ranked = cands[: plan.top_k]
         if not (self.config.pin_statements and filters.tickers):
             return ranked
-        needed = statements_needed(question)
+        needed = list(STATEMENTS) if wide else statements_needed(question)
         pinned = self.index.statement_chunks(filters, needed) if needed else []
         if not pinned:
             return ranked
