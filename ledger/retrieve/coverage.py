@@ -37,10 +37,10 @@ def missing_year_note(
     """
     have = sorted(
         {
-            int(d["fiscal_year"])
+            fy
             for d in docs
-            if d.get("ticker") == ticker and isinstance(d.get("fiscal_year"), int)
-        }  # type: ignore[call-overload]
+            if d.get("ticker") == ticker and isinstance(fy := d.get("fiscal_year"), int)
+        }
     )
     if not have or not years or any(y in have for y in years):
         return None

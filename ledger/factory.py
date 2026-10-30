@@ -30,17 +30,21 @@ def build_index(settings: Settings, embedder: Embedder, config: LedgerConfig) ->
 
 def build_llms(settings: Settings) -> tuple[LLM, LLM | None]:
     small, large = DEFAULT_MODELS[settings.llm_provider]
-    kw = {
-        "gemini_api_key": settings.gemini_api_key,
-        "groq_api_key": settings.groq_api_key,
-        "ollama_url": settings.ollama_url,
-        "timeout": settings.llm_timeout,
-        "max_retry_wait": settings.llm_max_retry_wait,
-    }
-    llm = make_llm(settings.llm_provider, settings.llm_model or small, **kw)
+
+    def make(model: str) -> LLM:
+        return make_llm(
+            settings.llm_provider,
+            model,
+            gemini_api_key=settings.gemini_api_key,
+            groq_api_key=settings.groq_api_key,
+            ollama_url=settings.ollama_url,
+            timeout=settings.llm_timeout,
+            max_retry_wait=settings.llm_max_retry_wait,
+        )
+
+    llm = make(settings.llm_model or small)
     large_name = settings.llm_model_large or large
-    big = make_llm(settings.llm_provider, large_name, **kw) if large_name != llm.model else None
-    return llm, big
+    return llm, make(large_name) if large_name != llm.model else None
 
 
 def build_ledger(

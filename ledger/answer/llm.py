@@ -292,11 +292,12 @@ def make_llm(
     timeout: float = 120,
     max_retry_wait: float | None = None,
 ) -> LLM:
-    tuning = {"timeout": timeout, "max_retry_wait": max_retry_wait}
     if provider == "gemini":
-        return GeminiLLM(gemini_api_key, model, **tuning)
+        return GeminiLLM(gemini_api_key, model, timeout=timeout, max_retry_wait=max_retry_wait)
     if provider == "groq":
-        return OpenAICompatibleLLM(groq_api_key, model, **tuning)
+        return OpenAICompatibleLLM(
+            groq_api_key, model, timeout=timeout, max_retry_wait=max_retry_wait
+        )
     if provider == "ollama":
         return OllamaLLM(model, ollama_url)
     raise ValueError(f"unknown LLM provider {provider!r}")
