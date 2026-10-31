@@ -224,3 +224,16 @@ def test_feedback_is_bounded_and_rate_limited(
     api.limiter._hits.clear()
     assert client.post("/feedback", json=ok).status_code == 200
     assert client.post("/feedback", json=ok).status_code == 429
+
+
+def test_stream_reports_an_internal_failure_without_leaking_it(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("secret internal detail")
+
+    monkeypatch.setattr(api, "_ask", boom)
+    r = client.post("/ask/stream", json=ASK)
+    assert r.status_code == 200
+    assert "event: error" in r.text and "Something went wrong" in r.text
+    assert "secret internal detail" not in r.text

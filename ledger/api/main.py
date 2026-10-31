@@ -240,6 +240,11 @@ async def ask_stream(req: AskRequest, request: Request, ledger: LedgerDep) -> St
             yield _sse("answer", answer.model_dump())
         except HTTPException as e:
             yield _sse("error", {"status": e.status_code, "detail": e.detail})
+        except Exception:  # never leave the stream hanging or leak an internal message
+            logging.getLogger(__name__).exception("Streamed answer failed")
+            yield _sse(
+                "error", {"status": 500, "detail": "Something went wrong. Please try again."}
+            )
 
     return StreamingResponse(events(), media_type="text/event-stream")
 
