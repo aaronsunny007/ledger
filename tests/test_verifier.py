@@ -268,6 +268,18 @@ def test_repair_result_swaps_the_stated_value_for_the_recomputed_one() -> None:
     assert again is not None and again[0] == "Total was $1,200.50 million."
 
 
+def test_repair_result_catches_a_slip_in_the_last_written_digit() -> None:
+    from ledger.verifier.verifier import repair_result
+
+    # 2.79 against 2.7966: the claim gives two decimals, so it should say 2.80
+    text = "Net sales fell 2.79% from 2022 to 2023."
+    fixed = repair_result(text, "(383285 - 394328) / 394328 * 100", -2.79)
+    assert fixed is not None and fixed[0] == "Net sales fell 2.80% from 2022 to 2023."
+    # ... and the figure written at the precision the claim gives is left alone
+    assert repair_result("Turnover was 9.07.", "(11000 / 1213)", 9.07) is None
+    assert repair_result("It was 18.", "184 / 10", 18.0) is None
+
+
 def test_repair_result_leaves_alone_what_it_cannot_or_need_not_fix() -> None:
     from ledger.verifier.verifier import repair_result
 

@@ -337,14 +337,15 @@ class ClaimVerifier:
 
 
 def repair_result(
-    text: str, expression: str | None, stated: float | None, rel_tolerance: float = 0.005
+    text: str, expression: str | None, stated: float | None
 ) -> tuple[str, float] | None:
     """Fix a slip in the model's own arithmetic: the calculation is right, the value beside it not.
 
-    When ``expression`` recomputes to something other than ``stated``, return the claim text with
-    the stated value swapped for the recomputed one (same number of decimals) and the new result.
-    ``None`` when there is nothing to fix or the stated value cannot be found in the text. The
-    operands are not trusted any more for this: the usual grounding check still runs afterwards.
+    When ``expression`` recomputes to something other than ``stated`` at the precision the claim
+    writes it (2.79 against 2.7966 is a slip, 9.07 against 9.0668 is not), return the claim text
+    with the stated value swapped for the recomputed one (same number of decimals) and the new
+    result. ``None`` when there is nothing to fix or the stated value cannot be found in the text.
+    The operands are not trusted any more for this: the usual grounding check still runs afterwards.
     """
     if not expression or stated is None:
         return None
@@ -352,13 +353,20 @@ def repair_result(
         value = safe_eval_arithmetic(expression)
     except (UnsafeExpressionError, SyntaxError, ZeroDivisionError, TypeError, ValueError):
         return None
-    if abs(value - stated) <= max(0.01, rel_tolerance * abs(value)):
+    if value == stated:
         return None
+    # A decrease is often written without its sign ("fell 2.79%"), so look for that form too.
+    pairs = [(stated, value)]
+    if stated < 0 and value < 0:
+        pairs.append((-stated, -value))
     for decimals in range(6, -1, -1):
-        for fmt in (f"{{:,.{decimals}f}}", f"{{:.{decimals}f}}"):
-            old = fmt.format(stated)
-            hit = re.search(rf"(?<![\d.,]){re.escape(old)}(?![\d]|\.\d|,\d)", text)
-            if hit:
-                new = fmt.format(value)
-                return text[: hit.start()] + new + text[hit.end() :], value
+        for old_value, new_value in pairs:
+            for fmt in (f"{{:,.{decimals}f}}", f"{{:.{decimals}f}}"):
+                old = fmt.format(old_value)
+                hit = re.search(rf"(?<![\d.,]){re.escape(old)}(?![\d]|\.\d|,\d)", text)
+                if hit:
+                    new = fmt.format(new_value)
+                    if new == old:  # the same figure at the precision the claim gives
+                        return None
+                    return text[: hit.start()] + new + text[hit.end() :], value
     return None

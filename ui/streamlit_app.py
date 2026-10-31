@@ -117,7 +117,10 @@ def render_answer(a: dict[str, Any]) -> None:
         return
 
     if a["verified"] is True:
-        st.success("✔ Every number re-computed by the verifier")
+        st.success(
+            "✔ Checked: the arithmetic recomputes and each figure appears in the cited text. "
+            "That does not prove it picked the right line item or year, so check the sources."
+        )
     elif a["verified"] is False:
         st.error("⚠ The verifier could not confirm a number below. Check the sources.")
 
