@@ -190,3 +190,37 @@ def test_provider_quota_exhausted_maps_to_same_429(
     monkeypatch.setattr(Ledger, "ask", boom)
     r = client.post("/ask", json=ASK)
     assert r.status_code == 429 and r.json()["detail"]["error"] == "daily_quota_exhausted"
+
+
+def test_oversized_filters_are_rejected(client: TestClient) -> None:
+    q = ASK["question"]
+    assert client.post("/ask", json={"question": q, "tickers": ["A"] * 21}).status_code == 422
+    assert client.post("/ask", json={"question": q, "tickers": ["X" * 11]}).status_code == 422
+    assert client.post("/ask", json={"question": q, "years": [1]}).status_code == 422
+    assert client.post("/ask", json={"question": q, "sections": ["s"] * 11}).status_code == 422
+    assert (
+        client.post("/ask", json={"question": q, "tickers": ["ACME"], "years": [2024]}).status_code
+        == 200
+    )
+
+
+def test_feedback_is_bounded_and_rate_limited(
+    client: TestClient, tmp_path: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from pathlib import Path
+
+    log = Path(str(tmp_path)) / "fb.jsonl"
+    monkeypatch.setattr(api, "FEEDBACK_LOG", log)
+    too_long = {"request_id": "x" * 65, "thumbs_up": True}
+    assert client.post("/feedback", json=too_long).status_code == 422
+    monkeypatch.setattr(api, "FEEDBACK_LOG_MAX_BYTES", 1)
+    ok = {"request_id": "abc", "thumbs_up": True}
+    assert client.post("/feedback", json=ok).status_code == 200
+    assert (
+        client.post("/feedback", json=ok).status_code == 200
+    )  # over the cap: accepted, not stored
+    assert len(log.read_text().splitlines()) == 1
+    api.limiter.per_minute = 1
+    api.limiter._hits.clear()
+    assert client.post("/feedback", json=ok).status_code == 200
+    assert client.post("/feedback", json=ok).status_code == 429

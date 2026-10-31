@@ -19,6 +19,7 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from ledger.answer.sanitize import strip_markdown_links  # noqa: E402
 from ledger.obs.dashboard import daily_stats, load_requests  # noqa: E402
 from ledger.retrieve.coverage import coverage_lines  # noqa: E402
 
@@ -112,7 +113,7 @@ def render_answer(a: dict[str, Any]) -> None:
             for c in a["closest_passages"]:
                 st.markdown(
                     f"- [{c['company']} FY{c['fiscal_year']}, {c['section']}]"
-                    f"({c['source_url']}): _{c['quote']}…_"
+                    f"({c['source_url']}): _{strip_markdown_links(c['quote'])}…_"
                 )
         return
 
@@ -124,7 +125,7 @@ def render_answer(a: dict[str, Any]) -> None:
     elif a["verified"] is False:
         st.error("⚠ The verifier could not confirm a number below. Check the sources.")
 
-    text = a["answer"]
+    text = strip_markdown_links(a["answer"])
     for c in a["citations"]:
         text = text.replace(f"[{c['n']}]", f"[[{c['n']}]]({c['source_url']})")
     st.markdown(text)
@@ -140,7 +141,7 @@ def render_answer(a: dict[str, Any]) -> None:
     for c in a["citations"]:
         st.markdown(
             f"[{c['n']}] [{c['company']} 10-K FY{c['fiscal_year']}, {c['section']}]"
-            f"({c['source_url']})  \n> {c['quote']}…"
+            f"({c['source_url']})  \n> {strip_markdown_links(c['quote'])}…"
         )
 
     cols = st.columns(6)

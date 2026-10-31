@@ -36,17 +36,23 @@ from ledger.retrieve.filters import Filters
 from ledger.types import Answer
 
 FEEDBACK_LOG = ROOT / "data" / "traces" / "feedback.jsonl"
+FEEDBACK_LOG_MAX_BYTES = 5_000_000
 
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=3, max_length=2000)
-    tickers: list[str] = Field(default_factory=list)
-    years: list[int] = Field(default_factory=list)
-    sections: list[str] = Field(default_factory=list)
+    # Bounded so one request cannot ask the index to filter on thousands of values.
+    tickers: list[Annotated[str, Field(max_length=10)]] = Field(default_factory=list, max_length=20)
+    years: list[Annotated[int, Field(ge=1990, le=2100)]] = Field(
+        default_factory=list, max_length=20
+    )
+    sections: list[Annotated[str, Field(max_length=60)]] = Field(
+        default_factory=list, max_length=10
+    )
 
 
 class Feedback(BaseModel):
-    request_id: str
+    request_id: str = Field(min_length=1, max_length=64)
     thumbs_up: bool
     comment: str | None = Field(default=None, max_length=1000)
 
@@ -60,6 +66,9 @@ class RateLimiter:
 
     def allow(self, key: str) -> bool:
         now = time.monotonic()
+        if len(self._hits) > 10_000:  # forget visitors who have gone quiet
+            for k in [k for k, q in self._hits.items() if not q or now - q[-1] > 60]:
+                del self._hits[k]
         q = self._hits[key]
         while q and now - q[0] > 60:
             q.popleft()
@@ -236,8 +245,12 @@ async def ask_stream(req: AskRequest, request: Request, ledger: LedgerDep) -> St
 
 
 @app.post("/feedback")
-def feedback(fb: Feedback) -> dict[str, str]:
+def feedback(fb: Feedback, request: Request) -> dict[str, str]:
+    if not limiter.allow(_client_ip(request)):
+        raise HTTPException(429, "Rate limit reached; try again in a minute.")
     FEEDBACK_LOG.parent.mkdir(parents=True, exist_ok=True)
+    if FEEDBACK_LOG.exists() and FEEDBACK_LOG.stat().st_size > FEEDBACK_LOG_MAX_BYTES:
+        return {"status": "recorded"}  # the log is full; do not let it fill the disk
     with FEEDBACK_LOG.open("a") as f:
         f.write(json.dumps({**fb.model_dump(), "ts": time.time()}) + "\n")
     if settings.langfuse_public_key and settings.langfuse_secret_key:

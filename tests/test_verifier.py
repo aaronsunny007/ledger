@@ -290,3 +290,14 @@ def test_repair_result_leaves_alone_what_it_cannot_or_need_not_fix() -> None:
         repair_result("It was 112.0.", "(4500 - 4000) / 4000 * 100", 12.0) is None
     )  # inside 112.0
     assert repair_result("No calculation.", None, 12.0) is None
+
+
+def test_pathological_expressions_are_unverifiable_not_crashes() -> None:
+    import pytest
+
+    from ledger.verifier.arithmetic import UnsafeExpressionError, safe_eval_arithmetic
+
+    for expr in ("9" * 400, "1e999", "1e308 * 1e308", "(" * 249 + "1" + ")" * 249, "1 / 0 + 1e999"):
+        with pytest.raises((UnsafeExpressionError, SyntaxError, ZeroDivisionError)):
+            safe_eval_arithmetic(expr)
+    assert safe_eval_arithmetic("-" * 450 + "1") == 1.0

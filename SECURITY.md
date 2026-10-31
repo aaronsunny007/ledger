@@ -18,6 +18,15 @@ tab) rather than in a public issue.
   an allow-list of numbers, `+ - * /` and parentheses, with a length cap.
 - **Abuse limits (SEC-3, COST-3).** Questions are capped at 1,000 characters, each IP is
   rate-limited (10 requests/minute by default) and the public demo has a hard daily spend cap.
+- **Bounded requests.** Ticker, year and section filters have size limits; feedback is rate-limited,
+  length-limited and stops being stored once its log reaches 5 MB.
+- **Hostile model replies.** A reply is untrusted input. Malformed JSON, out-of-range citations,
+  500-character calculations, 400-digit numbers and non-finite results all end in an answer or a
+  refusal, never a crash (`tests/test_hostile_replies.py`). The demo shows model text with Markdown
+  links and images reduced to their words.
+- **Demo download.** The Space unpacks only `data/processed/index` from the index archive, so a
+  tampered archive cannot overwrite code. The archive is a release asset of this repository, so
+  whoever can publish a release can change the index; keep write access tight.
 - **Data kept.** Request logs hold the question, timings, cost and a random request ID. No
   account, name or IP address is stored.
 
@@ -26,3 +35,10 @@ tab) rather than in a public issue.
 - The rate limiter and spend cap are in memory: they reset on restart and are per process.
   Put the demo behind a single worker, or move both to Redis/Postgres before scaling out.
 - Free LLM tiers may retain prompts. Do not send private documents to them.
+- The demo's Streamlit server runs with XSRF protection off, which Spaces need to embed it. The page
+  has no state-changing action besides asking a question, and the daily quota bounds that.
+- GitHub Actions are pinned by version tag, not commit hash.
+- Last review: 31 Oct 2026 (bandit, pip-audit, a read of the API, download, workflow and deploy
+  paths). Fixed then: a branch-name injection in `space-smoke.yml`, unrestricted index unpacking,
+  unbounded request filters, an unthrottled feedback endpoint, and a crash on a 400-digit number in a
+  model calculation. pip-audit reports advisories only for `virtualenv`, a development tool.

@@ -27,9 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build the Space image
+        env:
+          # Through the environment, never pasted into the script: a branch name is caller-chosen.
+          LEDGER_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           docker build --build-arg LEDGER_REPO="https://github.com/${{ github.repository }}" \
-            --build-arg LEDGER_REF="${{ github.head_ref || github.ref_name }}" -t ledger-space deploy/hf-space
+            --build-arg LEDGER_REF="$LEDGER_REF" -t ledger-space deploy/hf-space
       - name: Start it with the demo index
         run: |
           docker run -d --name space -p 7860:7860 \
