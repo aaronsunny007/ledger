@@ -1,0 +1,50 @@
+name: streamlit-smoke
+
+# Installs exactly what Streamlit Community Cloud installs (requirements.txt), runs the real UI
+# script with Streamlit's test runner (index download, embedding model, in-process API), asks
+# questions Ledger refuses without a model call, and checks memory against Community Cloud's
+# limit. Tick "real_question" to also spend one free Gemini request on an Apple question.
+
+on:
+  workflow_dispatch:
+    inputs:
+      real_question:
+        description: Also ask one real question (uses 1 free Gemini request)
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - ui/**
+      - ledger/bootstrap.py
+      - requirements.txt
+      - .streamlit/**
+      - scripts/streamlit_smoke.py
+      - .github/workflows/streamlit-smoke.yml
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install what Community Cloud installs
+        run: pip install -r requirements.txt psutil
+      - name: Run the app and ask it questions
+        env:
+          LEDGER_API: embedded
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-never-called' }}
+          REAL_QUESTION: ${{ inputs.real_question }}
+        run: |
+          flag=""
+          [ "$REAL_QUESTION" = true ] && flag="--real"
+          python scripts/streamlit_smoke.py $flag | tee -a "$GITHUB_STEP_SUMMARY"

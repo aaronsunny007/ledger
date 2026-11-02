@@ -36,3 +36,6 @@ htmlcov/
 *.tfstate.*
 *.tfvars
 !example.tfvars
+
+# Streamlit secrets (the example file with placeholders is committed)
+.streamlit/secrets.toml
