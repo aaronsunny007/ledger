@@ -140,7 +140,14 @@ the arithmetic repair compares at the precision the answer is written (2.79 agai
 tells the model to summarise a topic question (main risk factors, strategy) from whatever excerpts it has instead of
 refusing because the list might be incomplete, a calculation containing a 400-digit number no longer crashes the request,
 and the app's "verified" badge says what it does and does not cover. Against the 30 Oct run 8 questions turned right and 1
-turned wrong (Verizon's current liabilities). The pre-launch check agreed: Tesla's risk factors went from refused to
+turned wrong. **The one that got worse** is FinanceBench `financebench_id_00566`, "Has Verizon increased its debt on balance
+sheet between 2022 and the 2021 fiscal period?" (gold: no, it decreased by $229 million). The 30 Oct answer added debt
+maturing within a year to long-term debt for both years ($150,639 million and $150,868 million) and said total debt fell by
+$229 million. The 31 Oct answer printed the same figures but never added them up, and said only that debt "changed", with
+debt due within a year and current liabilities up and long-term debt down, so it did not answer the question. The numbers it
+did give are right and cited (verified); the failure is that it stopped short of the comparison. It is an instance of
+the weak spot below, a multi-step question where the model sometimes lists the inputs and does not finish the calculation,
+and I have not fixed it. The pre-launch check agreed: Tesla's risk factors went from refused to
 answered and every question that should refuse still refused. On the dev split the same code scored 83.6% (46 of 55)
 against 89.1% for the 29 Oct code, three questions (PepsiCo's restructuring costs, an AMD wording miss and an Nvidia growth
 rate written without its calculation), which I put down to noise: dev has 55 questions and none of the three touches the
