@@ -44,7 +44,10 @@ jobs:
           LEDGER_API: embedded
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-never-called' }}
           REAL_QUESTION: ${{ inputs.real_question }}
+          HAVE_KEY: ${{ secrets.GEMINI_API_KEY != '' }}
         run: |
+          # One real question (1 free request) whenever the key is available: pull requests
+          # from this repository and manual runs; forks have no secrets and skip it.
           flag=""
-          [ "$REAL_QUESTION" = true ] && flag="--real"
+          if [ "$REAL_QUESTION" = true ] || [ "$HAVE_KEY" = true ]; then flag="--real"; fi
           python scripts/streamlit_smoke.py $flag | tee -a "$GITHUB_STEP_SUMMARY"
