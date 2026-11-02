@@ -20,6 +20,11 @@ on:
 permissions:
   contents: read
 
+# bash with pipefail, so a failing command before `| tee` fails the step instead of hiding.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   smoke:
     runs-on: ubuntu-latest

@@ -1,5 +1,10 @@
 # Deploying the free public demo
 
+> **Update (Nov 2026):** Hugging Face now charges for Docker Spaces on the free CPU tier
+> (creating one returns `402 Payment Required`, "requires a PRO subscription"). The free route
+> is [Streamlit Community Cloud](deploy-streamlit-cloud.md). This page describes the Hugging Face
+> route, which works only with a PRO plan.
+
 A public Ledger demo that costs nothing: a Hugging Face **Docker Space** on the free CPU
 tier, the free Gemini API tier for answers, GitHub Actions to build the index, and
 (optionally) free Langfuse Cloud for traces. This page is the whole procedure; everything

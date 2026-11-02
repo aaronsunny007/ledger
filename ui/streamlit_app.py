@@ -23,6 +23,31 @@ from ledger.answer.sanitize import strip_markdown_links  # noqa: E402
 from ledger.obs.dashboard import daily_stats, load_requests  # noqa: E402
 from ledger.retrieve.coverage import coverage_lines  # noqa: E402
 
+SECRET_KEYS = (
+    "LEDGER_API",
+    "LEDGER_INDEX_URL",
+    "GEMINI_API_KEY",
+    "LLM_PROVIDER",
+    "LLM_MODEL",
+    "LEDGER_DAILY_BUDGET",
+    "LEDGER_PER_CLIENT_DAILY",
+    "TRUSTED_PROXY_HOPS",
+    "LANGFUSE_PUBLIC_KEY",
+    "LANGFUSE_SECRET_KEY",
+)
+
+
+def _load_secrets() -> None:
+    """Hosted settings (Streamlit Community Cloud's secrets box) become environment variables."""
+    try:
+        for key in SECRET_KEYS:
+            if key not in os.environ and key in st.secrets:
+                os.environ[key] = str(st.secrets[key])
+    except Exception:  # no secrets file: running locally with a plain environment
+        return
+
+
+_load_secrets()
 API = os.environ.get("LEDGER_API", "http://localhost:8000")
 EXAMPLES = [
     "What was Apple's revenue in fiscal year 2023, and how did it change from 2022?",
@@ -41,6 +66,20 @@ class QuotaUsedUp(Exception):
     """The API's daily quota (or the provider's free tier) is spent; ``str(e)`` is for the user."""
 
 
+@st.cache_resource(show_spinner="Starting Ledger (the first visit downloads the filings index)…")
+def _embedded_api() -> str:
+    """``LEDGER_API=embedded``: fetch the index, then run the API inside this process."""
+    from ledger.bootstrap import DEFAULT_INDEX_URL, ensure_index, set_demo_defaults, start_api
+
+    set_demo_defaults(ROOT)
+    ensure_index(ROOT, os.environ.get("LEDGER_INDEX_URL") or DEFAULT_INDEX_URL)
+    return start_api()
+
+
+if API == "embedded":
+    API = _embedded_api()
+
+
 @st.cache_resource
 def _inprocess() -> Any:
     from ledger.factory import build_ledger
@@ -55,6 +94,12 @@ def _client_headers() -> dict[str, str]:
     except Exception:  # no request context (tests, old Streamlit)
         fwd = None
     return {"X-Forwarded-For": fwd} if fwd else {}
+
+
+def _forwarded_entries() -> int:
+    """How many addresses the hosting proxies put in X-Forwarded-For (a setup check, no address)."""
+    fwd = _client_headers().get("X-Forwarded-For", "")
+    return len([h for h in fwd.split(",") if h.strip()])
 
 
 def ask(question: str, tickers: list[str], years: list[int]) -> dict[str, Any]:
@@ -174,6 +219,12 @@ with tab_ask:
         st.caption("Leave empty to detect company and year from the question.")
         st.divider()
         st.caption("Not investment advice. Answers come only from ingested 10-K filings.")
+        with st.expander("About this demo"):
+            st.caption(
+                "A free demo with a daily limit on questions. Ledger shows what the filings "
+                "say; it is not investment advice and it can be wrong. "
+                f"Forwarding entries seen on your connection: {_forwarded_entries()}."
+            )
 
     with st.spinner("Loading the filings index…"):
         ready = index_ready()
