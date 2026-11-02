@@ -8,6 +8,7 @@ arithmetic operators, unary +/- and parentheses. Anything else raises.
 from __future__ import annotations
 
 import ast
+import math
 import operator
 import re
 from collections.abc import Callable
@@ -38,7 +39,10 @@ def _eval_node(node: ast.AST) -> float:
         return _eval_node(node.body)
     if isinstance(node, ast.Constant):
         if isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
-            return float(node.value)
+            try:
+                return float(node.value)
+            except OverflowError:  # a 400-digit integer
+                raise UnsafeExpressionError("Number too large") from None
         raise UnsafeExpressionError(f"Non-numeric constant: {node.value!r}")
     if isinstance(node, ast.BinOp) and type(node.op) in _ALLOWED_BINOPS:
         return _ALLOWED_BINOPS[type(node.op)](_eval_node(node.left), _eval_node(node.right))
@@ -61,7 +65,13 @@ def safe_eval_arithmetic(expr: str) -> float:
     """
     if len(expr) > MAX_EXPRESSION_LENGTH:
         raise UnsafeExpressionError("Expression too long")
-    return _eval_node(ast.parse(clean_expression(expr), mode="eval"))
+    try:
+        value = _eval_node(ast.parse(clean_expression(expr), mode="eval"))
+    except RecursionError:
+        raise UnsafeExpressionError("Expression nested too deeply") from None
+    if not math.isfinite(value):
+        raise UnsafeExpressionError("Result is not a finite number")
+    return value
 
 
 # A span of digits, separators, currency, parentheses, operators and spaces.

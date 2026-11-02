@@ -2,6 +2,7 @@
 # Start the demo: fetch the prebuilt index if there is none, run the API on
 # 127.0.0.1:8000 (it enforces the daily quota) and the Streamlit UI on the
 # one port a Space exposes, 7860. The UI reaches the API at LEDGER_API.
+# Only data/processed/index is unpacked from the download, so a tampered archive cannot overwrite code.
 set -u
 cd /app
 mkdir -p data/traces
@@ -16,7 +17,8 @@ elif [ -z "${LEDGER_INDEX_URL:-}" ]; then
 else
   echo "Downloading the index from LEDGER_INDEX_URL ..."
   if curl -fsSL --retry 3 --max-time 600 "$LEDGER_INDEX_URL" -o /tmp/index.tar.gz \
-    && tar -xzf /tmp/index.tar.gz -C /app && have_index; then
+    && tar -xzf /tmp/index.tar.gz -C /app --no-same-owner --no-same-permissions \
+      data/processed/index && have_index; then
     rm -f "$status" /tmp/index.tar.gz
   else
     echo "Downloading or unpacking the index from LEDGER_INDEX_URL failed." > "$status"
