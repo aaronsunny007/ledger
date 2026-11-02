@@ -20,6 +20,11 @@ env:
   GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
   STORE: memory
 
+# bash with pipefail, so a failing command before `| tee` fails the step instead of hiding.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   prelaunch:
     runs-on: ubuntu-latest

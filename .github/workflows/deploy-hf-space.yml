@@ -19,6 +19,11 @@ on:
 permissions:
   contents: read
 
+# bash with pipefail, so a failing command before `| tee` fails the step instead of hiding.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -47,4 +52,6 @@ jobs:
           python-version: "3.12"
       - run: pip install huggingface_hub
       - name: Deploy the Space
-        run: python scripts/deploy_hf_space.py --space "${{ inputs.space }}" --index-url "$INDEX_URL" | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          SPACE_NAME: ${{ inputs.space }}
+        run: python scripts/deploy_hf_space.py --space "$SPACE_NAME" --index-url "$INDEX_URL" | tee -a "$GITHUB_STEP_SUMMARY"
