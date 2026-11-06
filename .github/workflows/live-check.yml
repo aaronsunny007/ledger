@@ -1,0 +1,61 @@
+name: live-check
+
+# Opens the deployed demo in a real browser (Playwright), waits for it to wake, checks the
+# filings list, asks a question Ledger refuses without a model call, and optionally one real
+# question (one free Gemini request on the live quota). Also reports how many forwarding
+# entries the hosting proxy shows, which decides TRUSTED_PROXY_HOPS (docs/deploy-streamlit-cloud.md).
+# On pull requests it runs the same script against a local copy of the app.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Address of the deployed app (https://<name>.streamlit.app)
+        required: true
+      real_question:
+        description: Also ask one real question (uses 1 free Gemini request)
+        type: boolean
+        default: true
+  pull_request:
+    paths:
+      - scripts/live_check.py
+      - .github/workflows/live-check.yml
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_URL: ${{ inputs.url }}
+      REAL_QUESTION: ${{ inputs.real_question }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt playwright
+      - run: playwright install --with-deps chromium
+      - name: Start a local copy (pull requests only)
+        if: github.event_name == 'pull_request'
+        env:
+          LEDGER_API: embedded
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-never-called' }}
+        run: |
+          nohup streamlit run ui/streamlit_app.py --server.port 8501 --server.headless true > app.log 2>&1 &
+          echo "APP_URL=http://localhost:8501" >> "$GITHUB_ENV"
+          echo "REAL_QUESTION=false" >> "$GITHUB_ENV"
+      - name: Check the app in a browser
+        run: |
+          flag=""
+          [ "$REAL_QUESTION" = true ] && flag="--real"
+          python scripts/live_check.py "$APP_URL" $flag | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: App log, if anything failed
+        if: failure() && github.event_name == 'pull_request'
+        run: tail -60 app.log
