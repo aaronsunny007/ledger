@@ -5,7 +5,7 @@ sentence cites the filing passage it came from, and every number is recomputed b
 before you see it. When the filings do not contain the answer, Ledger says so and shows the
 closest passages instead of guessing.
 
-> Results: [85.5% on the 207 scored test questions](#results) on the latest run (31 Oct; the same code before the last round of changes scored 82.1% and 83.1% on two runs, 24 Oct 80.7%, three earlier runs of older code 77.3–78.7%), the long-context baseline gets 75.4%; live demo: not deployed yet, see [Running the demo](#running-the-demo)
+> Results: [85.5% on the 207 scored test questions](#results) on the latest run (31 Oct; the same code before the last round of changes scored 82.1% and 83.1% on two runs, 24 Oct 80.7%, three earlier runs of older code 77.3–78.7%), the long-context baseline gets 75.4%; [live demo](https://ledger-xw5vn2w4oas4wlgihbcpkj.streamlit.app/) (free tier, a daily question limit, may take a few minutes to wake), setup in [Running the demo](#running-the-demo)
 
 ```text
 Q: How much did Apple's net sales change from FY2022 to FY2023?
@@ -370,7 +370,7 @@ ledger ingest --folder configs/examples/my_docs.yaml
 
 ## Running the demo
 
-A public demo that costs nothing: [Streamlit Community Cloud](https://streamlit.io/cloud) serving the
+The public demo is live at https://ledger-xw5vn2w4oas4wlgihbcpkj.streamlit.app/ and costs nothing: [Streamlit Community Cloud](https://streamlit.io/cloud) serving the
 UI straight from this repository, with the free Gemini tier answering. Step by step, with every
 click, in [docs/deploy-streamlit-cloud.md](docs/deploy-streamlit-cloud.md); in short:
 
@@ -379,6 +379,8 @@ click, in [docs/deploy-streamlit-cloud.md](docs/deploy-streamlit-cloud.md); in s
 2. At share.streamlit.io, create an app from this repository: branch `main`, main file
    `ui/streamlit_app.py`, Python 3.12.
 3. In the app's *Secrets* box: `LEDGER_API = "embedded"` and `GEMINI_API_KEY = "..."` (the free key).
+   The live demo also sets `TRUSTED_PROXY_HOPS = "2"`: the **live-check** workflow saw two forwarding
+   entries on Streamlit Community Cloud, and without this every visitor would share one question limit.
 
 (Hugging Face used to be the plan. It now charges for Docker Spaces on the free tier, so
 [docs/deploy-demo.md](docs/deploy-demo.md) and `deploy/hf-space/` only apply if you have a PRO plan.)
