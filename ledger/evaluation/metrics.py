@@ -117,19 +117,37 @@ class ItemResult:
     refusal_reason: str | None = None
 
 
+_UP = re.compile(r"\b(increas\w*|grew|grow\w*|rose|rise|risen|higher|up|gain\w*|more)\b", re.I)
+_DOWN = re.compile(
+    r"\b(decreas\w*|declin\w*|fell|fall|fallen|drop\w*|lower|down|reduc\w*|less|loss)\b", re.I
+)
+
+
+def direction_ok(answer_text: str, gold: float) -> bool:
+    """For a question tagged "signed": the answer must also say which way the figure moved.
+
+    The size is graded by numeric_match, which ignores sign. A zero change has no direction.
+    Exactly one of up and down words must agree with the gold sign; an answer that uses both
+    ("debt due within a year rose while long-term debt fell") has not answered the question.
+    """
+    if gold == 0:
+        return True
+    up, down = bool(_UP.search(answer_text)), bool(_DOWN.search(answer_text))
+    return up and not down if gold > 0 else down and not up
+
+
 def score_item(item: GoldenItem, answer: Answer, k: int = 6) -> ItemResult:
     if item.answer_type == "refusal":
         correct: float | None = 1.0 if answer.refused else 0.0
     elif answer.refused:
         correct = 0.0
     elif item.answer_type == "numeric" and item.value is not None:
-        correct = (
-            1.0
-            if numeric_match(
-                answer.answer, item.value, item.tolerance, percent=item.unit == "percent"
-            )
-            else 0.0
+        ok = numeric_match(
+            answer.answer, item.value, item.tolerance, percent=item.unit == "percent"
         )
+        if ok and "signed" in item.tags:
+            ok = direction_ok(answer.answer, item.value)
+        correct = 1.0 if ok else 0.0
     else:
         correct = None
 

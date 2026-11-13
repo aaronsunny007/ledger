@@ -28,6 +28,9 @@ on:
       allow_hash_baseline:
         description: "Baseline: same, for the long-context baseline"
         default: ""
+      config:
+        description: "Ledger: a config file to run with instead of configs/retrieval.yaml (for an A/B comparison such as configs/experiments/no-finish-calculations.yaml)"
+        default: ""
       tag_suffix:
         description: "Ledger repeat for the noise estimate: a suffix such as -repeat1 starts a fresh run saved under its own tag instead of reusing the finished one"
         default: ""
@@ -85,6 +88,7 @@ jobs:
       ALLOW_HASH_LEDGER: ${{ inputs.allow_hash_ledger }}
       ALLOW_HASH_BASELINE: ${{ inputs.allow_hash_baseline }}
       TAG_SUFFIX: ${{ inputs.tag_suffix || needs.check.outputs.suffix }}
+      CONFIG: ${{ inputs.config }}
     steps:
       - uses: actions/checkout@v4
       - name: Check the API key
@@ -155,7 +159,8 @@ jobs:
       - name: Download and index (skipped when cached)
         if: steps.key.outputs.ok == 'true'
         run: |
-          python eval/run_eval.py --split all --sources financebench xbrl --print-needs > needs.txt
+          { python eval/run_eval.py --split all --sources financebench xbrl --print-needs
+            python eval/run_eval.py --split extra --print-needs || true; } | sort -u > needs.txt
           awk '{y[$1]=y[$1]" "$2} END {for (t in y) print t y[t]}' needs.txt | while read -r t ys; do
             ledger download --tickers "$t" --years $ys
           done
@@ -167,7 +172,7 @@ jobs:
         timeout-minutes: 150
         run: |
           python eval/run_eval.py --split "$SPLIT" --judge --sleep 4 --resume --allow-hash $ALLOW_HASH_LEDGER \
-            --tag "ledger-$SPLIT$TAG_SUFFIX" --summary ledger.md
+            ${CONFIG:+--config "$CONFIG"} --tag "ledger-$SPLIT$TAG_SUFFIX" --summary ledger.md
           cat ledger.md >> "$GITHUB_STEP_SUMMARY"
       - name: Long-context baseline
         if: always() && steps.ledger.outcome != 'skipped' && ((github.event_name == 'schedule' && needs.check.outputs.baseline == 'true') || inputs.baseline)

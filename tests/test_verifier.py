@@ -301,3 +301,26 @@ def test_pathological_expressions_are_unverifiable_not_crashes() -> None:
         with pytest.raises((UnsafeExpressionError, SyntaxError, ZeroDivisionError)):
             safe_eval_arithmetic(expr)
     assert safe_eval_arithmetic("-" * 450 + "1") == 1.0
+
+
+def test_bare_operands_are_grounded_against_figures_written_with_a_scale_word(
+    cv: ClaimVerifier,
+) -> None:
+    """The model writes the calculation in the table's units; the passage says "$630 million"."""
+    prose = "Operating income was $630 million in 2024 versus $500 million in 2023."
+    r = cv.verify(
+        "Operating income rose by $130 million.", [prose], expression="630 - 500", stated_result=130
+    )
+    assert r.status is ClaimStatus.VERIFIED, r.message
+
+
+def test_a_bare_operand_is_not_grounded_by_an_unrelated_scaled_figure(cv: ClaimVerifier) -> None:
+    prose = "Operating income was $630 million in 2024 versus $500 million in 2023."
+    r = cv.verify("Operating income rose.", [prose], expression="640 - 500", stated_result=140)
+    assert r.status is not ClaimStatus.VERIFIED  # 640 is in no passage, even scaled down
+
+
+def test_a_plain_number_does_not_ground_a_bare_operand_by_division(cv: ClaimVerifier) -> None:
+    # 4,500,000 with no scale word must not ground 4.5 (only a stated scale word divides).
+    r = cv.verify("It was 4.5.", ["Shares: 4,500,000."], expression="4.5 + 1", stated_result=5.5)
+    assert r.status is not ClaimStatus.VERIFIED

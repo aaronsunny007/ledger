@@ -54,6 +54,9 @@ CONVERSION_CONSTANTS = frozenset(
 # A claim in billions may be grounded in a table reported in thousands or
 # millions; evidence values are scaled up by these factors when matching.
 _EVIDENCE_SCALES = (1.0, 1e3, 1e6, 1e9)
+# A figure printed with a scale word in prose ("$630 million") against a calculation written in
+# the table's units (630): the operand is the evidence divided by the scale.
+_PROSE_SCALES = (1e-3, 1e-6, 1e-9)
 
 
 # ---------------------------------------------------------------------------
@@ -228,7 +231,10 @@ class ClaimVerifier:
         for e in evidence:
             if e.is_percentage != n.is_percentage:
                 continue
-            for scale in _EVIDENCE_SCALES if not n.is_percentage else (1.0,):
+            scales: tuple[float, ...] = _EVIDENCE_SCALES if not n.is_percentage else (1.0,)
+            if not n.is_percentage and abs(e.magnitude) != abs(e.value):
+                scales = scales + _PROSE_SCALES  # only a number that carries a scale word
+            for scale in scales:
                 candidate = abs(e.magnitude) * scale
                 tol = max(n.precision, e.precision * scale, self.ground_rel_tolerance * candidate)
                 if abs(target - candidate) <= tol:

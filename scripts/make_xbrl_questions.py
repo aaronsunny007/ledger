@@ -45,8 +45,17 @@ CONCEPTS = {
     "research and development expense": ["ResearchAndDevelopmentExpense"],
     "total assets": ["Assets"],
     "cash and cash equivalents": ["CashAndCashEquivalentsAtCarryingValue"],
+    # For the --extra questions: total debt is the two lines added together.
+    "long-term debt": ["LongTermDebtNoncurrent"],
+    "debt due within one year": ["LongTermDebtCurrent", "DebtCurrent"],
 }
-INSTANT = {"total assets", "cash and cash equivalents"}  # balance-sheet values
+# balance-sheet values
+INSTANT = {
+    "total assets",
+    "cash and cash equivalents",
+    "long-term debt",
+    "debt due within one year",
+}
 
 
 def _days(start: str, end: str) -> int:
@@ -179,6 +188,118 @@ def make_items(
     return items
 
 
+def make_extra_items(
+    ticker: str, company: str, facts: dict[str, Any], years: list[int]
+) -> list[GoldenItem]:
+    """Change and direction questions for tuning, in the split "extra".
+
+    These are the shape that sometimes fails: a figure for two years, or a total made of two
+    lines, and a question about the change. The gold value is the signed difference computed
+    from what the company tagged; questions tagged "signed" are graded on direction as well as
+    size. Never part of the dev or test split.
+    """
+    vals = {m: annual_values(facts, m) for m in CONCEPTS}
+    items: list[GoldenItem] = []
+
+    def add(kind: str, y: int, q: str, value: float, unit: str, tags: list[str]) -> None:
+        iid = f"xbrlx-{ticker}-{y}-{kind}"
+        items.append(
+            GoldenItem(
+                id=iid,
+                source="xbrl",
+                question=q,
+                answer=f"{value:,.2f}" + (" percentage points" if unit == "percent" else ""),
+                answer_type="numeric",
+                value=value,
+                unit=unit,
+                tolerance=0.005,
+                ticker=ticker,
+                fiscal_year=y,
+                tags=["needs-arithmetic", "extra", *tags],
+                split="extra",
+            )
+        )
+
+    def clear(cur: float, prev: float) -> bool:
+        # A change too small to be sure of the direction (or from zero) makes a poor question.
+        return prev != 0 and abs(cur - prev) / abs(prev) >= 0.005
+
+    for y in years:
+        for metric, noun in (
+            ("revenue", "revenue"),
+            ("net income", "net income"),
+            ("operating income", "operating income"),
+            ("total assets", "total assets"),
+            ("cash and cash equivalents", "cash and cash equivalents"),
+        ):
+            cur, prev = vals[metric].get(y), vals[metric].get(y - 1)
+            if cur is None or prev is None or not clear(cur, prev):
+                continue
+            end = metric in INSTANT
+            span = (
+                f"from the end of fiscal year {y - 1} to the end of fiscal year {y}"
+                if end
+                else f"from fiscal year {y - 1} to fiscal year {y}"
+            )
+            add(
+                f"{metric.replace(' ', '_')}_direction",
+                y,
+                f"Did {company}'s {noun} increase or decrease {span}, and by how much in dollars?",
+                cur - prev,
+                "usd",
+                ["signed"],
+            )
+        lt, lt_prev = vals["long-term debt"].get(y), vals["long-term debt"].get(y - 1)
+        cu, cu_prev = (
+            vals["debt due within one year"].get(y),
+            vals["debt due within one year"].get(y - 1),
+        )
+        if None not in (lt, lt_prev, cu, cu_prev):
+            total, total_prev = lt + cu, lt_prev + cu_prev  # type: ignore[operator]
+            if clear(total, total_prev):
+                add(
+                    "total_debt_direction",
+                    y,
+                    f"Did {company}'s total debt (debt due within one year plus long-term debt) "
+                    f"increase or decrease from the end of fiscal year {y - 1} to the end of "
+                    f"fiscal year {y}, and by how much in dollars?",
+                    total - total_prev,
+                    "usd",
+                    ["signed", "multi-step"],
+                )
+        rev, rev_prev = vals["revenue"].get(y), vals["revenue"].get(y - 1)
+        oi, oi_prev = vals["operating income"].get(y), vals["operating income"].get(y - 1)
+        if rev and rev_prev and oi is not None and oi_prev is not None:
+            m, m_prev = oi / rev * 100, oi_prev / rev_prev * 100
+            if abs(m) <= 100 and abs(m_prev) <= 100 and abs(m - m_prev) >= 0.5:
+                add(
+                    "operating_margin_change",
+                    y,
+                    f"By how many percentage points did {company}'s operating margin change "
+                    f"from fiscal year {y - 1} to fiscal year {y}? Say whether it rose or fell.",
+                    m - m_prev,
+                    "percent",
+                    ["signed", "multi-step"],
+                )
+    return items
+
+
+def pick_balanced(pool: list[GoldenItem], n: int, seed: int) -> list[GoldenItem]:
+    """n questions spread evenly over the kinds (the id's last part), then over companies."""
+    rng = random.Random(seed)
+    by_kind: dict[str, list[GoldenItem]] = {}
+    for i in pool:
+        by_kind.setdefault(i.id.rsplit("-", 1)[-1], []).append(i)
+    for v in by_kind.values():
+        rng.shuffle(v)
+    chosen: list[GoldenItem] = []
+    while len(chosen) < n and any(by_kind.values()):
+        for kind in sorted(by_kind):
+            if by_kind[kind] and len(chosen) < n:
+                chosen.append(by_kind[kind].pop())
+    return chosen
+
+
 def refresh(path: Path, pool: list[GoldenItem]) -> int:
     """Recompute existing questions with the current rules; drop those now invalid.
 
@@ -207,14 +328,23 @@ def refresh(path: Path, pool: list[GoldenItem]) -> int:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=150)
+    ap.add_argument(
+        "--extra",
+        action="store_true",
+        help="write the tuning-only change and direction questions (split extra) to "
+        "eval/golden/xbrl_extra.jsonl instead of the headline XBRL set",
+    )
     ap.add_argument("--seed", type=int, default=7)
-    ap.add_argument("--out", type=Path, default=ROOT / "eval" / "golden" / "xbrl.jsonl")
+    ap.add_argument("--out", type=Path, default=None)
     ap.add_argument(
         "--refresh",
         action="store_true",
         help="recompute the questions already in --out (same ids and splits) instead of sampling",
     )
     args = ap.parse_args()
+    if args.out is None:
+        name = "xbrl_extra.jsonl" if args.extra else "xbrl.jsonl"
+        args.out = ROOT / "eval" / "golden" / name
 
     corpus = yaml.safe_load((ROOT / "configs" / "corpus.yaml").read_text())
     overrides = {c["ticker"]: int(c["cik"]) for c in corpus["companies"] if c.get("cik")}
@@ -227,10 +357,19 @@ def main() -> None:
         except Exception as e:
             print(f"skip {c['ticker']}: {e}", file=sys.stderr)
             continue
-        pool += make_items(c["ticker"], c["name"], facts, years)
+        make = make_extra_items if args.extra else make_items
+        pool += make(c["ticker"], c["name"], facts, years)
 
     if args.refresh:
         sys.exit(refresh(args.out, pool))
+
+    if args.extra:
+        chosen = sorted(pick_balanced(pool, args.n, args.seed), key=lambda i: i.id)
+        if not chosen:
+            sys.exit("No extra questions generated: every SEC request failed (see errors above).")
+        n = write_golden(args.out, chosen)
+        print(f"wrote {n} extra questions to {args.out.relative_to(ROOT)} (pool {len(pool)})")
+        return
 
     # Half lookups, half arithmetic, spread across companies.
     rng = random.Random(args.seed)

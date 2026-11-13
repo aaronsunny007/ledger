@@ -44,3 +44,26 @@ def test_implausible_margin_is_not_a_question() -> None:
     )
     kinds = {i.id.rsplit("-", 1)[-1] for i in make_items("GIS", "General Mills", facts, [2022])}
     assert "operating_margin" not in kinds and "revenue" in kinds
+
+
+def test_extra_questions_are_signed_tuning_items_outside_dev_and_test() -> None:
+    from scripts.make_xbrl_questions import make_extra_items, pick_balanced
+
+    def two_years(concept: str, a: float, b: float, instant: bool = False) -> dict[str, Any]:
+        def f(val: float, y: int) -> dict[str, Any]:
+            return _fact(val, f"{y}-12-31", y, None if instant else f"{y}-01-01")
+
+        return {concept: [f(a, 2022), f(b, 2023)]}
+
+    facts = _facts(
+        **two_years("Revenues", 4000e6, 4500e6),
+        **two_years("OperatingIncomeLoss", 500e6, 630e6),
+        **two_years("LongTermDebtNoncurrent", 143e9, 140e9, True),
+        **two_years("LongTermDebtCurrent", 7e9, 8e9, True),
+    )
+    items = {i.id.rsplit("-", 1)[-1]: i for i in make_extra_items("ACME", "Acme", facts, [2023])}
+    assert {"revenue_direction", "total_debt_direction", "operating_margin_change"} <= set(items)
+    debt = items["total_debt_direction"]
+    assert debt.split == "extra" and "signed" in debt.tags and "multi-step" in debt.tags
+    assert debt.value == (140e9 + 8e9) - (143e9 + 7e9)  # -2 billion: it fell
+    assert pick_balanced(list(items.values()), 2, seed=1)

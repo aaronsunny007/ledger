@@ -12,6 +12,10 @@ on:
       xbrl_n:
         description: number of XBRL questions
         default: "150"
+      extra:
+        description: build the tuning-only change and direction questions (eval/golden/xbrl_extra.jsonl) with xbrl_n questions, and nothing else
+        type: boolean
+        default: false
       refresh:
         description: only recompute the existing XBRL questions (same ids), skip FinanceBench
         type: boolean
@@ -38,7 +42,7 @@ jobs:
           cache: pip
       - run: pip install -e .
       - name: FinanceBench open set
-        if: ${{ !inputs.refresh }}
+        if: ${{ !inputs.refresh && !inputs.extra }}
         run: |
           python scripts/financebench.py --list | tee financebench-needs.txt
           python scripts/financebench.py
@@ -52,7 +56,9 @@ jobs:
           done
       - name: XBRL questions
         run: |
-          if [ "${{ inputs.refresh }}" = true ]; then
+          if [ "${{ inputs.extra }}" = true ]; then
+            python scripts/make_xbrl_questions.py --extra --n ${{ inputs.xbrl_n }} | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ inputs.refresh }}" = true ]; then
             python scripts/make_xbrl_questions.py --refresh | tee -a "$GITHUB_STEP_SUMMARY"
           else
             python scripts/make_xbrl_questions.py --n ${{ inputs.xbrl_n }}

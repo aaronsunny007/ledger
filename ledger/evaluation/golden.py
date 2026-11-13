@@ -27,7 +27,9 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 GOLDEN_DIR = Path(__file__).resolve().parents[2] / "eval" / "golden"
-Split = Literal["dev", "test"]
+# "extra" is a tuning pool of generated questions (see scripts/make_xbrl_questions.py --extra):
+# it is never part of dev, test or "all", and nothing in it is reported as a headline number.
+Split = Literal["dev", "test", "extra"]
 
 
 class Evidence(BaseModel):

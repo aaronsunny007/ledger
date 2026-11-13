@@ -53,7 +53,9 @@ def _git_sha() -> str:
 def select(items: list[GoldenItem], args: argparse.Namespace) -> list[GoldenItem]:
     if args.smoke:
         return smoke_set(items, args.smoke_n)
-    if args.split != "all":
+    if args.split == "all":
+        items = [i for i in items if i.split != "extra"]
+    else:
         items = [i for i in items if i.split == args.split]
     if args.sources:
         items = [i for i in items if i.source in args.sources]
@@ -124,7 +126,7 @@ def rescore(path: Path) -> int:
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--system", choices=["ledger", "long-context"], default="ledger")
-    p.add_argument("--split", choices=["dev", "test", "all"], default="dev")
+    p.add_argument("--split", choices=["dev", "test", "extra", "all"], default="dev")
     p.add_argument("--smoke", action="store_true", help="the fixed 50-question CI set")
     p.add_argument("--smoke-n", type=int, default=50)
     p.add_argument("--sources", nargs="*")

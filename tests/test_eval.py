@@ -324,3 +324,47 @@ def test_two_johnson_and_johnson_filings_no_longer_share_a_year() -> None:
 
     assert filing("2023-01-01").fiscal_year != filing("2023-12-31").fiscal_year
     assert filing("2023-01-01").doc_id == "JNJ_2022_10K"
+
+
+def test_signed_questions_need_the_right_direction() -> None:
+    from ledger.evaluation.metrics import direction_ok
+
+    assert direction_ok("Debt decreased by $229 million.", -229e6)
+    assert not direction_ok("Debt increased by $229 million.", -229e6)
+    assert direction_ok("Revenue rose $5 billion.", 5e9)
+    # saying both ways has not answered the question
+    assert not direction_ok("Short-term debt rose while long-term debt fell.", -229e6)
+    # no direction word at all
+    assert not direction_ok("Total debt was $150,639 million.", -229e6)
+
+
+def test_signed_tag_is_graded_on_direction_other_questions_are_not() -> None:
+    from ledger.evaluation.metrics import score_item
+    from ledger.types import Answer
+
+    right = Answer(question="q", answer="Debt decreased by $229 million.", refused=False)
+    wrong = Answer(question="q", answer="Debt increased by $229 million.", refused=False)
+    signed = _item(value=-229e6, tags=["signed"])
+    plain = _item(value=-229e6)
+    assert score_item(signed, right).correct == 1.0
+    assert score_item(signed, wrong).correct == 0.0
+    assert score_item(plain, wrong).correct == 1.0  # size only, as before
+
+
+def test_extra_split_is_kept_out_of_all() -> None:
+    import argparse
+
+    mod = _run_eval_module()
+    items = [
+        _item(id="a", split="dev"),
+        _item(id="b", split="test"),
+        _item(id="c", split="extra"),
+    ]
+
+    def ids(split: str) -> list[str]:
+        ns = argparse.Namespace(
+            smoke=False, split=split, sources=None, include_out_of_corpus=True, limit=0
+        )
+        return [i.id for i in mod.select(items, ns)]
+
+    assert ids("all") == ["a", "b"] and ids("extra") == ["c"] and ids("dev") == ["a"]
