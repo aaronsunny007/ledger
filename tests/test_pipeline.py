@@ -293,3 +293,70 @@ def test_retry_feedback_names_the_valid_passage_numbers(make_ledger: Make) -> No
     ledger, _ = make_ledger(respond)
     ledger.ask(Q)
     assert len(prompts) == 2 and "from 1 to" in prompts[1] and '"citations"' in prompts[1]
+
+
+QD = "Did Acme Widgets operating income increase in FY2024?"
+
+
+def listed_inputs(user: str) -> str:
+    """The failure seen on a Verizon debt question: both years' figures, no comparison."""
+    n = passage_number(user, "Operating income | 630")
+    return claims_json(
+        {
+            "text": "Acme Widgets' operating income was $630 million in 2024 versus $500 million "
+            "in 2023, on total revenue of $4,500 million versus $4,000 million.",
+            "citations": [n],
+        }
+    )
+
+
+def finished(user: str) -> str:
+    n = passage_number(user, "Operating income | 630")
+    return claims_json(
+        {
+            "text": "Acme Widgets' operating income increased by $130 million, from $500 million "
+            "in 2023 to $630 million in 2024.",
+            "citations": [n],
+            "calculation": "630 - 500",
+            "result": 130,
+        }
+    )
+
+
+def test_change_question_answered_with_figures_only_gets_one_more_draft(
+    make_ledger: Make,
+) -> None:
+    replies = iter([listed_inputs, finished])
+    ledger, llm = make_ledger(lambda s, u: next(replies)(u))
+    a = ledger.ask(QD)
+    assert a.verified is True
+    assert "increased by $130 million" in a.answer
+    assert a.claims[0].calculation == "630 - 500"
+    assert len(llm.calls) == 2  # type: ignore[attr-defined]
+    assert "Do not stop after listing" in llm.calls[1][1]  # type: ignore[attr-defined]
+
+
+def test_unfinished_answer_stands_when_the_second_draft_is_no_better(make_ledger: Make) -> None:
+    ledger, llm = make_ledger(lambda s, u: listed_inputs(u))
+    a = ledger.ask(QD)
+    assert not a.refused and "$630 million" in a.answer
+    assert len(llm.calls) == 2  # type: ignore[attr-defined]
+
+
+def test_unfinished_answer_stands_when_the_second_draft_refuses(make_ledger: Make) -> None:
+    replies = iter([None, claims_json(answerable=False)])
+
+    def respond(system: str, user: str) -> str:
+        reply = next(replies)
+        return listed_inputs(user) if reply is None else reply
+
+    ledger, _ = make_ledger(respond)
+    a = ledger.ask(QD)
+    assert not a.refused
+
+
+def test_calculation_step_can_be_switched_off(make_ledger: Make) -> None:
+    ledger, llm = make_ledger(lambda s, u: listed_inputs(u))
+    ledger.config.answer.finish_calculations = False
+    ledger.ask(QD)
+    assert len(llm.calls) == 1  # type: ignore[attr-defined]

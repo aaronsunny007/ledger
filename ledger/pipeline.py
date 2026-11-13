@@ -12,7 +12,11 @@ from dataclasses import dataclass, field
 
 from ledger.answer.citations import to_citation
 from ledger.answer.generate import Draft, DraftClaim, Generator
-from ledger.answer.guards import ADVICE_REFUSAL, is_investment_advice
+from ledger.answer.guards import (
+    ADVICE_REFUSAL,
+    is_investment_advice,
+    lists_inputs_without_finishing,
+)
 from ledger.answer.llm import LLM, LLMError, LLMResult, QuotaExhausted
 from ledger.cache.semantic_cache import SemanticCache
 from ledger.config import LedgerConfig
@@ -38,6 +42,13 @@ REPARSE_FEEDBACK = (
     "Your reply could not be used. Reply with exactly one valid JSON object as described in "
     'the instructions and nothing else. When "answerable" is true, "claims" must hold at '
     "least one claim with its text and citations."
+)
+
+FINISH_FEEDBACK = (
+    "Your answer lists the figures but does not answer the change the question asks about. "
+    "Do not stop after listing the figures: add up any lines that make up the total for each "
+    "period, then take the difference in a claim with its calculation, and say whether it "
+    "increased or decreased and by how much."
 )
 
 NO_COMPANY = (
@@ -326,11 +337,50 @@ class Ledger:
                 )
                 return self._finish(trace, answer, llm_calls, passages)
 
+        if self.config.answer.finish_calculations and not any(c.problems for c in checked):
+            with trace.span("finish_calculation") as s:
+                finished = self._finish_calculation(question, draft, passages, llm_calls)
+                s.attrs.update(used=finished is not None)
+            if finished is not None:
+                draft, checked = finished
+                regenerated = True
+
         answer = self._assemble(question, draft, checked, passages)
         answer.regenerated = regenerated
         if self.cache is not None and self.config.cache.enabled and answer.verified is not False:
             self.cache.store(question, f, answer, {p.chunk.doc_id for p in passages})
         return self._finish(trace, answer, llm_calls, passages)
+
+    def _finish_calculation(
+        self,
+        question: str,
+        draft: Draft,
+        passages: list[ScoredChunk],
+        llm_calls: list[LLMResult],
+    ) -> tuple[Draft, list[_Checked]] | None:
+        """One more draft for a change question answered with figures and no calculation.
+
+        Returns the new draft and its checks only if it is answerable, passes every check and
+        carries a calculation; otherwise None and the first answer stands.
+        """
+        if not lists_inputs_without_finishing(
+            question,
+            [c.text for c in draft.claims],
+            any(c.calculation for c in draft.claims),
+        ):
+            return None
+        try:
+            draft2, res2 = self._redraft(question, passages, [FINISH_FEEDBACK])
+        except LLMError as e:
+            log.warning("finishing the calculation failed (%s); keeping the first answer", e)
+            return None
+        llm_calls.append(res2)
+        if not draft2.answerable or not any(c.calculation for c in draft2.claims):
+            return None
+        checked2 = self._check(draft2, passages, question)
+        if any(c.problems for c in checked2):
+            return None
+        return draft2, checked2
 
     def _redraft(
         self, question: str, passages: list[ScoredChunk], problems: list[str]

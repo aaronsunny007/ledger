@@ -281,3 +281,19 @@ def test_the_wider_look_can_be_switched_off_and_skips_when_nothing_new(
     ledger2.config.retrieval.top_k = 50  # the first look already saw everything there is
     assert ledger2.ask("What was Acme Widgets operating income in 2024?").refused
     assert len(llm2.calls) == 1  # type: ignore[attr-defined]
+
+
+def test_lists_inputs_without_finishing() -> None:
+    from ledger.answer.guards import lists_inputs_without_finishing as f
+
+    four = [
+        "Debt due within a year was $9,963 million versus $7,443 million, and long-term debt "
+        "$140,676 million versus $143,425 million."
+    ]
+    q = "Has Verizon increased its debt between 2021 and 2022?"
+    assert f(q, four, has_calculation=False)
+    assert not f(q, four, has_calculation=True)  # it did the sum
+    assert not f(q, ["Revenue grew 8% to $4,500 million."], has_calculation=False)  # one figure set
+    assert not f(
+        "What was Apple's revenue in 2023?", four, has_calculation=False
+    )  # not a change question

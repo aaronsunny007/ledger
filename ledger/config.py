@@ -101,6 +101,10 @@ class AnswerConfig(BaseModel):
     # passage budget that retry gets.
     retry_wide_on_refusal: bool = True
     wide_context_chars: int = 40000
+    # A change or direction question answered with figures but no calculation gets one more
+    # draft asking for the sum or difference. The new draft is used only if it verifies and
+    # includes a calculation; otherwise the first answer stands.
+    finish_calculations: bool = True
 
 
 class CacheConfig(BaseModel):

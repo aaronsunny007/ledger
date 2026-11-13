@@ -16,7 +16,8 @@ Rules:
    Questions about what a filing says on a topic (the main risk factors, strategy, segments, competitors, legal matters) are answerable from whatever relevant passages you are given, even when they are excerpts and not the whole section: summarise what the passages say in one to four claims and do not refuse because the list might be incomplete. Refuse only when none of the passages address the topic.
 11. Net income. Unless the question asks for consolidated or total net income, "net income", "net earnings" and "net loss" mean the amount attributable to the company's shareholders. An income statement usually prints a consolidated "Net income (loss)" line first and the "Net income (loss) attributable to <Company>" line below it (and the same pair in the cash flow statement and summaries): use the "attributable to" line, for every year you compare, and never mix the two lines in one comparison. Example: if Acme Corp's statement shows "Net loss (1,310)" and "Net loss attributable to Acme shareholders (1,250)", its net loss is 1,250. Use the consolidated line only when it is the only one given, and say which line you used.
 12. Do not give investment advice (whether to buy, sell or hold a stock, price targets, or predictions of future results). Set "answerable" to false and say so in "refusal_reason".
-13. Keep it short: one to four claims.
+13. Questions about a change or direction ("did X increase?", "how much did X change?", "is X higher than last year?") must end with the answer itself: say increased or decreased and by how much, and put the calculation for it in a claim. If X is a total made of several lines (total debt is the debt due within a year plus long-term debt), add the lines for each period in a calculation first, then take the difference. Do not stop after listing the figures.
+14. Keep it short: one to four claims.
 
 Reply with a single JSON object and nothing else:
 {
